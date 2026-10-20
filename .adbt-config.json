@@ -1,0 +1,8 @@
+{
+  "platform": {
+    "default": "vega_os"
+  },
+  "project": {
+    "identifier": "StudioX"
+  }
+}

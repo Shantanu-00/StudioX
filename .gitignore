@@ -1,0 +1,40 @@
+# --- Local-only material (never published) ---------------------------------
+# Hackathon research, notes, the friction log and install evidence.
+/docs/local/
+
+# Credentials and environment configuration.
+.env
+.env.*
+!.env.example
+!.env.sample
+/.aws/
+
+# Local AI-tool state.
+/.codex/
+/.agents/
+/.claude/settings.local.json
+
+# --- Build output and generated files ---------------------------------------
+/build/
+/dist/
+/generated/
+/buildinfo.json
+CMakeUserPresets.json
+.tmp/
+coverage/
+reports/
+
+# --- Dependencies -----------------------------------------------------------
+node_modules/
+npm-debug.log*
+
+# --- Editors and operating system -------------------------------------------
+.idea/
+.vscode/
+*.iml
+*.swp
+.DS_Store
+
+# Python bytecode (helper scripts)
+__pycache__/
+*.pyc
