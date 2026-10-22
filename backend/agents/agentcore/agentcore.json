@@ -1,0 +1,104 @@
+{
+  "$schema": "https://schema.agentcore.aws.dev/v1/agentcore.json",
+  "name": "studioxagents",
+  "version": 1,
+  "managedBy": "CDK",
+  "tags": {
+    "agentcore:created-by": "agentcore-cli",
+    "agentcore:project-name": "studioxagents",
+    "project": "studiox"
+  },
+  "runtimes": [
+    {
+      "name": "analyst",
+      "description": "StudioX analyst: segment, lenses, curate, map, answer",
+      "build": "CodeZip",
+      "entrypoint": "main.py",
+      "codeLocation": "app/analyst/",
+      "runtimeVersion": "PYTHON_3_13",
+      "networkMode": "PUBLIC",
+      "protocol": "HTTP",
+      "envVars": [
+        {
+          "name": "SONNET_MODEL_ID",
+          "value": "us.anthropic.claude-sonnet-5-5"
+        },
+        {
+          "name": "HAIKU_MODEL_ID",
+          "value": "us.anthropic.claude-haiku-5-5"
+        },
+        {
+          "name": "NOVA_MODEL_ID",
+          "value": "us.amazon.nova-2-lite-v1:0"
+        },
+        {
+          "name": "SX_REGION",
+          "value": "us-east-1"
+        },
+        {
+          "name": "BUCKET_PARAM",
+          "value": "/studiox/bucket"
+        }
+      ],
+      "additionalPolicies": [
+        "iam-policy.json"
+      ],
+      "lifecycleConfiguration": {
+        "idleRuntimeSessionTimeout": 900,
+        "maxLifetime": 28800
+      }
+    },
+    {
+      "name": "coviewer",
+      "description": "StudioX co-viewer: refine and ask at the playhead",
+      "build": "CodeZip",
+      "entrypoint": "main.py",
+      "codeLocation": "app/coviewer/",
+      "runtimeVersion": "PYTHON_3_13",
+      "networkMode": "PUBLIC",
+      "protocol": "HTTP",
+      "envVars": [
+        {
+          "name": "SONNET_MODEL_ID",
+          "value": "us.anthropic.claude-sonnet-5-5"
+        },
+        {
+          "name": "HAIKU_MODEL_ID",
+          "value": "us.anthropic.claude-haiku-5-5"
+        },
+        {
+          "name": "NOVA_MODEL_ID",
+          "value": "us.amazon.nova-2-lite-v1:0"
+        },
+        {
+          "name": "SX_REGION",
+          "value": "us-east-1"
+        },
+        {
+          "name": "BUCKET_PARAM",
+          "value": "/studiox/bucket"
+        }
+      ],
+      "additionalPolicies": [
+        "iam-policy.json"
+      ],
+      "lifecycleConfiguration": {
+        "idleRuntimeSessionTimeout": 900,
+        "maxLifetime": 28800
+      }
+    }
+  ],
+  "memories": [],
+  "knowledgeBases": [],
+  "credentials": [],
+  "evaluators": [],
+  "onlineEvalConfigs": [],
+  "agentCoreGateways": [],
+  "policyEngines": [],
+  "configBundles": [],
+  "abTests": [],
+  "harnesses": [],
+  "datasets": [],
+  "capacityProviders": [],
+  "payments": []
+}

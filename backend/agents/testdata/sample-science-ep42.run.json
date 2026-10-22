@@ -1,0 +1,151 @@
+{
+  "timings": {
+    "segment": 3.2,
+    "lenses s1": 80.5,
+    "curate": 5.1,
+    "answers": 52.3,
+    "total": 141.1
+  },
+  "usage": {
+    "calls": 22,
+    "inputTokens": 18709,
+    "outputTokens": 12242,
+    "cacheReadTokens": 17428,
+    "cacheWriteTokens": 1177,
+    "seconds": 237.24
+  },
+  "usageByRole": {
+    "segment": {
+      "calls": 1,
+      "inputTokens": 229,
+      "outputTokens": 270,
+      "cacheReadTokens": 1264,
+      "cacheWriteTokens": 0,
+      "seconds": 3.19
+    },
+    "protocol": {
+      "calls": 1,
+      "inputTokens": 347,
+      "outputTokens": 820,
+      "cacheReadTokens": 1491,
+      "cacheWriteTokens": 0,
+      "seconds": 6.18
+    },
+    "people": {
+      "calls": 1,
+      "inputTokens": 1074,
+      "outputTokens": 712,
+      "cacheReadTokens": 3530,
+      "cacheWriteTokens": 0,
+      "seconds": 9.81
+    },
+    "claims": {
+      "calls": 1,
+      "inputTokens": 538,
+      "outputTokens": 1306,
+      "cacheReadTokens": 1520,
+      "cacheWriteTokens": 0,
+      "seconds": 10.51
+    },
+    "search": {
+      "calls": 9,
+      "inputTokens": 1481,
+      "outputTokens": 3006,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "seconds": 30.58
+    },
+    "stance": {
+      "calls": 4,
+      "inputTokens": 6598,
+      "outputTokens": 2178,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "seconds": 39.29
+    },
+    "orchestrator": {
+      "calls": 1,
+      "inputTokens": 1503,
+      "outputTokens": 1049,
+      "cacheReadTokens": 3266,
+      "cacheWriteTokens": 0,
+      "seconds": 80.48
+    },
+    "curate": {
+      "calls": 1,
+      "inputTokens": 799,
+      "outputTokens": 577,
+      "cacheReadTokens": 1178,
+      "cacheWriteTokens": 0,
+      "seconds": 5.06
+    },
+    "ask": {
+      "calls": 3,
+      "inputTokens": 6140,
+      "outputTokens": 2324,
+      "cacheReadTokens": 5179,
+      "cacheWriteTokens": 1177,
+      "seconds": 52.14
+    }
+  },
+  "candidatesAudit": [
+    {
+      "id": "people-s1-1",
+      "lens": "people",
+      "salience": 0.8,
+      "reason": "Named subject of the segment; viewers may want context on who he is and a caution about the claims attributed to his routine.",
+      "wikipedia": "https://en.wikipedia.org/wiki/Cristiano_Ronaldo",
+      "imageLicence": "CC BY-SA 4.0"
+    },
+    {
+      "id": "claims-s1-1",
+      "lens": "claims",
+      "salience": 0.85,
+      "reason": "Specific statistic attributed to Harvard; likely misattributed or unsupported.",
+      "verdictRules": "v1",
+      "stances": [
+        "mixed",
+        "mixed",
+        "mixed"
+      ],
+      "searches": 1,
+      "query": "Harvard study midday nap cardiovascular strain 37 percent"
+    },
+    {
+      "id": "protocol-s1-1",
+      "lens": "protocol",
+      "salience": 0.6,
+      "reason": "Gives a concrete, multi-part sleep routine covering cycle count, timing, supplement doses, and room temperature."
+    },
+    {
+      "id": "claims-s1-2",
+      "lens": "claims",
+      "salience": 0.75,
+      "reason": "Mechanistic claim about sleep benefits; human evidence is limited.",
+      "verdictRules": "v1",
+      "stances": [
+        "mixed",
+        "mixed",
+        "mixed",
+        "mixed",
+        "mixed"
+      ],
+      "searches": 1,
+      "query": "magnesium L-threonate slow-wave sleep human trial blood-brain barrier"
+    },
+    {
+      "id": "claims-s1-3",
+      "lens": "claims",
+      "salience": 0.7,
+      "reason": "Overstated absolute claim about rapid, complete change.",
+      "verdictRules": "v1",
+      "stances": [
+        "mixed",
+        "mixed",
+        "mixed"
+      ],
+      "searches": 2,
+      "query": "how long to change sleep architecture after intervention study one week"
+    }
+  ]
+}

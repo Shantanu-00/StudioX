@@ -1,0 +1,83 @@
+{
+  "timings": {
+    "segment": 5.6,
+    "lenses s1": 19.8,
+    "curate": 4.6,
+    "answers": 13.4,
+    "total": 43.5
+  },
+  "usage": {
+    "calls": 8,
+    "inputTokens": 3782,
+    "outputTokens": 4992,
+    "cacheReadTokens": 10162,
+    "cacheWriteTokens": 982,
+    "seconds": 60.6
+  },
+  "usageByRole": {
+    "segment": {
+      "calls": 1,
+      "inputTokens": 229,
+      "outputTokens": 237,
+      "cacheReadTokens": 1109,
+      "cacheWriteTokens": 0,
+      "seconds": 5.59
+    },
+    "people": {
+      "calls": 1,
+      "inputTokens": 372,
+      "outputTokens": 793,
+      "cacheReadTokens": 1592,
+      "cacheWriteTokens": 0,
+      "seconds": 7.91
+    },
+    "events": {
+      "calls": 1,
+      "inputTokens": 437,
+      "outputTokens": 1233,
+      "cacheReadTokens": 1382,
+      "cacheWriteTokens": 0,
+      "seconds": 9.53
+    },
+    "orchestrator": {
+      "calls": 1,
+      "inputTokens": 1376,
+      "outputTokens": 1086,
+      "cacheReadTokens": 2920,
+      "cacheWriteTokens": 0,
+      "seconds": 19.73
+    },
+    "curate": {
+      "calls": 1,
+      "inputTokens": 510,
+      "outputTokens": 386,
+      "cacheReadTokens": 1011,
+      "cacheWriteTokens": 0,
+      "seconds": 4.61
+    },
+    "ask": {
+      "calls": 3,
+      "inputTokens": 858,
+      "outputTokens": 1257,
+      "cacheReadTokens": 2148,
+      "cacheWriteTokens": 982,
+      "seconds": 13.23
+    }
+  },
+  "candidatesAudit": [
+    {
+      "id": "people-s1-1",
+      "lens": "people",
+      "salience": 0.85,
+      "reason": "Central suspect whose sworn alibi is contradicted by phone records, driving the segment.",
+      "wikipedia": null,
+      "imageLicence": null
+    },
+    {
+      "id": "events-s1-1",
+      "lens": "events",
+      "salience": 0.75,
+      "reason": "Vance's sworn alibi window is directly contradicted by the 10:14 PM Pier 9 ping, and the burner and midnight locker search follow in sequence."
+    }
+  ]
+}

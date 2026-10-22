@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "studiox-coviewer"
+version = "0.1.0"
+description = "StudioX coviewer agent (Strands on AgentCore Runtime)"
+requires-python = ">=3.13"
+dependencies = [
+    "aws-opentelemetry-distro ~= 0.18.0",
+    "bedrock-agentcore >= 1.24",
+    "strands-agents >= 1.62",
+    "boto3 >= 1.43",
+    "pydantic >= 2.11",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]

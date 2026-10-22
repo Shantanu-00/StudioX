@@ -1,0 +1,419 @@
+{
+  "mediaId": "science-ep42",
+  "provenance": "pipeline",
+  "version": 1,
+  "generatedAt": "2026-10-22T12:30:12Z",
+  "models": {
+    "segment": "us.anthropic.claude-sonnet-5-5",
+    "lenses": "orchestrator us.anthropic.claude-haiku-5-5; claims+people us.anthropic.claude-sonnet-5-5; burst+protocol+events us.anthropic.claude-haiku-5-5",
+    "stance": "us.anthropic.claude-sonnet-5-5",
+    "curate": "us.anthropic.claude-sonnet-5-5",
+    "answers": "us.anthropic.claude-haiku-5-5",
+    "search": "nova_grounding us.amazon.nova-2-lite-v1:0",
+    "searchPathsUsed": "nova_grounding"
+  },
+  "verdictRules": "v1",
+  "transcript": [
+    {
+      "t0": 0.0,
+      "t1": 3.0,
+      "speaker": "Dr. Julian",
+      "text": "Look at how Cristiano Ronaldo optimizes his recovery."
+    },
+    {
+      "t0": 3.0,
+      "t1": 5.0,
+      "speaker": "Elena",
+      "text": "Right, the R90 polyphasic cycles?"
+    },
+    {
+      "t0": 5.0,
+      "t1": 5.41,
+      "speaker": "Dr. Julian",
+      "text": "Exactly."
+    },
+    {
+      "t0": 5.41,
+      "t1": 6.76,
+      "speaker": "Dr. Julian",
+      "text": "Five ninety-minute cycles."
+    },
+    {
+      "t0": 6.76,
+      "t1": 11.0,
+      "speaker": "Dr. Julian",
+      "text": "Harvard clinical data shows midday sleep cuts cardiovascular strain by 37 percent."
+    },
+    {
+      "t0": 11.0,
+      "t1": 13.0,
+      "speaker": "Elena",
+      "text": "And what was the compound stack?"
+    },
+    {
+      "t0": 13.0,
+      "t1": 20.72,
+      "speaker": "Dr. Julian",
+      "text": "Clinical protocols pair 145 milligrams of Magnesium L-Threonate with 50 milligrams of Apigenin."
+    },
+    {
+      "t0": 20.72,
+      "t1": 29.26,
+      "speaker": "Dr. Julian",
+      "text": "Threonate crosses the blood-brain barrier to deepen slow-wave sleep, while Apigenin quiets neuro-chatter."
+    },
+    {
+      "t0": 29.26,
+      "t1": 33.0,
+      "speaker": "Dr. Julian",
+      "text": "Kept at 18 degrees Celsius, delta waves surge."
+    },
+    {
+      "t0": 33.0,
+      "t1": 34.0,
+      "speaker": "Elena",
+      "text": "It completely stabilizes it."
+    },
+    {
+      "t0": 34.0,
+      "t1": 37.0,
+      "speaker": "Dr. Julian",
+      "text": "Within seven days, your sleep architecture completely transforms."
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1",
+      "start": 0.0,
+      "end": 37.28,
+      "title": "Ronaldo's Sleep Recovery Protocol",
+      "genre": "health"
+    }
+  ],
+  "moments": [
+    {
+      "t": 0.0,
+      "caption": "Ronaldo's recovery routine is introduced as the model for optimized sleep."
+    },
+    {
+      "t": 5.4,
+      "caption": "The routine: five 90-minute sleep cycles (R90 polyphasic sleep)."
+    },
+    {
+      "t": 6.8,
+      "caption": "Claim: Harvard data shows midday sleep cuts cardiovascular strain by 37%. This is unverified."
+    },
+    {
+      "t": 13.0,
+      "caption": "The supplement stack: 145 mg Magnesium L-Threonate plus 50 mg Apigenin."
+    },
+    {
+      "t": 20.7,
+      "caption": "Claim: Threonate crosses the blood-brain barrier to deepen slow-wave sleep. Human evidence is limited."
+    },
+    {
+      "t": 29.3,
+      "caption": "The room is kept at 18°C, said to boost delta waves."
+    },
+    {
+      "t": 34.0,
+      "caption": "Overstated: sleep architecture 'completely transforms' within seven days."
+    }
+  ],
+  "widgets": [
+    {
+      "id": "claims-s1-1",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 5.41,
+          "t1": 11.0
+        }
+      ],
+      "claim": "Harvard clinical data shows midday sleep cuts cardiovascular strain by 37 percent.",
+      "speaker": "Dr. Julian",
+      "context": "A Harvard-linked 2007 study found regular midday nappers had up to 37% lower heart-disease death risk. That is an observational mortality finding, not a 37% cut in \"cardiovascular strain\". Other research is mixed.",
+      "source": "Sleeping your way to heart health · news.harvard.edu",
+      "counter": "The 37% is an observational association in heart-disease deaths for regular nappers, not a clinical trial. Nap length matters.",
+      "verdict": "NUANCED",
+      "sources": [
+        {
+          "title": "Sleeping your way to heart health · news.harvard.edu",
+          "url": "https://news.harvard.edu/gazette/story/2007/02/sleeping-your-way-to-heart-health"
+        },
+        {
+          "title": "pmc.ncbi.nlm.nih.gov",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4667384/"
+        },
+        {
+          "title": "Keep midday naps to less than 30 minutes · health.harvard.edu",
+          "url": "https://www.health.harvard.edu/healthy-aging-and-longevity/keep-midday-naps-to-less-than-30-minutes"
+        }
+      ]
+    },
+    {
+      "id": "protocol-s1-1",
+      "type": "protocol",
+      "evidence": [
+        {
+          "t0": 5.41,
+          "t1": 11.0
+        },
+        {
+          "t0": 13.0,
+          "t1": 20.72
+        },
+        {
+          "t0": 29.26,
+          "t1": 33.0
+        }
+      ],
+      "title": "Ronaldo's sleep recovery routine (as described)",
+      "steps": [
+        {
+          "label": "Sleep in five 90-min cycles",
+          "detail": "Five ninety-minute cycles, described as the R90 polyphasic pattern.",
+          "evidence": {
+            "t0": 5.41,
+            "t1": 6.76
+          }
+        },
+        {
+          "label": "Schedule sleep at midday",
+          "detail": "The routine includes a midday sleep period, which the episode says reduces cardiovascular strain.",
+          "evidence": {
+            "t0": 6.76,
+            "t1": 11.0
+          }
+        },
+        {
+          "label": "Take 145 mg Mg L-Threonate + 50 mg…",
+          "detail": "Pair 145 mg Magnesium L-Threonate with 50 mg Apigenin, per the clinical protocol described.",
+          "evidence": {
+            "t0": 13.0,
+            "t1": 20.72
+          }
+        },
+        {
+          "label": "Keep room at 18 °C",
+          "detail": "Keep the sleeping room at 18 degrees Celsius so delta waves surge.",
+          "evidence": {
+            "t0": 29.26,
+            "t1": 33.0
+          }
+        }
+      ],
+      "disclaimer": "As described in the episode. Not medical advice."
+    },
+    {
+      "id": "claims-s1-2",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 20.72,
+          "t1": 29.26
+        }
+      ],
+      "claim": "Magnesium L-Threonate crosses the blood-brain barrier to deepen slow-wave sleep.",
+      "speaker": "Dr. Julian",
+      "context": "Small human trials suggest magnesium L-threonate may improve sleep, including slow-wave sleep. BBB crossing is a proposed mechanism. Human evidence that it raises brain magnesium is lacking, so the causal chain is unproven.",
+      "source": "pmc.ncbi.nlm.nih.gov",
+      "counter": "Claim states BBB crossing and deeper slow-wave sleep as established fact. Evidence is limited, and the mechanism is hypothesized.",
+      "verdict": "NUANCED",
+      "sources": [
+        {
+          "title": "pmc.ncbi.nlm.nih.gov",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12832366/"
+        },
+        {
+          "title": "9HZ77TXBZUTBI3Z 2024 RCT 35 55 21days Sleep AIDP.pdf · evessio.s3.amazonaws.com",
+          "url": "https://evessio.s3.amazonaws.com/customer/c20a2502-f561-4756-8753-ec8079d550d8/event/1dbcf6c0-78df-4436-bbe8-6189c6adf1f0/responses/1612f10e-6a77-44ba-bbc8-9d5799cd3c6d/9HZ77TXBZUTBI3Z_2024_RCT_35-55_21days_Sleep_AIDP.pdf"
+        },
+        {
+          "title": "Study magnesium l threonate improves objective subjective sleep quality · ajmc.com",
+          "url": "https://www.ajmc.com/view/study-magnesium-l-threonate-improves-objective-subjective-sleep-quality"
+        },
+        {
+          "title": "Magnesium l threonate magtein brain magnesium evidence · superpower.com",
+          "url": "https://superpower.com/guides/emerging-health-topics/magnesium-l-threonate-magtein-brain-magnesium-evidence"
+        }
+      ]
+    },
+    {
+      "id": "claims-s1-3",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 34.0,
+          "t1": 37.0
+        }
+      ],
+      "claim": "Within seven days, your sleep architecture completely transforms.",
+      "speaker": "Dr. Julian",
+      "context": "Some one-week trials, mostly of drugs or specific supplements, report measurable increases in deep and REM sleep proportions. None of the sources show a \"complete transformation\" of sleep architecture in seven days.",
+      "source": "frontiersin.org",
+      "counter": "Partial, modest shifts in specific interventions don't support a complete overhaul. The sources don't test Dr. Julian's protocol or supplement stack.",
+      "verdict": "NUANCED",
+      "sources": [
+        {
+          "title": "frontiersin.org",
+          "url": "https://www.frontiersin.org/journals/medicine/articles/10.3389/fmed.2026.1877949/full"
+        },
+        {
+          "title": "onderzoekmetmensen.nl",
+          "url": "https://onderzoekmetmensen.nl/en/node/48159/pdf"
+        },
+        {
+          "title": "pubmed.ncbi.nlm.nih.gov",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41969977/"
+        }
+      ]
+    },
+    {
+      "id": "people-s1-1",
+      "type": "dossier",
+      "evidence": [
+        {
+          "t0": 0.0,
+          "t1": 6.76
+        }
+      ],
+      "name": "Cristiano Ronaldo",
+      "role": "Portuguese footballer (born 1985)",
+      "facts": [
+        {
+          "text": "Portuguese forward who captains both Al-Nassr (Saudi Pro League) and the Portugal national team.",
+          "source": "Wikipedia"
+        },
+        {
+          "text": "Nicknamed CR7; widely regarded as one of the greatest footballers of all time, with five Ballons d'Or.",
+          "source": "Wikipedia"
+        },
+        {
+          "text": "Dr. Julian says his recovery uses R90 polyphasic sleep: five 90-minute cycles. This is the host's claim, not verified here.",
+          "evidence": {
+            "t0": 0.0,
+            "t1": 6.76
+          }
+        },
+        {
+          "text": "Dr. Julian cites Harvard data that midday sleep cuts cardiovascular strain by 37%. The segment gives no source for this figure.",
+          "evidence": {
+            "t0": 6.76,
+            "t1": 11.0
+          }
+        },
+        {
+          "text": "The segment describes a 'clinical protocol' of 145 mg Magnesium L-Threonate plus 50 mg Apigenin. It does not say Ronaldo takes this stack.",
+          "evidence": {
+            "t0": 13.0,
+            "t1": 20.72
+          }
+        }
+      ],
+      "image": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/26/Cristiano_Ronaldo_Croatia_v_Portugal_2_July_2026-075_%28cropped%29.jpg/500px-Cristiano_Ronaldo_Croatia_v_Portugal_2_July_2026-075_%28cropped%29.jpg",
+        "credit": "Bryan Berlin · CC BY-SA 4.0 · Wikimedia Commons"
+      }
+    }
+  ],
+  "funnel": {
+    "candidates": 9,
+    "kept": 5,
+    "shown": 5,
+    "byLens": {
+      "claims": {
+        "candidates": 7,
+        "kept": 3
+      },
+      "people": {
+        "candidates": 1,
+        "kept": 1
+      },
+      "protocol": {
+        "candidates": 1,
+        "kept": 1
+      }
+    }
+  },
+  "rejected": [
+    {
+      "lens": "claims",
+      "text": "Cristiano Ronaldo uses R90 polyphasic sleep: five ninety-minute cycles.",
+      "reason": "budget: lower salience than the claims checked"
+    },
+    {
+      "lens": "claims",
+      "text": "Clinical protocols pair 145 mg of Magnesium L-Threonate with 50 mg of Apigenin for sleep.",
+      "reason": "budget: lower salience than the claims checked"
+    },
+    {
+      "lens": "claims",
+      "text": "Apigenin (50 mg) quiets neuro-chatter and improves sleep.",
+      "reason": "budget: lower salience than the claims checked"
+    },
+    {
+      "lens": "claims",
+      "text": "Kept at 18 degrees Celsius, delta waves surge.",
+      "reason": "budget: lower salience than the claims checked"
+    }
+  ],
+  "answers": [
+    {
+      "question": "Is there a real Harvard study showing a 37% cut in cardiovascular strain from midday sleep?",
+      "t": 13.0,
+      "text": "The 37% figure is real but not as stated. A 2007 Harvard Gazette report on a Archives of Internal Medicine study of about 23,000 people found that regular napping was linked to a 37% lower risk of heart-disease death, not a 37% cut in cardiovascular strain from midday sleep. I found no Harvard study matching the claim as said in the episode, so treat it as unverified. Whether naps help or hurt heart health is mixed in the research.",
+      "cites": [
+        6
+      ],
+      "sources": [
+        {
+          "title": "Sleeping your way to heart health · news.harvard.edu",
+          "url": "https://news.harvard.edu/gazette/story/2007/02/sleeping-your-way-to-heart-health/"
+        },
+        {
+          "title": "Frequent naps linked to high blood pressure · health.harvard.edu",
+          "url": "https://www.health.harvard.edu/heart-health/frequent-naps-linked-to-high-blood-pressure"
+        }
+      ]
+    },
+    {
+      "question": "Does Magnesium L-Threonate actually improve deep sleep in humans?",
+      "t": 33.0,
+      "text": "The transcript doesn't test this; Dr. Julian only says threonate \"crosses the blood-brain barrier to deepen slow-wave sleep\" (29.3 s). A search turned up human studies of magnesium L-threonate (e.g., PMC11381753), which report better sleep quality, alertness and mood, but I couldn't confirm from the snippets whether they measured deep sleep specifically, so I can't say it reliably improves deep sleep. The specific dose and \"Harvard\" figures from the episode (13.0 s, 6.8 s) were not checked.",
+      "cites": [
+        29
+      ],
+      "sources": [
+        {
+          "title": "pmc.ncbi.nlm.nih.gov",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11381753/?utm"
+        },
+        {
+          "title": "pubmed.ncbi.nlm.nih.gov",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39252819/"
+        }
+      ]
+    },
+    {
+      "question": "What is the R90 sleep cycle method, and does Ronaldo really use it?",
+      "t": 11.0,
+      "text": "In the episode, R90 is described as polyphasic sleep in five 90-minute cycles (said at 3.0-6.8 s). Online sources say Nick Littlehales designed the method and that Ronaldo follows it, but these are secondary reports, and I couldn't find a primary source confirming his routine. The Harvard figure is also different: a 2007 Harvard Gazette piece links regular napping to a 37% lower risk of heart-disease death, not reduced \"cardiovascular strain\" from midday sleep as the host said.",
+      "cites": [
+        3,
+        5,
+        6
+      ],
+      "sources": [
+        {
+          "title": "note.com",
+          "url": "https://note.com/houkago_labo/n/n796c7b45b484?hl=en"
+        },
+        {
+          "title": "Sleeping your way to heart health · news.harvard.edu",
+          "url": "https://news.harvard.edu/gazette/story/2007/02/sleeping-your-way-to-heart-health"
+        }
+      ]
+    }
+  ]
+}

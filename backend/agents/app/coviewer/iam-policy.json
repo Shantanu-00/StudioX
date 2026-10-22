@@ -1,0 +1,68 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Models",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream"
+      ],
+      "Resource": [
+        "arn:aws:bedrock:*::foundation-model/*",
+        "arn:aws:bedrock:*:*:inference-profile/*"
+      ]
+    },
+    {
+      "Sid": "Transcripts",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::studioxcore-*/transcripts/*",
+        "arn:aws:s3:::studioxcore-*/packages/*"
+      ]
+    },
+    {
+      "Sid": "WebSearchGateway",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock-agentcore:InvokeGateway"
+      ],
+      "Resource": [
+        "arn:aws:bedrock-agentcore:us-east-1:*:gateway/*"
+      ]
+    },
+    {
+      "Sid": "Memory",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock-agentcore:CreateEvent"
+      ],
+      "Resource": [
+        "arn:aws:bedrock-agentcore:us-east-1:*:memory/*"
+      ]
+    },
+    {
+      "Sid": "BucketParam",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameter"
+      ],
+      "Resource": [
+        "arn:aws:ssm:us-east-1:*:parameter/studiox/bucket"
+      ]
+    },
+    {
+      "Sid": "NovaGrounding",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeTool"
+      ],
+      "Resource": [
+        "arn:aws:bedrock::*:system-tool/amazon.nova_grounding"
+      ]
+    }
+  ]
+}

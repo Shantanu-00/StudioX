@@ -1,0 +1,241 @@
+{
+  "mediaId": "crime-case104",
+  "provenance": "pipeline",
+  "version": 1,
+  "generatedAt": "2026-10-22T12:30:56Z",
+  "models": {
+    "segment": "us.anthropic.claude-sonnet-5-5",
+    "lenses": "orchestrator us.anthropic.claude-haiku-5-5; claims+people us.anthropic.claude-sonnet-5-5; burst+protocol+events us.anthropic.claude-haiku-5-5",
+    "stance": "us.anthropic.claude-sonnet-5-5",
+    "curate": "us.anthropic.claude-sonnet-5-5",
+    "answers": "us.anthropic.claude-haiku-5-5",
+    "search": "nova_grounding us.amazon.nova-2-lite-v1:0",
+    "searchPathsUsed": "none"
+  },
+  "verdictRules": "v1",
+  "transcript": [
+    {
+      "t0": 0.0,
+      "t1": 1.69,
+      "speaker": "Narrator",
+      "text": "In his recorded interview,"
+    },
+    {
+      "t0": 1.69,
+      "t1": 8.0,
+      "speaker": "Narrator",
+      "text": "suspect Marcus Vance swore under oath he never left the Westside Diner between 9:30 and 11:00 PM."
+    },
+    {
+      "t0": 8.0,
+      "t1": 15.34,
+      "speaker": "Narrator",
+      "text": "But cellular dump records from Tower 4 reveal his phone pinged right here at Pier 9 at 10:14 PM,"
+    },
+    {
+      "t0": 15.34,
+      "t1": 20.0,
+      "speaker": "Narrator",
+      "text": "six minutes before his cracked burner phone hit the pavement."
+    },
+    {
+      "t0": 20.0,
+      "t1": 30.0,
+      "speaker": "Narrator",
+      "text": "Which places Vance directly on the pier moments before the harbor security cameras were deliberately severed."
+    },
+    {
+      "t0": 30.0,
+      "t1": 37.0,
+      "speaker": "Narrator",
+      "text": "And what detectives uncovered inside his waterfront locker at midnight changes the motive entirely."
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1",
+      "start": 0.0,
+      "end": 37.28,
+      "title": "Marcus Vance's Alibi Unravels",
+      "genre": "crime"
+    }
+  ],
+  "moments": [
+    {
+      "t": 8.0,
+      "caption": "Vance swore he never left the diner from 9:30 to 11 PM."
+    },
+    {
+      "t": 14.0,
+      "caption": "Tower 4 cell records put his phone at Pier 9 at 10:14 PM, contradicting his alibi."
+    },
+    {
+      "t": 20.0,
+      "caption": "His burner cracked six minutes after the ping, and the pier's security cameras were deliberately cut."
+    },
+    {
+      "t": 33.0,
+      "caption": "A midnight search of his waterfront locker turned up something that changes the motive."
+    }
+  ],
+  "widgets": [
+    {
+      "id": "people-s1-1",
+      "type": "dossier",
+      "evidence": [
+        {
+          "t0": 0.0,
+          "t1": 37.0
+        }
+      ],
+      "name": "Marcus Vance",
+      "role": "Suspect in the case; his alibi is contradicted by phone records",
+      "facts": [
+        {
+          "text": "In his recorded interview he swore under oath he never left the Westside Diner between 9:30 and 11:00 PM.",
+          "evidence": {
+            "t0": 0.0,
+            "t1": 8.0
+          }
+        },
+        {
+          "text": "Cellular dump records from Tower 4 show his phone pinged at Pier 9 at 10:14 PM.",
+          "evidence": {
+            "t0": 8.0,
+            "t1": 15.34
+          }
+        },
+        {
+          "text": "His cracked burner phone hit the pavement six minutes after that ping.",
+          "evidence": {
+            "t0": 15.34,
+            "t1": 20.0
+          }
+        },
+        {
+          "text": "The records put him on the pier just before the harbor security cameras were deliberately severed.",
+          "evidence": {
+            "t0": 20.0,
+            "t1": 30.0
+          }
+        },
+        {
+          "text": "Detectives found something in his waterfront locker at midnight that changes the motive.",
+          "evidence": {
+            "t0": 30.0,
+            "t1": 37.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "events-s1-1",
+      "type": "timeline",
+      "evidence": [
+        {
+          "t0": 1.69,
+          "t1": 20.0
+        },
+        {
+          "t0": 30.0,
+          "t1": 37.0
+        }
+      ],
+      "title": "Vance's alibi vs. the Pier 9 ping that night",
+      "events": [
+        {
+          "id": "e1",
+          "when": "9:30-11:00 PM",
+          "label": "Vance swears under oath he never left the Westside Diner between 9:30 and 11:00 PM.",
+          "kind": "claim",
+          "evidence": {
+            "t0": 1.69,
+            "t1": 8.0
+          }
+        },
+        {
+          "id": "e2",
+          "when": "10:14 PM",
+          "label": "Tower 4 cell dump records place Vance's phone at Pier 9 at 10:14 PM, contradicting his alibi.",
+          "kind": "conflict",
+          "evidence": {
+            "t0": 8.0,
+            "t1": 15.34
+          }
+        },
+        {
+          "id": "e3",
+          "when": "~10:20 PM",
+          "label": "Cracked burner phone hits the pavement about six minutes after the 10:14 PM Pier 9 ping (derived time).",
+          "kind": "fact",
+          "evidence": {
+            "t0": 15.34,
+            "t1": 20.0
+          }
+        },
+        {
+          "id": "e4",
+          "when": "12:00 AM",
+          "label": "Detectives uncover evidence inside Vance's waterfront locker at midnight, changing the motive.",
+          "kind": "fact",
+          "evidence": {
+            "t0": 30.0,
+            "t1": 37.0
+          }
+        }
+      ]
+    }
+  ],
+  "funnel": {
+    "candidates": 3,
+    "kept": 2,
+    "shown": 2,
+    "byLens": {
+      "events": {
+        "candidates": 2,
+        "kept": 1
+      },
+      "people": {
+        "candidates": 1,
+        "kept": 1
+      }
+    }
+  },
+  "rejected": [
+    {
+      "lens": "events",
+      "text": "Harbor security cameras deliberately severed",
+      "reason": "Described only as 'moments before' the phone drop; no clock time given in the transcript."
+    }
+  ],
+  "answers": [
+    {
+      "question": "How do cell tower records place Vance at Pier 9?",
+      "t": 20.0,
+      "text": "Cellular dump records from Tower 4 show that Vance's phone pinged at Pier 9 at 10:14 PM. That places the phone there, not Vance directly, and it contradicts his sworn claim that he never left the Westside Diner between 9:30 and 11:00 PM. The narrator hasn't yet explained how the phone was tied to him.",
+      "cites": [
+        8
+      ],
+      "sources": []
+    },
+    {
+      "question": "Why does the timing of the severed cameras matter for Vance's alibi?",
+      "t": 37.0,
+      "text": "Vance swore he stayed at the Westside Diner from 9:30 to 11:00 PM, but the narrator says his phone pinged at Pier 9 at 10:14 PM, inside that window. The narrator then says this placed him on the pier moments before the harbor cameras were deliberately severed, so the cut timing ties him to the pier when the cameras went dark. The episode hasn't said what footage the cameras would have shown, so that part is still open.",
+      "cites": [
+        8,
+        20
+      ],
+      "sources": []
+    },
+    {
+      "question": "What did detectives find in Vance's waterfront locker?",
+      "t": 37.0,
+      "text": "The narration only says that detectives uncovered something inside Vance's waterfront locker at midnight and that it \"changes the motive entirely.\" It doesn't say what they found yet, so I can't tell you from what's been shown so far.",
+      "cites": [
+        30
+      ],
+      "sources": []
+    }
+  ]
+}

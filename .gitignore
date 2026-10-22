@@ -69,3 +69,8 @@ __pycache__/
 
 # Machine-specific npm settings (local prefix path)
 /.npmrc
+
+# Generated AgentCore LLM reference context (vendor-generated)
+/backend/agents/agentcore/.llm-context/
+# Agent build staging cache
+/backend/agents/agentcore/.cache/
