@@ -38,3 +38,31 @@ npm-debug.log*
 # Python bytecode (helper scripts)
 __pycache__/
 *.pyc
+
+# Companion server uploads (user media)
+/companion/uploads/
+
+# Downloaded platform/vendor reference material (not ours to redistribute)
+/docs/reference/
+
+# Demo episode sources and encodes (large; published separately). Not under
+# assets/: the Vega build packs that folder into the .vpkg.
+/media/
+
+# Devpost drafts (personal answers and unverified claims); publish selectively
+/submission/
+
+# Third-party podcast transcripts used only for local pipeline testing (not ours to publish)
+/review/transcript/
+/review/strandswinners/
+
+# Local TV config holding the live access code (never commit)
+/src/config.local.ts
+
+# AgentCore CLI deployed state (holds the AWS account ID) and account targets
+/backend/agents/agentcore/.cli/
+/backend/agents/agentcore/aws-targets.json
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
