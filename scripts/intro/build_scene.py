@@ -278,6 +278,7 @@ def main():
     scene.render.image_settings.color_mode = 'RGB'
     scene.render.image_settings.color_depth = '8'
     scene.render.film_transparent = False
+    scene.render.dither_intensity = 0
     scene.world.use_nodes = True
     scene.world.node_tree.nodes['Background'].inputs[0].default_value = (0, 0, 0, 1)
     scene.view_settings.view_transform = 'Standard'
@@ -302,9 +303,19 @@ def main():
     scene['reference_url'] = 'https://www.youtube.com/watch?v=pxjy1vahZnU'
     scene['title'] = 'StudioX'
     scene['duration_seconds'] = DURATION
-    scene['audio_note'] = 'Reference audio is muxed separately; not bundled in this scene.'
+    scene['audio_note'] = 'Third-party reference audio; muxed separately for the MP4.'
+    soundtrack = output / 'studiox-reference-soundtrack.wav'
+    if soundtrack.exists():
+        editor = scene.sequence_editor_create()
+        strip = editor.strips.new_sound('Retimed reference soundtrack', str(soundtrack),
+                                        channel=1, frame_start=1)
+        strip.sound.filepath = '//studiox-reference-soundtrack.wav'
+        scene.sync_mode = 'AUDIO_SYNC'
+    # Render the camera even when a soundtrack is present in the sequence editor.
+    scene.render.use_sequencer = False
     scene.render.filepath = str(output / 'frames' / '')
     (output / 'frames').mkdir(exist_ok=True)
+    scene.frame_set(frame(4.2))
     bpy.ops.wm.save_as_mainfile(filepath=str(output / 'studiox-intro.blend'))
     if args.stills:
         for t in [0, 1.3, 2.6, 4.2, 5.6, 7.2, 9.2, 9.9]:

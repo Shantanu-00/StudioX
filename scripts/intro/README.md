@@ -55,7 +55,8 @@ Outputs are under `docs/local/intro/render/` (gitignored):
 
 - `studiox-intro-10s.mp4`: 1920×1080, 30 fps, H.264, stereo AAC; reference audio.
 - `studiox-intro-10s-silent.mp4`: the same video without audio.
-- `studiox-intro.blend`: editable scene and animation; audio is a separate sidecar.
+- `studiox-intro.blend`: editable scene and animation, with a soundtrack strip
+  referencing the adjacent WAV. Keep these two files together.
 - `studiox-reference-soundtrack.wav`: retimed 48 kHz stereo, 24-bit soundtrack.
 - `frames/`: lossless individual PNG frames.
 - `media-info.json`: exported media properties.
