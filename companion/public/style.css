@@ -1,0 +1,61 @@
+/* StudioX companion — same "cold signal" language as the TV app. */
+:root {
+  --void: #000; --glass: #07080a; --rule: #23262b; --bone: #ece9e2;
+  --ash: #9a9da3; --smoke: #5e6268; --crimson: #e0182d;
+  --mono: ui-monospace, "SF Mono", "Roboto Mono", Menlo, monospace;
+  --sans: -apple-system, "Helvetica Neue", Roboto, Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--void); color: var(--bone); }
+body {
+  min-height: 100dvh; display: flex; flex-direction: column;
+  font: 17px/1.45 var(--sans);
+  padding: max(20px, env(safe-area-inset-top)) 22px max(20px, env(safe-area-inset-bottom));
+}
+.bar { display: flex; justify-content: space-between; align-items: center;
+  padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
+.mark { font-weight: 700; letter-spacing: .32em; font-size: 15px; }
+.mark span { color: var(--crimson); }
+.signal { font: 11px var(--mono); letter-spacing: .2em; color: var(--smoke);
+  display: flex; align-items: center; gap: 8px; }
+.signal i { width: 7px; height: 7px; background: var(--smoke); display: block; }
+.signal.live { color: var(--bone); } .signal.live i { background: var(--bone); }
+.signal.alert { color: var(--crimson); } .signal.alert i { background: var(--crimson); }
+main { flex: 1; padding-top: 36px; }
+.tag { font: 12px var(--mono); letter-spacing: .3em; color: var(--crimson); margin: 0; }
+h1 { font-size: 34px; line-height: 1.1; margin: 12px 0 10px; letter-spacing: -.01em; }
+.lede { color: var(--ash); margin: 0 0 28px; }
+.drop, .lens { position: relative; display: flex; flex-direction: column; justify-content: center;
+  align-items: center; gap: 6px; min-height: 200px; border: 1px solid var(--rule);
+  background: var(--glass); text-align: center; padding: 20px; cursor: pointer; overflow: hidden; }
+.drop input { position: absolute; inset: 0; opacity: 0; }
+.drop-title { font: 15px var(--mono); letter-spacing: .2em; word-break: break-all; }
+.drop-meta { font: 12px var(--mono); color: var(--smoke); letter-spacing: .1em; }
+.drop-corner { position: absolute; width: 22px; height: 22px; border-color: var(--bone); border-style: solid; }
+.drop-corner.tl { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
+.drop-corner.br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+.act { width: 100%; margin-top: 18px; padding: 18px; background: var(--bone); color: var(--void);
+  border: 0; font: 600 14px var(--mono); letter-spacing: .3em; }
+.act:disabled { background: var(--rule); color: var(--smoke); }
+.act:active:not(:disabled) { background: var(--crimson); color: var(--bone); }
+.meter { height: 3px; background: var(--rule); margin-top: 18px; }
+.meter div { height: 3px; width: 0; background: var(--crimson); transition: width .2s linear; }
+.status { font: 12px/1.6 var(--mono); letter-spacing: .14em; color: var(--ash); margin-top: 20px; min-height: 2em; }
+.status.live { color: var(--bone); } .status.alert { color: var(--crimson); }
+.lens { aspect-ratio: 3 / 4; min-height: 0; cursor: default; }
+.lens video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  transform: scaleX(-1); opacity: 0; filter: grayscale(1) contrast(1.15); }
+.lens.on video { opacity: 1; }
+.lens-scan { position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--crimson);
+  opacity: 0; }
+.lens.on .lens-scan { opacity: .7; animation: scan 2.6s ease-in-out infinite alternate; }
+@keyframes scan { to { top: calc(100% - 2px); } }
+.lens-note { position: relative; font: 12px var(--mono); letter-spacing: .25em; color: var(--smoke);
+  background: rgba(0,0,0,.6); padding: 4px 8px; }
+.lens.on .lens-note { position: absolute; bottom: 14px; color: var(--bone); }
+.code { width: 100%; background: var(--glass); border: 1px solid var(--rule); color: var(--bone);
+  font: 34px var(--mono); letter-spacing: .3em; text-align: center; padding: 16px 8px; text-transform: uppercase; }
+.code:focus { outline: 2px solid var(--bone); outline-offset: 4px; }
+.foot { font: 11px var(--mono); letter-spacing: .12em; color: var(--smoke); padding-top: 16px;
+  border-top: 1px solid var(--rule); }
+@media (prefers-reduced-motion: reduce) { .lens.on .lens-scan { animation: none; } }

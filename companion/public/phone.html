@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>StudioX link</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/assets/phone.js" defer></script>
+</head>
+<body>
+  <header class="bar">
+    <div class="mark">STUDIO<span>X</span></div>
+    <div class="signal" id="signal"><i></i><b id="signal-text">CONNECTING</b></div>
+  </header>
+
+  <main>
+    <p class="tag" id="tag">LINK</p>
+    <h1 id="headline">Opening the link…</h1>
+    <p class="lede" id="lede"></p>
+
+    <!-- upload -->
+    <section id="upload" hidden>
+      <label class="drop" for="file">
+        <span class="drop-corner tl"></span><span class="drop-corner br"></span>
+        <span class="drop-title" id="file-title">CHOOSE A VIDEO</span>
+        <span class="drop-meta" id="file-meta">MP4 or MOV · up to 2 GB</span>
+        <input id="file" type="file" accept="video/*">
+      </label>
+      <button id="send" class="act" disabled>TRANSMIT TO TV</button>
+      <div class="meter" id="meter" hidden><div id="meter-fill"></div></div>
+    </section>
+
+    <!-- camera -->
+    <section id="camera" hidden>
+      <div class="lens" id="lens">
+        <video id="preview" playsinline muted></video>
+        <div class="lens-scan"></div>
+        <span class="drop-corner tl"></span><span class="drop-corner br"></span>
+        <span class="lens-note" id="lens-note">CAMERA OFF</span>
+      </div>
+      <button id="allow" class="act">ALLOW CAMERA</button>
+    </section>
+
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </main>
+
+  <footer class="foot">Frames are processed on this phone. Only commands reach the TV.</footer>
+</body>
+</html>
