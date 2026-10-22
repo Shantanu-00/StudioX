@@ -1,0 +1,71 @@
+{
+  "mediaId": "cameo-finance",
+  "title": "Start at 25 or at 35?",
+  "durationSec": 56.09,
+  "source": "supplied",
+  "speakers": {
+    "spk_0": "Priya",
+    "spk_1": "Sam"
+  },
+  "sentences": [
+    {
+      "t0": 0.0,
+      "t1": 4.62,
+      "speaker": "spk_0",
+      "text": "Sam, my friends keep saying they'll start investing once they earn more."
+    },
+    {
+      "t0": 4.97,
+      "t1": 11.12,
+      "speaker": "spk_1",
+      "text": "Here's why waiting is expensive. Take two people who each put away 300 dollars a month."
+    },
+    {
+      "t0": 11.47,
+      "t1": 19.93,
+      "speaker": "spk_1",
+      "text": "Ana starts at 25. Ben starts at 35. Both stop at 65, and both earn an average of 7 percent a year."
+    },
+    {
+      "t0": 20.28,
+      "t1": 23.74,
+      "speaker": "spk_0",
+      "text": "So Ana just has ten more years of saving."
+    },
+    {
+      "t0": 24.09,
+      "t1": 31.01,
+      "speaker": "spk_1",
+      "text": "Ten more years, and only 36,000 dollars more out of her pocket: 144,000 in total against Ben's 108,000."
+    },
+    {
+      "t0": 31.36,
+      "t1": 35.98,
+      "speaker": "spk_1",
+      "text": "But at 65, Ana has about 787,000 dollars. Ben has about 366,000."
+    },
+    {
+      "t0": 36.33,
+      "t1": 40.95,
+      "speaker": "spk_0",
+      "text": "She ends up with more than double, from a quarter more money?"
+    },
+    {
+      "t0": 41.3,
+      "t1": 47.45,
+      "speaker": "spk_1",
+      "text": "That's compounding. The returns start earning returns, and the early years have the longest to grow."
+    },
+    {
+      "t0": 47.8,
+      "t1": 55.49,
+      "speaker": "spk_1",
+      "text": "So the cheapest thing you can buy is time. Start small, start now, and raise it when you earn more."
+    }
+  ],
+  "speech": {
+    "words": 137,
+    "speechSeconds": 52.69
+  },
+  "note": "Example transcript written by StudioX to show the pipeline on other genres; not a real episode."
+}

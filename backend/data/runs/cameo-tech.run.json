@@ -1,0 +1,189 @@
+{
+  "timings": {
+    "segment": 3.9,
+    "lenses s1": 94.9,
+    "curate": 15.4,
+    "map": 33.9,
+    "answers": 62.9,
+    "total": 211.0
+  },
+  "usage": {
+    "calls": 19,
+    "inputTokens": 15306,
+    "outputTokens": 10669,
+    "cacheReadTokens": 1604,
+    "cacheWriteTokens": 15486,
+    "seconds": 282.17
+  },
+  "usageByRole": {
+    "segment": {
+      "calls": 1,
+      "inputTokens": 229,
+      "outputTokens": 264,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1248,
+      "seconds": 3.83
+    },
+    "protocol": {
+      "calls": 1,
+      "inputTokens": 346,
+      "outputTokens": 1071,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1446,
+      "seconds": 7.23
+    },
+    "claims": {
+      "calls": 1,
+      "inputTokens": 470,
+      "outputTokens": 896,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1475,
+      "seconds": 8.14
+    },
+    "search": {
+      "calls": 4,
+      "inputTokens": 662,
+      "outputTokens": 1423,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "seconds": 16.04
+    },
+    "stance": {
+      "calls": 4,
+      "inputTokens": 7010,
+      "outputTokens": 1976,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "seconds": 40.13
+    },
+    "orchestrator": {
+      "calls": 1,
+      "inputTokens": 1334,
+      "outputTokens": 831,
+      "cacheReadTokens": 1604,
+      "cacheWriteTokens": 1604,
+      "seconds": 94.85
+    },
+    "curate": {
+      "calls": 1,
+      "inputTokens": 933,
+      "outputTokens": 677,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1338,
+      "seconds": 15.38
+    },
+    "map": {
+      "calls": 1,
+      "inputTokens": 2680,
+      "outputTokens": 1447,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 3164,
+      "seconds": 33.89
+    },
+    "ask": {
+      "calls": 5,
+      "inputTokens": 1642,
+      "outputTokens": 2084,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 5211,
+      "seconds": 62.68
+    }
+  },
+  "mapProblems": [],
+  "candidatesAudit": [
+    {
+      "id": "claims-s1-1",
+      "lens": "claims",
+      "salience": 0.5,
+      "reason": "Specific latency figure viewers may doubt",
+      "verdictRules": "v2",
+      "stances": [
+        "supports",
+        "mixed",
+        "mixed",
+        "mixed"
+      ],
+      "stanceUrls": [
+        "https://cleanbrowsing.org/learn/what-is-dns-latency",
+        "https://dnsrobot.net/blog/fix-slow-dns-lookup",
+        "https://www.ioriver.io/terms/dns-lookup-time",
+        "https://www.copahost.com/blog/how-to-fix-slow-dns-lookup/"
+      ],
+      "searches": 1,
+      "query": "typical DNS lookup resolution time milliseconds average resolver response time"
+    },
+    {
+      "id": "protocol-s1-1",
+      "lens": "protocol",
+      "salience": 0.6,
+      "reason": "Gives the ordered sequence of what the device and network do between pressing play and the picture starting."
+    },
+    {
+      "id": "claims-s1-4",
+      "lens": "claims",
+      "salience": 0.4,
+      "reason": "Security guarantee that is somewhat overstated (metadata, endpoints still visible)",
+      "verdictRules": "v2",
+      "stances": [
+        "mixed",
+        "mixed",
+        "mixed",
+        "mixed"
+      ],
+      "stanceUrls": [
+        "https://datatracker.ietf.org/doc/html/rfc8744",
+        "https://cdt.org/insights/encrypted-client-hello-closing-the-sni-metadata-gap/",
+        "https://www.rfc-editor.org/info/rfc9849/",
+        "https://www.emergentmind.com/topics/encrypted-client-hello-ech"
+      ],
+      "searches": 1,
+      "query": "HTTPS TLS encryption integrity what intermediaries can see SNI metadata"
+    },
+    {
+      "id": "claims-s1-2",
+      "lens": "claims",
+      "salience": 0.45,
+      "reason": "Claims streaming traffic goes to nearby CDN edge, not distant data centres",
+      "verdictRules": "v2",
+      "stances": [
+        "supports",
+        "supports",
+        "supports",
+        "supports",
+        "supports"
+      ],
+      "stanceUrls": [
+        "https://openconnect.netflix.com/Open-Connect-Overview.pdf?",
+        "https://blog.blazingcdn.com/en-us/cdn-netflix-tech-stack-open-connect-home-caching-nodes",
+        "https://devops-daily.com/posts/how-netflix-ships-a-third-of-the-internet-open-connect",
+        "https://padhle.substack.com/p/how-netflix-delivers-video-to-250",
+        "https://blog.blazingcdn.com/en-us/see-netflix-open-connect-explore-how-content-reaches-isps-globally"
+      ],
+      "searches": 1,
+      "query": "how CDN edge servers work video streaming ISP nearby cache Netflix Open Connect"
+    },
+    {
+      "id": "claims-s1-3",
+      "lens": "claims",
+      "salience": 0.45,
+      "reason": "Specific description of adaptive bitrate streaming",
+      "verdictRules": "v2",
+      "stances": [
+        "supports",
+        "supports",
+        "supports",
+        "supports",
+        "mixed"
+      ],
+      "stanceUrls": [
+        "https://www.mux.com/articles/adaptive-bitrate-streaming-guide",
+        "https://vidizmo.ai/blog/adaptive-bitrate-streaming",
+        "https://liveapi.com/blog/hls-vs-dash/",
+        "https://bitmovin.com/blog/mpeg-dash-hls-segment-length/",
+        "https://mwaretv.hashnode.dev/adaptive-bitrate-streaming-explained-how-abr-delivers-perfect-quality-1"
+      ],
+      "searches": 1,
+      "query": "adaptive bitrate streaming HLS DASH segment duration seconds switch quality bandwidth"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "mediaId": "crime-case104",
+  "durationSec": 37.28,
+  "source": "supplied",
+  "speakers": {
+    "spk_0": "Narrator"
+  },
+  "sentences": [
+    {
+      "t0": 0.0,
+      "t1": 1.69,
+      "speaker": "spk_0",
+      "text": "In his recorded interview,"
+    },
+    {
+      "t0": 1.69,
+      "t1": 8.0,
+      "speaker": "spk_0",
+      "text": "suspect Marcus Vance swore under oath he never left the Westside Diner between 9:30 and 11:00 PM."
+    },
+    {
+      "t0": 8.0,
+      "t1": 15.34,
+      "speaker": "spk_0",
+      "text": "But cellular dump records from Tower 4 reveal his phone pinged right here at Pier 9 at 10:14 PM,"
+    },
+    {
+      "t0": 15.34,
+      "t1": 20.0,
+      "speaker": "spk_0",
+      "text": "six minutes before his cracked burner phone hit the pavement."
+    },
+    {
+      "t0": 20.0,
+      "t1": 30.0,
+      "speaker": "spk_0",
+      "text": "Which places Vance directly on the pier moments before the harbor security cameras were deliberately severed."
+    },
+    {
+      "t0": 30.0,
+      "t1": 37.0,
+      "speaker": "spk_0",
+      "text": "And what detectives uncovered inside his waterfront locker at midnight changes the motive entirely."
+    }
+  ],
+  "speech": {
+    "words": 80,
+    "speechSeconds": 37.0
+  }
+}

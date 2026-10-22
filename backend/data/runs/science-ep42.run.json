@@ -1,0 +1,219 @@
+{
+  "timings": {
+    "segment": 3.6,
+    "lenses s1": 60.1,
+    "curate": 8.7,
+    "map": 13.7,
+    "answers": 42.8,
+    "total": 128.9
+  },
+  "usage": {
+    "calls": 23,
+    "inputTokens": 20456,
+    "outputTokens": 16627,
+    "cacheReadTokens": 6873,
+    "cacheWriteTokens": 19529,
+    "seconds": 215.06
+  },
+  "usageByRole": {
+    "segment": {
+      "calls": 1,
+      "inputTokens": 229,
+      "outputTokens": 274,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1264,
+      "seconds": 3.59
+    },
+    "burst": {
+      "calls": 1,
+      "inputTokens": 353,
+      "outputTokens": 1024,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1623,
+      "seconds": 7.22
+    },
+    "protocol": {
+      "calls": 1,
+      "inputTokens": 309,
+      "outputTokens": 1041,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1495,
+      "seconds": 7.9
+    },
+    "claims": {
+      "calls": 1,
+      "inputTokens": 514,
+      "outputTokens": 1053,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1524,
+      "seconds": 9.31
+    },
+    "search": {
+      "calls": 6,
+      "inputTokens": 1001,
+      "outputTokens": 2899,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "seconds": 23.03
+    },
+    "people": {
+      "calls": 1,
+      "inputTokens": 1062,
+      "outputTokens": 952,
+      "cacheReadTokens": 1769,
+      "cacheWriteTokens": 1769,
+      "seconds": 16.58
+    },
+    "stance": {
+      "calls": 4,
+      "inputTokens": 6597,
+      "outputTokens": 2257,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "seconds": 22.54
+    },
+    "orchestrator": {
+      "calls": 1,
+      "inputTokens": 1646,
+      "outputTokens": 1050,
+      "cacheReadTokens": 1653,
+      "cacheWriteTokens": 1653,
+      "seconds": 60.05
+    },
+    "curate": {
+      "calls": 1,
+      "inputTokens": 1178,
+      "outputTokens": 1275,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1379,
+      "seconds": 8.62
+    },
+    "map": {
+      "calls": 1,
+      "inputTokens": 2821,
+      "outputTokens": 1996,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 3205,
+      "seconds": 13.64
+    },
+    "ask": {
+      "calls": 5,
+      "inputTokens": 4746,
+      "outputTokens": 2806,
+      "cacheReadTokens": 3451,
+      "cacheWriteTokens": 5617,
+      "seconds": 42.58
+    }
+  },
+  "mapProblems": [],
+  "candidatesAudit": [
+    {
+      "id": "people-s1-1",
+      "lens": "people",
+      "salience": 0.6,
+      "reason": "He is the named subject of the segment's sleep and recovery claims, so context on him and on what the episode does and doesn't tie to him is useful.",
+      "wikipedia": "https://en.wikipedia.org/wiki/Cristiano_Ronaldo",
+      "imageLicence": "CC BY-SA 4.0"
+    },
+    {
+      "id": "protocol-s1-1",
+      "lens": "protocol",
+      "salience": 0.6,
+      "reason": "Gives a concrete sleep schedule, supplement dosing and room temperature the viewer could follow."
+    },
+    {
+      "id": "claims-s1-1",
+      "lens": "claims",
+      "salience": 0.85,
+      "reason": "Specific statistic attributed to Harvard that sounds unsourced and may be fabricated or misattributed.",
+      "verdictRules": "v2",
+      "stances": [
+        "mixed",
+        "mixed",
+        "mixed",
+        "mixed",
+        "mixed"
+      ],
+      "stanceUrls": [
+        "https://news.harvard.edu/gazette/story/2007/02/sleeping-your-way-to-heart-health",
+        "https://www.newscientist.com/article/1902419-afternoon-naps-may-boost-heart-health/",
+        "https://www.health.harvard.edu/healthy-aging-and-longevity/keep-midday-naps-to-less-than-30-minutes",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC4667384/",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC12909254/"
+      ],
+      "searches": 1,
+      "query": "Harvard study midday nap cardiovascular risk reduction 37 percent"
+    },
+    {
+      "id": "claims-s1-3",
+      "lens": "claims",
+      "salience": 0.7,
+      "reason": "Claims a clinical protocol with exact doses that may not exist.",
+      "verdictRules": "v2",
+      "stances": [
+        "mixed",
+        "mixed",
+        "mixed",
+        "mixed",
+        "mixed"
+      ],
+      "stanceUrls": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC11381753/?utm",
+        "https://www.frontiersin.org/journals/nutrition/articles/10.3389/fnut.2025.1729164/full",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC12832366/",
+        "https://pubmed.ncbi.nlm.nih.gov/41601871/",
+        "https://researchportal.murdoch.edu.au/view/pdfCoverPage?download=true&filePid=13191231180007891&instCode=61MUN_INST"
+      ],
+      "searches": 1,
+      "query": "magnesium L-threonate 145 mg apigenin 50 mg sleep clinical trial"
+    },
+    {
+      "id": "burst-s1-1",
+      "lens": "burst",
+      "salience": 0.6,
+      "reason": "Two named supplements with doses are given as a sleep stack, and the clinical claims behind them are unverified."
+    },
+    {
+      "id": "claims-s1-4",
+      "lens": "claims",
+      "salience": 0.6,
+      "reason": "Mechanistic claim about sleep benefit; human evidence for slow-wave sleep is limited.",
+      "verdictRules": "v2",
+      "stances": [
+        "mixed",
+        "mixed",
+        "mixed"
+      ],
+      "stanceUrls": [
+        "https://nsdr.co/post/magnesium-threonate-for-sleep-does-it-actually-work",
+        "https://mitohealth.com/guide/magnesium-l-threonate-brain-health",
+        "https://evessio.s3.amazonaws.com/customer/c20a2502-f561-4756-8753-ec8079d550d8/event/1dbcf6c0-78df-4436-bbe8-6189c6adf1f0/responses/1612f10e-6a77-44ba-bbc8-9d5799cd3c6d/9HZ77TXBZUTBI3Z_2024_RCT_35-55_21days_Sleep_AIDP.pdf"
+      ],
+      "searches": 1,
+      "query": "magnesium L-threonate slow-wave sleep human trial blood-brain barrier"
+    },
+    {
+      "id": "claims-s1-2",
+      "lens": "claims",
+      "salience": 0.75,
+      "reason": "Promised result that is overstated and implausibly fast.",
+      "verdictRules": "v2",
+      "stances": [
+        "contradicts",
+        "contradicts",
+        "contradicts",
+        "mixed",
+        "mixed"
+      ],
+      "stanceUrls": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC3703169/",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC10929570/",
+        "https://pubmed.ncbi.nlm.nih.gov/23853635/",
+        "https://pubmed.ncbi.nlm.nih.gov/41701207/",
+        "https://pubs.rsc.org/en/content/articlehtml/2026/fo/d5fo04538j"
+      ],
+      "searches": 1,
+      "query": "how long for supplements or sleep interventions to change sleep architecture magnesium apigenin evidence"
+    }
+  ]
+}

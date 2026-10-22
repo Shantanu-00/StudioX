@@ -1,0 +1,197 @@
+{
+ "note": "Ground truth is the author's recollection, flagged where so. 'trueClaim' means a DEBUNKED verdict counts as a false DEBUNKED. Crime claims are fictional: any verdict stronger than UNVERIFIED/SUPPORTED is an overreach.",
+ "verdicts": [
+  "SUPPORTED",
+  "UNVERIFIED",
+  "NUANCED",
+  "DISPUTED",
+  "DEBUNKED"
+ ],
+ "claims": [
+  {
+   "id": "sci-37pct",
+   "mediaId": "science-ep42",
+   "t": 8,
+   "claim": "Harvard clinical data shows midday sleep cuts cardiovascular strain by 37 percent.",
+   "groundTruth": "partly-true",
+   "expected": [
+    "SUPPORTED",
+    "DISPUTED",
+    "UNVERIFIED",
+    "NUANCED"
+   ],
+   "trueClaim": true,
+   "reasoning": "A 2007 Archives of Internal Medicine study (Naska et al., Harvard School of Public Health) reported 37% lower coronary mortality in regular nappers. It was observational, not clinical, and about mortality, not 'strain'. Author's recollection: the run should confirm from sources."
+  },
+  {
+   "id": "sci-r90-cycles",
+   "mediaId": "science-ep42",
+   "t": 5,
+   "claim": "Five ninety-minute cycles (the R90 method).",
+   "groundTruth": "true",
+   "expected": [
+    "SUPPORTED",
+    "UNVERIFIED",
+    "NUANCED"
+   ],
+   "trueClaim": true,
+   "reasoning": "R90 is a named sleep method built on 90-minute cycles, five per night. Author's recollection."
+  },
+  {
+   "id": "sci-ronaldo",
+   "mediaId": "science-ep42",
+   "t": 0,
+   "claim": "Cristiano Ronaldo optimizes his recovery with R90-style sleep cycles.",
+   "groundTruth": "true",
+   "expected": [
+    "SUPPORTED",
+    "UNVERIFIED",
+    "NUANCED"
+   ],
+   "trueClaim": true,
+   "reasoning": "Widely reported that his recovery used the R90 sleep coach's method. Author's recollection."
+  },
+  {
+   "id": "sci-mg-dose",
+   "mediaId": "science-ep42",
+   "t": 13,
+   "claim": "Clinical protocols pair 145 milligrams of Magnesium L-Threonate.",
+   "groundTruth": "mostly-true",
+   "expected": [
+    "SUPPORTED",
+    "UNVERIFIED",
+    "DISPUTED",
+    "NUANCED"
+   ],
+   "trueClaim": true,
+   "reasoning": "Magtein-based trials deliver about 144 mg of elemental magnesium a day. Close to the quoted figure. Author's recollection."
+  },
+  {
+   "id": "sci-apigenin",
+   "mediaId": "science-ep42",
+   "t": 13,
+   "claim": "... with 50 milligrams of Apigenin.",
+   "groundTruth": "unclear",
+   "expected": [
+    "UNVERIFIED",
+    "DISPUTED",
+    "SUPPORTED",
+    "NUANCED"
+   ],
+   "trueClaim": false,
+   "reasoning": "50 mg is a popular consumer dose; human sleep evidence for apigenin is thin. DEBUNKED would overreach."
+  },
+  {
+   "id": "sci-bbb",
+   "mediaId": "science-ep42",
+   "t": 20.8,
+   "claim": "Threonate crosses the blood-brain barrier.",
+   "groundTruth": "true-in-animals",
+   "expected": [
+    "SUPPORTED",
+    "UNVERIFIED",
+    "DISPUTED",
+    "NUANCED"
+   ],
+   "trueClaim": true,
+   "reasoning": "Rodent work shows raised brain magnesium after threonate. Human evidence is limited."
+  },
+  {
+   "id": "sci-sws",
+   "mediaId": "science-ep42",
+   "t": 20.8,
+   "claim": "Threonate deepens slow-wave sleep.",
+   "groundTruth": "unproven",
+   "expected": [
+    "UNVERIFIED",
+    "DISPUTED",
+    "NUANCED"
+   ],
+   "trueClaim": false,
+   "reasoning": "Small human trials exist; effect on slow-wave sleep is not established."
+  },
+  {
+   "id": "sci-18c",
+   "mediaId": "science-ep42",
+   "t": 29.3,
+   "claim": "Kept at 18 degrees Celsius, delta waves surge.",
+   "groundTruth": "partly-true",
+   "expected": [
+    "UNVERIFIED",
+    "DISPUTED",
+    "SUPPORTED",
+    "NUANCED"
+   ],
+   "trueClaim": false,
+   "reasoning": "Cool rooms (about 15-19 C) are recommended for sleep; 'delta waves surge' is not an established effect."
+  },
+  {
+   "id": "sci-7days",
+   "mediaId": "science-ep42",
+   "t": 34,
+   "claim": "Within seven days, your sleep architecture completely transforms.",
+   "groundTruth": "hyperbole",
+   "expected": [
+    "UNVERIFIED",
+    "DISPUTED",
+    "DEBUNKED",
+    "NUANCED"
+   ],
+   "trueClaim": false,
+   "reasoning": "No evidence for complete change in a week. DEBUNKED is acceptable here."
+  },
+  {
+   "id": "crime-alibi",
+   "mediaId": "crime-case104",
+   "t": 0,
+   "claim": "Marcus Vance swore he never left the Westside Diner between 9:30 and 11:00 PM.",
+   "groundTruth": "fictional",
+   "expected": [
+    "UNVERIFIED",
+    "SUPPORTED"
+   ],
+   "trueClaim": false,
+   "reasoning": "Fictional case. Nothing can contradict it on the web, so DEBUNKED/DISPUTED would be invented."
+  },
+  {
+   "id": "crime-ping",
+   "mediaId": "crime-case104",
+   "t": 8,
+   "claim": "Tower 4 records show Vance's phone pinged at Pier 9 at 10:14 PM.",
+   "groundTruth": "fictional",
+   "expected": [
+    "UNVERIFIED",
+    "SUPPORTED"
+   ],
+   "trueClaim": false,
+   "reasoning": "Fictional case. Internal logic only."
+  },
+  {
+   "id": "crime-conflict",
+   "mediaId": "crime-case104",
+   "t": 8,
+   "claim": "The 10:14 PM ping conflicts with the 9:30-11:00 PM diner alibi.",
+   "groundTruth": "internal-logic-true",
+   "expected": [
+    "SUPPORTED",
+    "UNVERIFIED",
+    "NUANCED"
+   ],
+   "trueClaim": true,
+   "reasoning": "10:14 PM lies inside the alibi window, so the two statements cannot both hold. Pure logic from the episode."
+  },
+  {
+   "id": "crime-cameras",
+   "mediaId": "crime-case104",
+   "t": 20,
+   "claim": "The harbor security cameras were deliberately severed.",
+   "groundTruth": "fictional",
+   "expected": [
+    "UNVERIFIED",
+    "SUPPORTED"
+   ],
+   "trueClaim": false,
+   "reasoning": "Fictional case."
+  }
+ ]
+}

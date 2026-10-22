@@ -1,0 +1,155 @@
+{
+  "timings": {
+    "segment": 4.2,
+    "lenses s1": 97.7,
+    "curate": 8.5,
+    "map": 17.3,
+    "answers": 64.1,
+    "total": 191.9
+  },
+  "usage": {
+    "calls": 23,
+    "inputTokens": 19802,
+    "outputTokens": 19729,
+    "cacheReadTokens": 3605,
+    "cacheWriteTokens": 15318,
+    "seconds": 282.53
+  },
+  "usageByRole": {
+    "segment": {
+      "calls": 1,
+      "inputTokens": 229,
+      "outputTokens": 248,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1245,
+      "seconds": 4.1
+    },
+    "claims": {
+      "calls": 1,
+      "inputTokens": 500,
+      "outputTokens": 1504,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1467,
+      "seconds": 12.2
+    },
+    "search": {
+      "calls": 7,
+      "inputTokens": 1207,
+      "outputTokens": 3784,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "seconds": 37.29
+    },
+    "stance": {
+      "calls": 5,
+      "inputTokens": 8174,
+      "outputTokens": 4181,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "seconds": 41.75
+    },
+    "orchestrator": {
+      "calls": 1,
+      "inputTokens": 1139,
+      "outputTokens": 746,
+      "cacheReadTokens": 1596,
+      "cacheWriteTokens": 1596,
+      "seconds": 97.62
+    },
+    "curate": {
+      "calls": 1,
+      "inputTokens": 991,
+      "outputTokens": 1008,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1327,
+      "seconds": 8.43
+    },
+    "map": {
+      "calls": 1,
+      "inputTokens": 2237,
+      "outputTokens": 2673,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 3153,
+      "seconds": 17.29
+    },
+    "ask": {
+      "calls": 6,
+      "inputTokens": 5325,
+      "outputTokens": 5585,
+      "cacheReadTokens": 2009,
+      "cacheWriteTokens": 6530,
+      "seconds": 63.85
+    }
+  },
+  "mapProblems": [],
+  "candidatesAudit": [
+    {
+      "id": "claims-s1-2",
+      "lens": "claims",
+      "salience": 0.6,
+      "reason": "The 7% assumption drives every result. It is close to the long-run real (inflation-adjusted) US stock return, and below the nominal return. Sam does not say…",
+      "verdictRules": "v2",
+      "stances": [
+        "mixed",
+        "mixed",
+        "mixed",
+        "mixed"
+      ],
+      "stanceUrls": [
+        "https://investopedia.com/ask/answers/042415/what-average-annual-return-sp-500.asp",
+        "https://wealthvieu.com/investing/portfolio-basics/average-stock-market-return/",
+        "https://www.fool.com/research/sp-500-annual-returns/?msockid=070192c876e767532d0f851477e166ff",
+        "https://moneywise.com/research/average-stock-market-return?"
+      ],
+      "searches": 1,
+      "query": "S&P 500 historical average annual return 7% inflation-adjusted vs 10% nominal"
+    },
+    {
+      "id": "claims-s1-4",
+      "lens": "claims",
+      "salience": 0.5,
+      "reason": "Simple arithmetic: 40 years × $3,600 is $144,000 and 30 years × $3,600 is $108,000. Correct, but a quick check is worthwhile.",
+      "verdictRules": "v2",
+      "stances": [
+        "supports"
+      ],
+      "stanceUrls": [
+        "https://math.answers.com/math-and-arithmetic/How_is_36_a_gcf_of_108_and_144"
+      ],
+      "searches": 2,
+      "query": "$300 a month for 40 years total contributions compound interest calculator"
+    },
+    {
+      "id": "claims-s1-1",
+      "lens": "claims",
+      "salience": 0.8,
+      "reason": "Core headline figures; the viewer can check them with the future-value formula (they hold up at 7% compounded monthly).",
+      "verdictRules": "v2",
+      "stances": [
+        "mixed",
+        "mixed"
+      ],
+      "stanceUrls": [
+        "https://compoundcalculators.net/",
+        "https://www.savvydollar.com/calculator/compound-interest/300/40"
+      ],
+      "searches": 1,
+      "query": "future value calculator $300 monthly 7% 40 years vs 30 years compound interest"
+    },
+    {
+      "id": "claims-s1-3",
+      "lens": "claims",
+      "salience": 0.55,
+      "reason": "The ratio is about 2.15×, so 'more than double' holds. But $36,000 extra is a third more than Ben's $108,000 (Ben put in a quarter less), so 'a quarter more'…",
+      "verdictRules": "v2",
+      "stances": [
+        "mixed"
+      ],
+      "stanceUrls": [
+        "https://www.moneylion.com/trending/money/compounding-before-after-age-30-retirement-difference-between-starting-now-vs-later"
+      ],
+      "searches": 2,
+      "query": "starting investing at 25 vs 35 compound interest example 787,000 366,000"
+    }
+  ]
+}

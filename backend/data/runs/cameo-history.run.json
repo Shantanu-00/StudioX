@@ -1,0 +1,217 @@
+{
+  "timings": {
+    "segment": 3.3,
+    "lenses s1": 63.9,
+    "curate": 7.2,
+    "map": 8.8,
+    "answers": 27.3,
+    "total": 110.5
+  },
+  "usage": {
+    "calls": 21,
+    "inputTokens": 18064,
+    "outputTokens": 14466,
+    "cacheReadTokens": 4445,
+    "cacheWriteTokens": 17772,
+    "seconds": 190.25
+  },
+  "usageByRole": {
+    "segment": {
+      "calls": 1,
+      "inputTokens": 229,
+      "outputTokens": 274,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1278,
+      "seconds": 3.22
+    },
+    "events": {
+      "calls": 1,
+      "inputTokens": 423,
+      "outputTokens": 1221,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1554,
+      "seconds": 7.39
+    },
+    "claims": {
+      "calls": 1,
+      "inputTokens": 447,
+      "outputTokens": 1022,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1519,
+      "seconds": 8.03
+    },
+    "search": {
+      "calls": 5,
+      "inputTokens": 864,
+      "outputTokens": 2140,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "seconds": 20.75
+    },
+    "stance": {
+      "calls": 4,
+      "inputTokens": 6583,
+      "outputTokens": 2381,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "seconds": 22.94
+    },
+    "people": {
+      "calls": 1,
+      "inputTokens": 1527,
+      "outputTokens": 1214,
+      "cacheReadTokens": 1764,
+      "cacheWriteTokens": 1764,
+      "seconds": 21.1
+    },
+    "orchestrator": {
+      "calls": 1,
+      "inputTokens": 1583,
+      "outputTokens": 1054,
+      "cacheReadTokens": 1648,
+      "cacheWriteTokens": 1648,
+      "seconds": 63.83
+    },
+    "curate": {
+      "calls": 1,
+      "inputTokens": 1206,
+      "outputTokens": 1013,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1382,
+      "seconds": 7.19
+    },
+    "map": {
+      "calls": 1,
+      "inputTokens": 2717,
+      "outputTokens": 1367,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 3209,
+      "seconds": 8.78
+    },
+    "ask": {
+      "calls": 5,
+      "inputTokens": 2485,
+      "outputTokens": 2780,
+      "cacheReadTokens": 1033,
+      "cacheWriteTokens": 5418,
+      "seconds": 27.02
+    }
+  },
+  "mapProblems": [],
+  "candidatesAudit": [
+    {
+      "id": "people-s1-1",
+      "lens": "people",
+      "salience": 0.95,
+      "reason": "Mission commander who landed Eagle manually and took the first step on the Moon.",
+      "wikipedia": "https://en.wikipedia.org/wiki/Neil_Armstrong",
+      "imageLicence": "Public domain"
+    },
+    {
+      "id": "people-s1-2",
+      "lens": "people",
+      "salience": 0.85,
+      "reason": "Lunar module pilot, second person on the Moon.",
+      "wikipedia": "https://en.wikipedia.org/wiki/Buzz_Aldrin",
+      "imageLicence": "Public domain"
+    },
+    {
+      "id": "events-s1-1",
+      "lens": "events",
+      "salience": 0.8,
+      "reason": "Clock times for the key Apollo 11 milestones, from undocking through Aldrin joining Armstrong on the surface."
+    },
+    {
+      "id": "people-s1-3",
+      "lens": "people",
+      "salience": 0.8,
+      "reason": "The third crewman, who orbited alone and is easily overlooked.",
+      "wikipedia": "https://en.wikipedia.org/wiki/Michael_Collins_(astronaut)",
+      "imageLicence": "Public domain"
+    },
+    {
+      "id": "claims-s1-1",
+      "lens": "claims",
+      "salience": 0.7,
+      "reason": "The 1202 alarm and the go decision are well documented, and viewers may want the details.",
+      "verdictRules": "v2",
+      "stances": [
+        "supports",
+        "supports",
+        "supports",
+        "supports",
+        "supports"
+      ],
+      "stanceUrls": [
+        "https://spacedaily.com/t-apollo-11-1201-1202-guidance-computer-restarts/",
+        "https://www.nasa.gov/image-feature/apollo-era-hero-john-jack-garman-dies/",
+        "https://en.wikipedia.org/wiki/Steve_Bales",
+        "https://en.wikipedia.org/wiki/Jack_Garman",
+        "https://lens.monash.edu/koos-control-the-man-who-made-the-apollo-11-moon-landing-possible/"
+      ],
+      "searches": 1,
+      "query": "Apollo 11 1202 program alarm powered descent mission control go decision Steve Bales Jack Garman"
+    },
+    {
+      "id": "claims-s1-2",
+      "lens": "claims",
+      "salience": 0.65,
+      "reason": "The narration compresses the reason for manual flight and the fuel state, and viewers may doubt it.",
+      "verdictRules": "v2",
+      "stances": [
+        "supports",
+        "supports",
+        "supports",
+        "supports",
+        "mixed"
+      ],
+      "stanceUrls": [
+        "https://airandspace.si.edu/explore/stories/apollo-11-moon-landing",
+        "https://www.planetary.org/space-missions/apollo-11",
+        "https://docs.wixstatic.com/ugd/4c0e6f_22386bbb65eb4faf8faeb22e64182e0f.pdf",
+        "https://www.purdue.edu/uns/html4ever/1999/9903.Moon.landing.dialogue.html",
+        "https://blog.sciencemuseum.org.uk/apollo-11-moon-landing-the-most-difficult-moments/"
+      ],
+      "searches": 1,
+      "query": "Apollo 11 Armstrong manual control boulder field landing site fuel remaining seconds Eagle landing"
+    },
+    {
+      "id": "claims-s1-3",
+      "lens": "claims",
+      "salience": 0.5,
+      "reason": "The exact touchdown time can be checked against NASA's mission timeline.",
+      "verdictRules": "v2",
+      "stances": [
+        "supports",
+        "supports",
+        "supports"
+      ],
+      "stanceUrls": [
+        "https://nssdc.gsfc.nasa.gov/planetary/lunar/apollo11info.html",
+        "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C",
+        "https://www.nasa.gov/mission_pages/apollo/apollo11.html?=___psv__p_45378165__t_w_"
+      ],
+      "searches": 1,
+      "query": "Apollo 11 lunar module touchdown time 20:17 UTC 4:17 PM EDT Sea of Tranquility NASA"
+    },
+    {
+      "id": "claims-s1-4",
+      "lens": "claims",
+      "salience": 0.5,
+      "reason": "The first-step time is checkable against NASA's records.",
+      "verdictRules": "v2",
+      "stances": [
+        "supports",
+        "supports",
+        "supports"
+      ],
+      "stanceUrls": [
+        "https://www.nasa.gov/wp-content/uploads/static/history/alsj/a11/A11_PAOMissionReport.html",
+        "https://www.nasa.gov/mission_pages/apollo/apollo11.html?=___psv__p_45378165__t_w_",
+        "https://airandspace.si.edu/apollo-11-timeline"
+      ],
+      "searches": 1,
+      "query": "Apollo 11 Armstrong first step Moon 10:56 PM EDT 02:56 UTC NASA timeline"
+    }
+  ]
+}

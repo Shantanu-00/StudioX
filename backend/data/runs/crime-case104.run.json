@@ -1,0 +1,109 @@
+{
+  "timings": {
+    "segment": 3.1,
+    "lenses s1": 14.1,
+    "curate": 4.9,
+    "map": 20.0,
+    "answers": 52.6,
+    "total": 94.8
+  },
+  "usage": {
+    "calls": 14,
+    "inputTokens": 8808,
+    "outputTokens": 9354,
+    "cacheReadTokens": 5391,
+    "cacheWriteTokens": 14198,
+    "seconds": 115.78
+  },
+  "usageByRole": {
+    "segment": {
+      "calls": 1,
+      "inputTokens": 229,
+      "outputTokens": 237,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1109,
+      "seconds": 2.98
+    },
+    "claims": {
+      "calls": 1,
+      "inputTokens": 450,
+      "outputTokens": 371,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1347,
+      "seconds": 4.13
+    },
+    "people": {
+      "calls": 1,
+      "inputTokens": 365,
+      "outputTokens": 852,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1592,
+      "seconds": 6.82
+    },
+    "events": {
+      "calls": 1,
+      "inputTokens": 415,
+      "outputTokens": 1287,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1382,
+      "seconds": 7.49
+    },
+    "orchestrator": {
+      "calls": 1,
+      "inputTokens": 1301,
+      "outputTokens": 899,
+      "cacheReadTokens": 1476,
+      "cacheWriteTokens": 1476,
+      "seconds": 14.07
+    },
+    "curate": {
+      "calls": 1,
+      "inputTokens": 665,
+      "outputTokens": 516,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 1208,
+      "seconds": 4.84
+    },
+    "map": {
+      "calls": 1,
+      "inputTokens": 2262,
+      "outputTokens": 1782,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 3035,
+      "seconds": 19.97
+    },
+    "ask": {
+      "calls": 6,
+      "inputTokens": 2955,
+      "outputTokens": 3076,
+      "cacheReadTokens": 3915,
+      "cacheWriteTokens": 3049,
+      "seconds": 52.34
+    },
+    "search": {
+      "calls": 1,
+      "inputTokens": 166,
+      "outputTokens": 334,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "seconds": 3.14
+    }
+  },
+  "mapProblems": [],
+  "candidatesAudit": [
+    {
+      "id": "people-s1-1",
+      "lens": "people",
+      "salience": 0.8,
+      "reason": "Central suspect whose sworn alibi is contradicted by phone records, so viewers need the key claims in one place.",
+      "wikipedia": null,
+      "imageLicence": null
+    },
+    {
+      "id": "events-s1-1",
+      "lens": "events",
+      "salience": 0.85,
+      "reason": "The sworn alibi window conflicts with the Tower 4 ping at Pier 9, and the burner drop and midnight locker search fill in the night."
+    }
+  ]
+}

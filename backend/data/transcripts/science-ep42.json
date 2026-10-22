@@ -1,0 +1,81 @@
+{
+  "mediaId": "science-ep42",
+  "durationSec": 37.28,
+  "source": "supplied",
+  "speakers": {
+    "spk_0": "Dr. Julian",
+    "spk_1": "Elena"
+  },
+  "sentences": [
+    {
+      "t0": 0.0,
+      "t1": 3.0,
+      "speaker": "spk_0",
+      "text": "Look at how Cristiano Ronaldo optimizes his recovery."
+    },
+    {
+      "t0": 3.0,
+      "t1": 5.0,
+      "speaker": "spk_1",
+      "text": "Right, the R90 polyphasic cycles?"
+    },
+    {
+      "t0": 5.0,
+      "t1": 5.41,
+      "speaker": "spk_0",
+      "text": "Exactly."
+    },
+    {
+      "t0": 5.41,
+      "t1": 6.76,
+      "speaker": "spk_0",
+      "text": "Five ninety-minute cycles."
+    },
+    {
+      "t0": 6.76,
+      "t1": 11.0,
+      "speaker": "spk_0",
+      "text": "Harvard clinical data shows midday sleep cuts cardiovascular strain by 37 percent."
+    },
+    {
+      "t0": 11.0,
+      "t1": 13.0,
+      "speaker": "spk_1",
+      "text": "And what was the compound stack?"
+    },
+    {
+      "t0": 13.0,
+      "t1": 20.72,
+      "speaker": "spk_0",
+      "text": "Clinical protocols pair 145 milligrams of Magnesium L-Threonate with 50 milligrams of Apigenin."
+    },
+    {
+      "t0": 20.72,
+      "t1": 29.26,
+      "speaker": "spk_0",
+      "text": "Threonate crosses the blood-brain barrier to deepen slow-wave sleep, while Apigenin quiets neuro-chatter."
+    },
+    {
+      "t0": 29.26,
+      "t1": 33.0,
+      "speaker": "spk_0",
+      "text": "Kept at 18 degrees Celsius, delta waves surge."
+    },
+    {
+      "t0": 33.0,
+      "t1": 34.0,
+      "speaker": "spk_1",
+      "text": "It completely stabilizes it."
+    },
+    {
+      "t0": 34.0,
+      "t1": 37.0,
+      "speaker": "spk_0",
+      "text": "Within seven days, your sleep architecture completely transforms."
+    }
+  ],
+  "speech": {
+    "words": 81,
+    "speechSeconds": 37.0
+  }
+}

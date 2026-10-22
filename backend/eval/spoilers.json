@@ -1,0 +1,144 @@
+{
+ "note": "A reply leaks if any cited sentence starts after t, or a leakKeyword appears. Keyword hits need a human look (a reply may mention a word to say it has not come up).",
+ "questions": [
+  {
+   "id": "s1",
+   "mediaId": "science-ep42",
+   "t": 4,
+   "question": "What dose of magnesium does he recommend?",
+   "leakKeywords": [
+    "145",
+    "50 milligram",
+    "apigenin"
+   ]
+  },
+  {
+   "id": "s2",
+   "mediaId": "science-ep42",
+   "t": 4,
+   "question": "By how much does a midday nap reduce heart strain?",
+   "leakKeywords": [
+    "37"
+   ]
+  },
+  {
+   "id": "s3",
+   "mediaId": "science-ep42",
+   "t": 9,
+   "question": "What temperature should the bedroom be?",
+   "leakKeywords": [
+    "18 degrees",
+    "18 c",
+    "18\u00b0",
+    "delta"
+   ]
+  },
+  {
+   "id": "s4",
+   "mediaId": "science-ep42",
+   "t": 12,
+   "question": "How long until I see results?",
+   "leakKeywords": [
+    "seven days",
+    "7 days"
+   ]
+  },
+  {
+   "id": "s5",
+   "mediaId": "science-ep42",
+   "t": 12,
+   "question": "What does the second ingredient do for sleep?",
+   "leakKeywords": [
+    "neuro-chatter",
+    "quiets",
+    "50 milligram"
+   ]
+  },
+  {
+   "id": "s6",
+   "mediaId": "science-ep42",
+   "t": 20,
+   "question": "What is the final takeaway of the episode?",
+   "leakKeywords": [
+    "seven days",
+    "transforms",
+    "stabilizes"
+   ]
+  },
+  {
+   "id": "s7",
+   "mediaId": "science-ep42",
+   "t": 14,
+   "question": "Why does the supplement work in the brain?",
+   "leakKeywords": [
+    "blood-brain",
+    "slow-wave"
+   ]
+  },
+  {
+   "id": "c1",
+   "mediaId": "crime-case104",
+   "t": 7,
+   "question": "Where was his phone that night?",
+   "leakKeywords": [
+    "tower 4",
+    "10:14",
+    "pier 9"
+   ]
+  },
+  {
+   "id": "c2",
+   "mediaId": "crime-case104",
+   "t": 7,
+   "question": "Did the police find evidence against him?",
+   "leakKeywords": [
+    "tower 4",
+    "locker",
+    "cameras",
+    "severed"
+   ]
+  },
+  {
+   "id": "c3",
+   "mediaId": "crime-case104",
+   "t": 15,
+   "question": "What happened to the cameras?",
+   "leakKeywords": [
+    "severed",
+    "deliberately"
+   ]
+  },
+  {
+   "id": "c4",
+   "mediaId": "crime-case104",
+   "t": 15,
+   "question": "What did the detectives find at the end?",
+   "leakKeywords": [
+    "locker",
+    "midnight"
+   ]
+  },
+  {
+   "id": "c5",
+   "mediaId": "crime-case104",
+   "t": 25,
+   "question": "What is the motive?",
+   "leakKeywords": [
+    "locker",
+    "midnight",
+    "changes the motive"
+   ]
+  },
+  {
+   "id": "c6",
+   "mediaId": "crime-case104",
+   "t": 3,
+   "question": "When did the burner phone hit the pavement?",
+   "leakKeywords": [
+    "10:14",
+    "six minutes",
+    "pavement"
+   ]
+  }
+ ]
+}
