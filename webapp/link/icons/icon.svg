@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#000000"/>
+  <rect x="24" y="24" width="464" height="464" fill="#07080A" stroke="#23262B" stroke-width="4" rx="8"/>
+  <!-- Corner ticks -->
+  <line x1="24" y1="64" x2="64" y2="64" stroke="#5E6268" stroke-width="2"/>
+  <line x1="64" y1="24" x2="64" y2="64" stroke="#5E6268" stroke-width="2"/>
+  <line x1="448" y1="24" x2="448" y2="64" stroke="#5E6268" stroke-width="2"/>
+  <line x1="448" y1="64" x2="488" y2="64" stroke="#5E6268" stroke-width="2"/>
+  <line x1="24" y1="448" x2="64" y2="448" stroke="#5E6268" stroke-width="2"/>
+  <line x1="64" y1="448" x2="64" y2="488" stroke="#5E6268" stroke-width="2"/>
+  <line x1="448" y1="448" x2="488" y2="448" stroke="#5E6268" stroke-width="2"/>
+  <line x1="448" y1="448" x2="448" y2="488" stroke="#5E6268" stroke-width="2"/>
+  
+  <!-- System Label -->
+  <text x="256" y="112" fill="#ECE9E2" font-family="ui-monospace, 'SF Mono', 'Roboto Mono', Menlo, monospace" font-size="28" font-weight="700" letter-spacing="10" text-anchor="middle">STUDIO</text>
+  <text x="256" y="148" fill="#5E6268" font-family="ui-monospace, 'SF Mono', 'Roboto Mono', Menlo, monospace" font-size="14" letter-spacing="6" text-anchor="middle">LINK // SECOND SCREEN</text>
+
+  <!-- Big Crimson X -->
+  <g transform="translate(156, 180)">
+    <path d="M 30,10 L 100,100 L 170,10 L 200,10 L 120,115 L 200,220 L 170,220 L 100,130 L 30,220 L 0,220 L 80,115 L 0,10 Z" fill="#E0182D"/>
+  </g>
+
+  <!-- Status indicator at bottom -->
+  <rect x="238" y="430" width="12" height="12" fill="#E0182D" rx="2"/>
+  <text x="262" y="442" fill="#9A9DA3" font-family="ui-monospace, 'SF Mono', 'Roboto Mono', Menlo, monospace" font-size="14" letter-spacing="4">SIGNAL</text>
+</svg>
