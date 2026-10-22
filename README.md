@@ -1,23 +1,26 @@
 # StudioX
 
-AI-enhanced viewing and practice for Fire TV, built with React Native for **Vega OS**.
-StudioX turns uploaded videos into experiences a viewer can understand, question and practise
-along with. The TV is the main screen, the remote is the controller, and a paired phone is
-planned for uploads, camera input and voice. See the [product brief](docs/product/studiox-product-brief.md).
+An AI co-viewer for video podcasts on Fire TV, built with React Native for **Vega OS**.
+You watch an episode; StudioX watches with you and, when you pause or ask, lays out dossiers on the
+people, a timeline, claims with context, routines and concepts, each tied to the moment in the
+episode. The remote is the controller; a phone is optional, for uploads and gesture control.
+See the [product brief](docs/product/studiox-product-brief.md) and the
+[design language](docs/product/design-language.md).
 
 Submitted to the Amazon Devices hackathon: Fire TV track, AWS Builder mini challenge.
 
 ## Status
 
-Early development. What exists today:
+Phase 1 (details in [docs/product/phase-1.md](docs/product/phase-1.md)):
 
-- A Vega React Native app (`com.studiox.app`) that builds, installs and runs on the Vega Virtual Device.
-- `Playground`, a remote-control sandbox: focusable cards, per-card counters, and a live display of
-  the last remote key pressed. It is the current root screen.
-- `HelloVega`, the unmodified helloWorld template screen, kept for reference.
+- A placeholder opening sting, then the library: two demo episode slots, **Upload your own** and
+  **Connect phone camera**.
+- QR pairing screens backed by the companion server in `companion/`, with phone pages for upload and
+  camera permission.
+- The debug build passes; Virtual Device and hardware runs of Phase 1 are still to do.
 
-Not built yet: video playback, the boxing and podcast experiences, the phone companion, and any AWS
-integration. The product brief describes the intended direction; it does not describe shipped features.
+Not built yet: video playback and the demo episodes, gesture recognition, transcription and the
+co-viewing layers, and AWS hosting.
 
 ## Quick start
 

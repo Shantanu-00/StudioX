@@ -225,3 +225,398 @@ While working, you MUST record the following as they happen, without waiting to 
 Rules: log only what really happened, with evidence (exact error text, file path, command). Never invent friction to pad the log; mark unverified claims as unverified. Mention new log entries briefly in your reply so the user can review them. Keep secrets, tokens and personal data out of the log.
 
 ---
+
+# Vega OS Fire TV — Engineering Contract
+
+## 0. Mission
+
+Build a production-quality TV-first application for Amazon Vega OS.
+
+This is NOT an Android, Android TV, iOS, mobile, browser, or conventional React Native project.
+
+Every feature must work with Fire TV's hardware constraints, remote navigation, app lifecycle, and supported Vega APIs.
+
+A visually correct implementation is not complete unless it runs correctly on Vega.
+
+These rules apply to every task and every implementation phase.
+
+## 1. Mandatory platform verification
+
+Before changing code:
+
+1. Read `package.json`, `manifest.toml`, and the project's SDK configuration.
+2. Identify the actual UI architecture: React Native for Vega, VegaScript, or Vega WebView.
+3. Determine the installed SDK, target OS version, and React Native runtime.
+4. Inspect the existing application architecture and navigation.
+5. Read relevant installed Amazon Devices Builder Tools guidance.
+
+Never assume the newest SDK or React Native release is compatible with the target device.
+
+Do not change framework versions, SDK versions, OS targets, package managers, or project architecture without an explicit reason.
+
+Vega SDK 0.24 supports RN 0.83, which requires OS 1.2 or later. RN 0.72 is also supported.
+
+Never claim that standard React Native or Android compatibility implies Vega compatibility.
+
+Reference:
+https://developer.amazon.com/docs/vega/0.24/target-os-version
+
+## 2. Strict platform boundaries
+
+FORBIDDEN unless explicitly authorized and supported:
+
+- Android Activity, Fragment, Intent, or View APIs.
+- Android SDK, Gradle, APK, ADB-only workflows, or Kotlin/Java app infrastructure.
+- iOS-specific APIs.
+- Expo Go or mobile-only runtime assumptions.
+- DOM, window, document, HTML Canvas, or browser CSS in native RN code.
+- Native modules copied from Android/iOS without Vega support.
+- Packages that require unsupported Node.js built-ins on the TV.
+- Browser-only animation, media, or input APIs in native RN.
+- Replacing the Vega application with a website or mobile wrapper.
+
+Use supported Vega APIs and compatible @amazon-devices packages.
+
+Pure JS/TS packages may be used after compatibility checks.
+
+Before installing any new package:
+- Verify Vega, React Native, OS, and SDK compatibility.
+- Check its transitive native dependencies.
+- Verify it works under the target Hermes runtime.
+- Prefer existing dependencies and official Vega alternatives.
+
+If an API is uncertain, consult official documentation.
+Never invent module names, exports, methods, or manifest privileges.
+
+## 3. TV-only interaction contract
+
+The primary input is the Fire TV remote.
+
+All essential workflows must function with:
+- UP
+- DOWN
+- LEFT
+- RIGHT
+- SELECT / ENTER
+- BACK
+
+Handle Play/Pause only when relevant.
+
+Never require:
+- Touch
+- Swipe
+- Drag
+- Hover
+- Mouse pointer
+- Mobile keyboard
+- Smartphone companion app
+
+Every interactive element must be reachable by D-Pad.
+
+Every focused element must have an obvious visual indication.
+Color-only changes are insufficient for critical focus indication.
+
+Implement:
+- Deterministic initial focus.
+- Explicit focus restoration when returning to a screen.
+- Focus movement through lists and grids.
+- Focus trapping inside modal dialogs when appropriate.
+- Focus restoration after closing a modal.
+- Focus reassignment when the focused component unmounts.
+- Predictable behavior at scroll boundaries.
+- Proper handling of rapid/repeated D-Pad input.
+
+Use documented Vega focus APIs and TVFocusGuideView where appropriate.
+
+Never assume React Navigation automatically restores focus.
+Never assume touch-oriented navigation components are TV-safe.
+
+BACK must:
+1. Dismiss the active modal or overlay.
+2. Otherwise navigate to the previous screen.
+3. At the application root, follow the intended exit behavior.
+
+Do not hijack system Home or voice buttons.
+
+## 4. TV visual design
+
+Design for a television viewed from several feet away.
+
+- Use landscape-first layouts.
+- Support different display dimensions and densities.
+- Use responsive layouts rather than fixed physical pixel coordinates.
+- Maintain safe margins to avoid clipped content.
+- Make text comfortably readable from a couch.
+- Provide obvious selection and loading states.
+- Keep interactive controls large and clearly separated.
+- Avoid tiny mobile-style controls and dense forms.
+- Minimize text entry using remote-friendly alternatives.
+- Handle long text, empty states, and unexpected AI output.
+- Avoid large always-running animations.
+
+Never assume a 4K output means a 4K React Native layout coordinate system.
+
+Do not replace D-Pad-compatible UI with web or mobile components merely to achieve a visual effect.
+
+## 5. Memory contract
+
+Baseline device class:
+- 1 GB physical system RAM.
+- Quad-core ARM Cortex-A55 CPU.
+- 32-bit device ABI.
+- Limited GPU and storage resources.
+
+Amazon published KPI guidelines:
+- Foreground PSS < 400 MiB.
+- Background PSS < 150 MiB.
+
+Project engineering budgets (not official OS limits):
+- Normal foreground target: < 250 MiB PSS.
+- Short peak target: < 300 MiB PSS.
+- Background target: < 100 MiB PSS.
+
+These targets must be measured on real hardware.
+The virtual device cannot validate physical-device performance.
+
+Do not:
+- Keep large base64 images in React state.
+- Decode full-resolution images unnecessarily.
+- Cache unlimited AI messages, media, or assets.
+- Mount thousands of offscreen components.
+- Retain unused media players or surfaces.
+- Store large binary objects in application state.
+- Create unlimited event listeners, timers, or subscriptions.
+- Perform local large-model inference by default.
+
+Prefer:
+- Windowed/virtualized lists.
+- Appropriately sized images and thumbnails.
+- Bounded in-memory caches.
+- Incremental data loading.
+- Explicit disposal of obsolete resources.
+- Minimal persisted state.
+
+Avoid unnecessary disk writes and excessive media caching.
+
+## 6. JavaScript performance
+
+Remote navigation must stay responsive during network activity.
+
+Never perform heavy synchronous processing on the JS thread.
+
+Avoid:
+- Excessive React re-renders.
+- Recreating large objects on every render.
+- Large synchronous JSON transformations.
+- Blocking loops.
+- Unbounded AI streaming updates.
+- Repeated large array copying.
+- Continuous unnecessary animation work.
+
+Use:
+- Stable state ownership.
+- Memoization where appropriate for the actual RN runtime.
+- Batching or throttling of high-frequency updates.
+- Lazy loading.
+- Cleanup functions for effects.
+- Profiling before speculative optimization.
+
+Do not sacrifice focus correctness for animation effects.
+
+## 7. Lifecycle and background behavior
+
+The application can be backgrounded or terminated by the OS.
+
+Never assume:
+- The JavaScript runtime stays alive.
+- React state survives process termination.
+- Timers keep running in the background.
+- Active network requests always complete.
+- A background AI task can run indefinitely.
+
+Implement explicit lifecycle handling.
+
+On background:
+- Persist the minimum recoverable session state.
+- Stop or suspend unnecessary timers and polling.
+- Release unused memory and media resources.
+- Suspend unnecessary animations and work.
+
+On foreground:
+- Rehydrate or validate session state.
+- Restore navigation and focus.
+- Reconcile pending server operations.
+- Reinitialize required media resources.
+
+On cold relaunch:
+- Handle missing or corrupted persisted state.
+- Recover safely without previous in-memory state.
+
+Any operation that must survive TV process termination must have appropriate server-side persistence.
+
+## 8. AI integration architecture
+
+The TV is the presentation and interaction client.
+
+Use a backend for expensive AI inference and long-running jobs.
+
+Never embed production model API keys or backend secrets in the TV app.
+
+Do not block rendering or remote navigation while awaiting AI responses.
+
+For every network request implement, as appropriate:
+- Explicit loading state.
+- Timeout.
+- Error handling.
+- Cancellation or stale-response protection.
+- Bounded retry with backoff.
+- Protection against duplicate actions.
+- Clear recovery or retry UI.
+
+For long-running AI tasks:
+- Use server-managed job IDs and statuses.
+- Persist task identity where recovery is required.
+- Support resuming or reconnecting after relaunch.
+- Distinguish completed, failed, cancelled, and pending states.
+- Do not assume an open TV-side connection survives backgrounding.
+
+Do not let obsolete asynchronous responses overwrite newer UI state.
+
+Treat generated AI content as untrusted data:
+- Validate structured output.
+- Bound displayed content length.
+- Handle missing fields and malformed responses.
+- Never execute arbitrary AI-generated code on the device.
+
+## 9. Media playback (if applicable)
+
+Use documented Vega-compatible media playback libraries.
+
+Do not assume browser video, generic Android players, or arbitrary RN video libraries work.
+
+Verify:
+- Supported codecs and formats.
+- Surface creation and disposal.
+- Playback state transitions.
+- Audio behavior.
+- Seek and playback controls.
+- Background cleanup.
+- Error recovery.
+
+Use supported native/media pipelines rather than implementing custom software video decoding on the JS thread.
+
+Never assume arbitrary third-party streaming content can be accessed or controlled.
+
+Do not implement unsupported DRM bypasses or scraping-based playback.
+
+## 10. Storage and security
+
+Physical device storage is not equivalent to free app storage.
+
+Persist only essential state using verified supported storage APIs.
+
+Avoid repeatedly writing high-frequency events, raw AI streams, or large media data to flash storage.
+
+Never store:
+- Production provider secrets.
+- Unnecessary sensitive user information.
+- Unbounded media or conversation archives.
+
+Use HTTPS for backend communication.
+
+Request only the Vega privileges required by the feature.
+
+Validate all inputs crossing device/backend boundaries.
+
+## 11. Verification requirements
+
+A change is NOT complete merely because TypeScript passes.
+
+For every feature:
+
+1. Verify the relevant API is supported on the target Vega runtime.
+2. Run relevant type checks and tests.
+3. Build using the project's actual Vega build workflow.
+4. Launch on the Vega Virtual Device when available.
+5. Test D-Pad navigation and BACK behavior.
+6. Test loading, failure, and recovery states.
+7. Test background and foreground behavior where relevant.
+8. Inspect logs for runtime or native errors.
+9. Check release-build behavior when feasible.
+
+Do not claim real hardware testing unless it occurred.
+
+Performance work must use actual device measurements.
+
+Check:
+- Memory growth during prolonged use.
+- Repeated screen navigation.
+- Focus restoration.
+- Rapid remote input.
+- Network delays and disconnections.
+- Unexpected app termination.
+- Resume and relaunch behavior.
+
+## 12. Engineering discipline
+
+Make the smallest correct change that satisfies the requirement.
+
+Do not:
+- Rewrite working architecture unnecessarily.
+- Add dependencies for trivial tasks.
+- Silently change configuration or SDK versions.
+- Hide errors with empty catches or placeholder fallbacks.
+- Use `any` to mask unresolved API incompatibilities.
+- Claim unexecuted commands passed.
+- Claim hardware performance is validated using a simulator.
+- Replace a broken feature with an unrelated implementation.
+
+When debugging:
+1. Reproduce the failure.
+2. Identify the likely root cause from logs/evidence.
+3. Apply a narrow fix.
+4. Rebuild and retest.
+5. Report what was actually verified.
+
+If a required API or behavior is unsupported, explain the limitation and propose a Vega-compatible alternative.
+
+## 13. Before reporting completion
+
+Report concisely:
+
+- What changed.
+- Which files were modified.
+- Which Vega APIs or libraries were used.
+- What tests and builds actually ran.
+- Whether D-Pad focus and Back were verified.
+- Whether lifecycle behavior was verified.
+- Whether memory/performance was measured.
+- Remaining limitations or unsupported assumptions.
+
+Never confuse "implemented", "compiled", "tested on VVD",
+and "verified on a physical Fire TV".
+
+
+## 14. Authoritative documentation
+
+Always prefer matching-version Amazon documentation over generic React Native answers.
+
+Vega:
+https://developer.amazon.com/docs/vega/0.24/
+
+Vega API Reference:
+https://developer.amazon.com/docs/vega-api/0.24/
+
+SDK Release Notes:
+https://developer.amazon.com/docs/vega/0.24/vega-release-notes
+
+Focus Management:
+https://developer.amazon.com/docs/vega/0.24/focus-management
+
+Performance:
+https://developer.amazon.com/docs/vega/0.24/measure-app-kpis
+
+Supported Libraries:
+https://developer.amazon.com/docs/vega-api/0.24/supported-libraries
+
+If the installed SDK or runtime differs, consult its matching documentation before applying examples.
