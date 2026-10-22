@@ -66,3 +66,6 @@ __pycache__/
 # Tool caches
 .pytest_cache/
 .ruff_cache/
+
+# Machine-specific npm settings (local prefix path)
+/.npmrc

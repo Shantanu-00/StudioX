@@ -33,6 +33,7 @@ parked, behind a flag.
                                                           Analyse segments   --+  "analyst" (Strands)
                                                           Verify and score   --+  Web Search Tool,
                                                           Plan the screen    --+  Guardrails
+                                                          Draw the map       --+
                                                           Precompute answers --+
                                                           Publish package --> S3 packages/<id>/latest.json --> CloudFront --> TV
                                                                                          ask / refine --> Lambda --> AgentCore Runtime "coviewer"
@@ -50,6 +51,7 @@ parked, behind a flag.
 | `Analyse segments` | Map over segments, `analyst` mode `lenses`: candidate widgets (claims, people, numbers, motion) |
 | `Verify and score` | Fact-check graph with the Web Search Tool; verdict rule table; Guardrails grounding score |
 | `Plan the screen` | `analyst` mode `curate`: moments, chosen widgets, suggested questions |
+| `Draw the map` | `analyst` mode `map`: decides whether the episode gets a Map, its category and layout, and writes the nodes, links and simulations (validated in code; `Map skipped` if it fails) |
 | `Precompute answers` | `analyst` mode `answer` for each suggested question, for demo mode |
 | `Publish package` | Validates every widget, writes `packages/<id>/v<n>.json` and `latest.json`, sets `READY` |
 
