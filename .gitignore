@@ -74,3 +74,6 @@ __pycache__/
 /backend/agents/agentcore/.llm-context/
 # Agent build staging cache
 /backend/agents/agentcore/.cache/
+
+# Local review screenshots (curated copies live in docs/images/)
+/review/

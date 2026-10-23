@@ -11,7 +11,7 @@ then gives the viewer a private chat-style thread with their TV. In it they can 
 about what's playing**, **upload a video** to the TV, and **receive cards the TV sends them** (a
 protocol checklist, a list of names with sources, a reminder).
 
-Work only inside `webapp/link/` in the repository `/home/xspace/StudioX`. Do not touch any other
+Work only inside `webapp/link/` in this repository. Do not touch any other
 folder. The API contract is in `docs/ARCHITECTURE.md` (section "API contract v1"); it is repeated
 below. Follow it exactly.
 

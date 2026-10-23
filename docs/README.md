@@ -1,7 +1,12 @@
 # Documentation
 
+For judges: the [README](../README.md) has the tour, [TESTING.md](../TESTING.md) the run
+instructions, [FRICTION_LOG.md](../FRICTION_LOG.md) the friction log, and
+[aws-builder.md](aws-builder.md) the AWS Builder Mini Challenge write-up.
+
 | Document | Purpose |
 | --- | --- |
+| [aws-builder.md](aws-builder.md) | **AWS Builder Mini Challenge**: every AWS service, its job, file paths, LIVE vs. BUILT, measured results |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | **Start here.** One-page architecture, demo view of the AWS part, API contract v1 |
 | [product/studiox-product-brief.md](product/studiox-product-brief.md) | Product definition: podcast co-viewing only, layers, open decisions |
 | [product/design-language.md](product/design-language.md) | "Cold Signal" visual language and co-viewing layer concepts |
@@ -17,5 +22,6 @@
 | [development/troubleshooting.md](development/troubleshooting.md) | Known problems and fixes |
 | [development/backend-build-plan.md](development/backend-build-plan.md) | Build order for the AWS backend and phone app: phases P0–P8, files, tests, hours, cuts |
 
-Private working notes live in `docs/local/`, and downloaded Amazon/AWS reference notes in
-`docs/reference/`. Neither is part of the repository.
+`images/` holds the Vega Virtual Device screenshots used in the README. Notes in `product/` are design
+history: where they disagree with [ARCHITECTURE.md](ARCHITECTURE.md) and
+[backend/CONTRACTS.md](../backend/CONTRACTS.md), those two win.

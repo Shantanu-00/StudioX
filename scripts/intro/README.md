@@ -40,7 +40,7 @@ Requires Blender 5.x, FFmpeg, Python 3, and Arial Bold or Nimbus Sans Bold. The
 source code uses Blender's Python runtime, with no extra Python packages.
 
 ```bash
-cd /home/xspace/StudioX
+cd StudioX   # the repository root
 bash scripts/intro/render.sh
 ```
 

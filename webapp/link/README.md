@@ -12,7 +12,7 @@ Built in the **"Cold Signal"** design language: dark, austere, precision-enginee
 No node build step or npm installation required. Run directly with Python's HTTP server:
 
 ```bash
-cd /home/xspace/StudioX/webapp
+cd webapp   # from the repository root
 python3 -m http.server 8000
 ```
 
