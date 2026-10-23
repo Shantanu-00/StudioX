@@ -8,7 +8,38 @@ distribution and shows the episode packages our AWS pipeline published.
 | --- | --- | --- |
 | [A. Run the tests](#a-run-the-tests-no-device) | ~5 min | Node 22, `uv` (for the Python tests) |
 | [B. Build and run on the Vega Virtual Device](#b-build-and-run-on-the-vega-virtual-device) | 30–60 min the first time (SDK download) | Ubuntu 20.04+ x86_64 or macOS, KVM on Linux, ~20 GB disk |
-| [C. Walk the demo with the remote](#c-what-to-try-with-the-remote) | 5 min | Path B |
+| [C. Walk the demo with the remote](#c-what-to-try-with-the-remote) | 5 min | Path B, or the prebuilt package |
+
+## Credentials, network and the backend: what judges need
+
+**No login, no account, no keys.** The app has no sign-in. Nothing in these instructions needs
+AWS credentials. The build in this repository, and every package in the GitHub Release, is a
+**demo build**: it makes no live AI calls, and it holds no access code.
+
+| Part of the app | Needs internet? | Where it comes from |
+| --- | --- | --- |
+| Intro, Home, focus and BACK navigation | No | Inside the app |
+| **More maps** (finance, tech, history) | No | Bundled in the app, with Play story and the simulations |
+| Co-viewer cards and the episode Maps | Only for the video | The packages our AWS pipeline published. The app fetches them from CloudFront and falls back to the copy bundled in the app |
+| The two demo episodes (video) | **Yes** | Streamed over HTTPS from our CloudFront distribution (public, no auth). Without a connection, the player shows "This episode can't play right now" with **Try again** and **Back to Home** |
+| Phone link (QR) | Yes | The deployed API (CloudFront → API Gateway → Lambda → DynamoDB). It works without a login; uploads and live answers stay switched off |
+
+So on any Vega device or Virtual Device with internet, the whole demo works as shown in the
+video. Offline, everything except video playback still works. The video stays out of the
+repository because the stock footage may be streamed but not redistributed (see
+[CREDITS.md](CREDITS.md)). The demo media and the packages will stay online through the end of
+judging.
+
+**What a member of the public can reach.** The same things as a judge: public CloudFront files,
+and an API that can register a TV and pair a phone. Everything that costs money is gated:
+
+- Live AI routes (`/v1/sessions`, `/v1/refine`, `/v1/ask`) and uploads answer `503 LIVE_OFF`
+  unless the owner sets `/studiox/live` to `on`.
+- A TV caller must also send the shared access code, which is not in this repository or in any
+  build we publish.
+- Even with live mode on, there is a global daily cap: 300 live answers and 10 uploads of at most
+  1 GiB per UTC day.
+- The HTTP API is throttled to 20 requests per second (burst 40).
 
 What has been verified, and where: everything below has run on the **Vega Virtual Device**
 (SDK 0.24.12112, x86_64). **No physical Fire TV was used.** Hardware performance and memory are
@@ -72,9 +103,19 @@ stops the emulator, builds, then restarts the emulator and relaunches the app.
 | Home / Menu | F1 / F2 |
 | Rewind / Play-Pause / Fast forward | F3 / F4 / F5 |
 
-On a real Fire TV running Vega OS, install `build/aarch64-release/studiox_aarch64.vpkg` (or armv7,
-depending on the device) with `vega run-app <vpkg> com.studiox.app.main -d <device>` (not tested
-by us).
+**Skip the build: use the prebuilt package.** The repository's
+[GitHub Release](https://github.com/Shantanu-00/StudioX/releases) has the release `.vpkg` for each
+architecture. You still need the Vega SDK for the `vega` CLI and the Virtual Device, but not
+`npm install` or a build:
+
+```bash
+vega virtual-device start
+vega run-app studiox_x86_64.vpkg com.studiox.app.main -d VirtualDevice
+```
+
+On a Fire TV running Vega OS in developer mode, use `studiox_aarch64.vpkg` or
+`studiox_armv7.vpkg` (depending on the device) with `-d <device serial>`. We have not tested this
+on hardware.
 
 ## C. What to try with the remote
 

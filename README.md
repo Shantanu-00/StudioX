@@ -25,7 +25,7 @@ playhead is ever shown.
 | **AWS Builder Mini Challenge**: architecture, every service, the Strands and AgentCore primitives, the commands to run it | **[AWS section below](#aws-builder-mini-challenge)** · [docs/aws-builder.md](docs/aws-builder.md) |
 | **What the demo shows**, and the technology behind each moment | [The demo, moment by moment](#the-demo-moment-by-moment) |
 | **Vega OS** features used, with file paths | [Built on Vega OS](#built-on-vega-os) |
-| How to run and test it | **[TESTING.md](TESTING.md)** |
+| How to run and test it. **No login or keys needed**: the demo build streams from public CloudFront, and the paid AI routes are gated | **[TESTING.md](TESTING.md)** |
 | How the project maps to each judging criterion | [Judging criteria](#how-studiox-maps-to-the-judging-criteria) |
 | The agent → TV contract | [backend/CONTRACTS.md](backend/CONTRACTS.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | Demo video | Linked on the Devpost project page |
