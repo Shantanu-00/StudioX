@@ -1,5 +1,10 @@
 # StudioX system architecture (v3): flows, agents, screen grammar
 
+> **Historical design note.** Written during the build (20–22 Oct 2026) and kept for the record.
+> Statements such as "proposal", "nothing is deployed" or "not built yet" describe the state at the
+> time. The current product and the deployed system are described in the [README](../../README.md),
+> [ARCHITECTURE.md](../ARCHITECTURE.md) and [aws-builder.md](../aws-builder.md).
+
 Status: **design for review**, 21 October 2026, 23:00 IST. It supersedes §4–§5 of
 [aws-backend.md](aws-backend.md) (layout and agents) and §3–§4 of
 [coviewer-plan.md](coviewer-plan.md) (rail layout and widget list). The rest of those documents

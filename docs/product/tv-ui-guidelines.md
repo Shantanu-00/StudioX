@@ -73,12 +73,18 @@ One visible focus language, always a shape change as well as a colour change:
 
 | Key | Home / Shared / Link | Rail | Player | Co-viewer panel | Dialog |
 | --- | --- | --- | --- | --- | --- |
-| D-pad | Move | Up/down between sections; Right back to page | Left/right scrub; Down peeks the panel | Move rows | Move buttons (trapped) |
+| D-pad | Move | Up/down between sections; Right back to page | Left/right scrub (see below); Down peeks the panel | Move rows; Left from a row on the panel's left edge hides the panel | Move buttons (trapped) |
 | OK | Activate | Open section | Play/pause on the SeekBar | Jump video to the item | Activate |
 | Back | To the rail's Home; exit at Home | Exit at Home | Close panel → leave player | Close panel | Close dialog |
 | Play/Pause | — | — | Toggle; pausing opens the co-viewer | Resume and close | — |
 | Rew / FF | — | — | Seek (Vega Media Controls) | — | — |
 | Menu | — | — | Toggle the co-viewer | Close | — |
+
+- **Hiding the panel:** LEFT from a row on the panel's left edge hides the panel. The video is
+  full screen and stays paused; DOWN or Menu reopens the panel.
+- **Scrubbing:** LEFT/RIGHT taps add up. One seek runs 600 ms after the last press, or at once
+  on OK. While scrubbing only, a label above the thumb shows the target time on one line and
+  nothing else. Step = duration / 20, clamped to 2–10 s; holding a key accelerates.
 
 ## 6. Motion, imagery and performance
 
@@ -88,3 +94,22 @@ One visible focus language, always a shape change as well as a colour change:
   scrim baked in. No runtime gradients, blur or shadows.
 - At most two hero images are mounted (during a cross-fade).
 - Judge smoothness on a **Release** build. Debug builds and the Virtual Device are not representative.
+
+## 7. Co-viewer panel
+
+- Sections, each with an overline label (13 dp bold, tracking 1.2, upper case, tertiary text)
+  and a short translucent rule (at most 120 dp, 14% white).
+- Order: **Story map**, **People**, the card kind (or "This moment"), **Ask the co-viewer**.
+- The Map entry is a row with a play mark and a one-line explanation.
+
+## 8. Map, timeline and photos
+
+- **Map links:** arrowheads only on sequence ("then") links; attachments are plain connectors.
+  The story pulse follows the drawn connectors.
+- **Timeline card:** rail markers differ by shape as well as words: ring = claim ("Claim, not
+  proven"), dot = evidence ("Evidence"), accent dot = contradiction ("Contradicts the claim").
+  Approximate times ("~") read as "About …".
+- **Photos:** bundled and pre-cropped (square face crops for portraits, 4:3 scene crops), 64 dp
+  thumbnails, one-line credit on the card. React Native has no focal point for `cover`, so
+  crops are made offline.
+- **Themes:** the finance theme is muted (accent `#5BBF8A`).

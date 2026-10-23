@@ -1,5 +1,10 @@
 # StudioX co-viewer: how it works on Vega, and the plan to the deadline
 
+> **Historical design note.** Written during the build (20–22 Oct 2026) and kept for the record.
+> Statements such as "proposal", "nothing is deployed" or "not built yet" describe the state at the
+> time. The current product and the deployed system are described in the [README](../../README.md),
+> [ARCHITECTURE.md](../ARCHITECTURE.md) and [aws-builder.md](../aws-builder.md).
+
 Status: **plan for review**, 21 October 2026, updated 19:45 IST. About 53 hours remain before submission
 closes (24 Oct, 00:30 IST). This plan adds the owner's eight viewer questions, live web search, and
 a no-pause "glance" mode to [architecture.md](architecture.md) (v2). Where the two documents

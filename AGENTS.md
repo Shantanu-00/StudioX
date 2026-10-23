@@ -24,7 +24,7 @@ Platform for all Builder Tools calls is `vega_os` (see `.adbt-config.json`).
 | `src/hooks/`, `src/services/` | Pairing-session polling and the companion API client |
 | `src/theme.ts`, `src/config.ts` | Design tokens on the 960 × 540 dp canvas; companion and media URLs |
 | `src/data/` | `episodes.ts`: the two demo episodes (media URLs, posters) |
-| `media/` | Demo episode sources and TV encodes (git-ignored, large). Never put media in `assets/`: the build packs it into the .vpkg |
+| `media/` | Demo episode sources and TV encodes (git-ignored, large). Never put media in `assets/`: the build packs it into the .vpkg. The one exception is the bundled intro video, `assets/raw/studiox-intro-v5.mp4` (790 KB) |
 | `companion/` | Node 22 pairing/upload server (`server.mjs`) and phone pages (`public/`); see its README |
 | `src/assets/` | Images (use `require('../assets/...')`) |
 | `test/` | Jest tests mirroring `src/` (`*.spec.tsx`) |
@@ -66,7 +66,10 @@ node companion/server.mjs   # pairing/upload server for the QR flows (port 8787)
 - **Memory is tight (about 7 GB).** Do not build while the emulator runs. Do not run two installs or
   builds at once. Check `free -h` before heavy work.
 - The `vega` CLI reference must be read before running `vega` commands (see CLAUDE.md workflow rules).
-- `vega exec vda` screenshots do not work on the virtual device.
+- `vega exec vda` screenshots do not work on the virtual device. The emulator console does: connect to
+  `localhost:5554`, `auth` with `~/.emulator_console_auth_token`, then `screenrecord screenshot <dir>`
+  (or `screenrecord start/stop` for video). Keys: `vega exec vda -s emulator-5554 shell "inputd-cli button_press KEY_RIGHT"`.
+- Run Jest with `--maxWorkers=1`: the default worker count beside the VVD crashed the workstation.
 - Never commit `build/`, `node_modules/`, `buildinfo.json`, `generated/`, `.env*`, `.aws/`, or `docs/local/`.
 - Do not push to the remote or publish anything without the owner's explicit approval.
 - Log real friction, redundant steps and feature requests as described in CLAUDE.md.

@@ -1,5 +1,10 @@
 # StudioX architecture (v2)
 
+> **Historical design note.** Written during the build (20–22 Oct 2026) and kept for the record.
+> Statements such as "proposal", "nothing is deployed" or "not built yet" describe the state at the
+> time. The current product and the deployed system are described in the [README](../../README.md),
+> [ARCHITECTURE.md](../ARCHITECTURE.md) and [aws-builder.md](../aws-builder.md).
+
 Status: **proposal for review**, 21 October 2026. Nothing is deployed. The viewer questions, Glance mode and
 search are planned in [coviewer-plan.md](coviewer-plan.md), which wins where the two disagree. Supersedes v1, which had
 no agent layer. Research notes with sources are in `docs/reference/aws/` and `docs/reference/vega/`.

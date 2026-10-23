@@ -1,5 +1,10 @@
 # StudioX — product brief
 
+> **Historical design note.** Written during the build (20–22 Oct 2026) and kept for the record.
+> Statements such as "proposal", "nothing is deployed" or "not built yet" describe the state at the
+> time. The current product and the deployed system are described in the [README](../../README.md),
+> [ARCHITECTURE.md](../ARCHITECTURE.md) and [aws-builder.md](../aws-builder.md).
+
 Status: revised 20 October 2026. StudioX is now **only a podcast co-viewing app**. The earlier
 boxing-practice and music-notes ideas are dropped, not deferred. This brief records the product
 intent; it does not claim features are implemented. What exists today is listed in

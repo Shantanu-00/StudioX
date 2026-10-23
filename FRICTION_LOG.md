@@ -1,6 +1,6 @@
 # StudioX friction log: Vega OS, Builder Tools MCP, Vega Virtual Device and AWS
 
-> **For reviewers.** **46 friction entries** and **14 feature requests**, written *while* building
+> **For reviewers.** **48 friction entries** and **14 feature requests**, written *while* building
 > StudioX for Fire TV on Vega OS, 19–23 October 2026. Severity: **2 Critical, 20 Major,
 > 24 Minor**. Every entry records something that really happened, with the exact error text,
 > command, tool version or file path. Where a cause is not confirmed, the entry says so.
@@ -57,6 +57,8 @@ other AI clients) and our own code are left out. That is why some IDs are missin
 | [F-42](#vega-tooling) | Vega SDK | Root `assets/` folder is packed into the .vpkg, and stale copies survive rebuilds | Major |
 | [F-63](#vega-tooling) | Vega SDK | An AI agent cannot drive or observe the Virtual Device without Appium, and stalled twice trying | Major |
 | [F-66](#vega-tooling) | Vega SDK | `vega virtual-device start` reports "Virtual device ready" but the next `vega run-app` cannot find the device | Major |
+| [F-78](#vega-tooling) | Vega SDK | Perf CLI will not start without `libjpeg.so.62` | Major |
+| [F-79](#vega-tooling) | Vega SDK | KPI Visualizer on the VVD cannot parse its own traces (`perfetto.protos.TraceSummaryArgs`) | Major |
 | [F-14](#vega-tooling) | Vega SDK | Recording a demo from the Virtual Device | Major |
 | [F-11](#vega-tooling) | Vega SDK | No supported way to install from an already-downloaded archive | Major |
 | [F-09](#vega-tooling) | Vega SDK | SDK setup on a memory-constrained desktop, with reported freezes | Major |
@@ -260,6 +262,28 @@ other AI clients) and our own code are left out. That is why some IDs are missin
 - **Suggestion:** Put a pass or fail summary first, make the environment dump opt-in and redacted, and drop the legacy `vvman` and `kepler` fallback warnings.
 
 <a id="vega-apis"></a>
+
+### F-78 Vega perf CLI (KPI Visualizer) will not start: `libjpeg.so.62` missing on Ubuntu 26.04
+- **Severity (normalised):** Major
+- **Tool:** `vega exec perf doctor` / `kpi-visualizer`, KeplerPerfCLI 2.0.345.0 (SDK 0.24.12112), Vega CLI 1.4.5, Ubuntu 26.04.1 LTS, 23 Oct 2026.
+- **Task:** Measure cold-start, warm-start and memory KPIs for the submission.
+- **Steps:** `vega exec perf doctor --app-name=com.studiox.app.main`.
+- **Expected:** The device check runs.
+- **Actual:** Python traceback before any check: `…/KeplerPerfCLI/…/lib/PIL/Image.py … ImportError: libjpeg.so.62: cannot open shared object file: No such file or directory` (pulled in through `kpi_reporter.py` → `pdf_report_generator.py` → matplotlib → the bundled Pillow). The host only has `libjpeg.so.8`.
+- **Severity:** Major. Every perf command fails, including the ones that need no PDF.
+- **Workaround:** No root needed: `apt download libjpeg62 && dpkg -x libjpeg62_*.deb ~/.local/vega-libs`, then `export LD_LIBRARY_PATH=~/.local/vega-libs/usr/lib/x86_64-linux-gnu`. Doctor then ran.
+- **Suggestion:** Bundle libjpeg with the bundled Pillow (or use a manylinux Pillow wheel), list it in the Linux prerequisites, and import the PDF reporter lazily so a missing image library cannot block KPI measurement.
+
+### F-79 KPI Visualizer on the Virtual Device completes 3 iterations but cannot parse its own traces: `perfetto.protos.TraceSummaryArgs`
+- **Severity (normalised):** Major
+- **Tool:** `vega exec perf kpi-visualizer`, KeplerPerfCLI 2.0.345.0, VVD `vvrp-tv-x64-user OS 1.2 (TV Ship/102401320)`, 23 Oct 2026.
+- **Task:** Cold-start TTFF/TTFD for StudioX, to show against Amazon's guidelines in the demo.
+- **Steps:** (after the F-78 workaround) `vega exec perf kpi-visualizer --app-name=com.studiox.app.main --kpi cool-start-latency --output-dir …`.
+- **Expected:** A KPI report with TTFF (and TTFD if the app reports fully drawn).
+- **Actual:** All 3 iterations launched the app and downloaded traces (`iter_1_vs_trace`, 9.6 MB), then: `Failed to load and parse trace json file for iteration 1, exception = 'perfetto.protos.TraceSummaryArgs'` (the same for 2 and 3), `Data for this iteration will be ignored`. The report JSON has `"kpis": []`. `perf doctor` had only warnings (network not connected, Appium not installed).
+- **Severity:** Major. No launch or memory KPI could be measured on the VVD before the deadline, so the demo shows only package-size figures.
+- **Workaround:** None found in the time available. The raw traces are kept for later analysis.
+- **Suggestion:** Pin the Perfetto Python and trace-processor versions together inside the CLI, print the full exception (not only the missing key), and add a `perf doctor` check that parses a sample trace.
 
 ## B. Vega APIs, packages and documentation
 

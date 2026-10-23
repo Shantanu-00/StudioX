@@ -1,5 +1,10 @@
 # StudioX AWS backend: design and AWS Builder rubric
 
+> **Historical design note.** Written during the build (20–22 Oct 2026) and kept for the record.
+> Statements such as "proposal", "nothing is deployed" or "not built yet" describe the state at the
+> time. The current product and the deployed system are described in the [README](../../README.md),
+> [ARCHITECTURE.md](../ARCHITECTURE.md) and [aws-builder.md](../aws-builder.md).
+
 Status: **design for review**, 21 October 2026, 21:30 IST; §14 (lessons from winning entries) added 22:15 IST and wins where it conflicts. Nothing is deployed. The region is
 **us-east-1**. This document is also the "documented integration" the AWS Builder mini challenge
 asks for, and it is updated to match what actually ships. Product context is in

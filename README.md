@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/Shantanu-00/StudioX/actions/workflows/ci.yml/badge.svg)](https://github.com/Shantanu-00/StudioX/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) ![Vega OS](https://img.shields.io/badge/Fire%20TV-Vega%20OS-232f3e) ![AWS](https://img.shields.io/badge/AWS-Bedrock%20AgentCore%20%C2%B7%20Strands-ff9900)
 
-**An AI co-viewer for video podcasts on Fire TV, built natively for Vega OS and powered by Strands
-agents on Amazon Bedrock AgentCore.**
+**An AI video player for Fire TV: press Map and a whole episode becomes one picture you can play.
+Built natively for Vega OS and powered by Strands agents on Amazon Bedrock AgentCore.**
 
 We watch long videos in pieces: a podcast tonight, the rest tomorrow. Every idea makes sense, but
 when we come back, a piece is gone, and we can't see how it all fits together. Rewinding won't fix
@@ -13,7 +13,7 @@ you see who they're talking about and which claims hold up, with sources. Nothin
 playhead is ever shown.
 
 > **Build, Ship, Shape: Amazon Developer Hackathon** · **Fire TV track (Vega OS)** · **AWS Builder
-> Mini Challenge** · **Friction log: 46 entries + 14 feature requests**
+> Mini Challenge** · **Friction log: 48 entries + 14 feature requests**
 
 ![StudioX on the Vega Virtual Device: the co-viewer panel beside the paused episode](docs/images/player-coviewer.png)
 
@@ -21,7 +21,7 @@ playhead is ever shown.
 
 | You want to check | Go to |
 | --- | --- |
-| **Friction log (bonus)**: 46 entries + 14 feature requests. Each has task, steps, expected vs. actual, severity, workaround and suggestion | **[FRICTION_LOG.md](FRICTION_LOG.md)** |
+| **Friction log (bonus)**: 48 entries + 14 feature requests. Each has task, steps, expected vs. actual, severity, workaround and suggestion | **[FRICTION_LOG.md](FRICTION_LOG.md)** |
 | **AWS Builder Mini Challenge**: architecture, every service, the Strands and AgentCore primitives, the commands to run it | **[AWS section below](#aws-builder-mini-challenge)** · [docs/aws-builder.md](docs/aws-builder.md) |
 | **What the demo shows**, and the technology behind each moment | [The demo, moment by moment](#the-demo-moment-by-moment) |
 | **Vega OS** features used, with file paths | [Built on Vega OS](#built-on-vega-os) |
@@ -56,9 +56,9 @@ playhead is ever shown.
 | --- | --- | --- |
 | **Technical implementation** | Native Vega app: W3C MSE in React Native, `KeplerVideoSurfaceView`, Vega Media Controls, the Vega SeekBar, component lifecycle, system toast. On AWS: a CDK-defined Step Functions pipeline of Strands agents on AgentCore Runtime, with Guardrails grounding and rule-based verdicts. 203 Jest tests and 137 Python tests. Evals: 0 false DEBUNKED, 0 spoiler leaks | [Built on Vega](#built-on-vega-os), [AWS](#aws-builder-mini-challenge), [`test/`](test), [`backend/eval/results.md`](backend/eval/results.md) |
 | **Design** | A 10-foot UI on Vega's 960 × 540 dp canvas. Every element is D-pad reachable, with a visible focus ring, deterministic first focus, focus restored on return, and a full BACK chain. Each genre gets its own Map theme, and animation starts only when the user asks | [docs/product/design-language.md](docs/product/design-language.md), [docs/product/tv-ui-guidelines.md](docs/product/tv-ui-guidelines.md), [`src/components/FocusFrame.tsx`](src/components/FocusFrame.tsx), [`src/map/themes.ts`](src/map/themes.ts) |
-| **Potential impact** | On a TV, you can't look something up without leaving the show. StudioX makes long-form talk (health advice, true crime, money, history) understandable and checkable in place. The same pipeline works on any uploaded episode | [docs/product/studiox-product-brief.md](docs/product/studiox-product-brief.md) |
-| **Quality of the idea** | Not a video player with a chatbot. X-Ray showed TV can tell you more; StudioX makes it generative. It is a co-viewer that turns each episode into a playable map, adapts to the genre, is spoiler-safe by design, and is driven by the remote | [docs/product/coviewer-plan.md](docs/product/coviewer-plan.md) |
-| **Bonus: friction log** | 46 entries (2 Critical, 20 Major, 24 Minor) across the Vega SDK, CLI, Virtual Device, Vega APIs, the Builder Tools MCP and AWS, with exact errors and a suggestion for each | **[FRICTION_LOG.md](FRICTION_LOG.md)** |
+| **Potential impact** | Long videos are now TV: viewers watched over 400M hours of podcasts a month on living-room devices in 2024 ([YouTube, Feb 2025](https://blog.youtube/news-and-events/1-billion-monthly-podcast-users/)). And they watch in pieces: Prime Video's VP of Product calls forgetting where you left off "a common problem customers face when streaming content" ([Amazon, X-Ray Recaps](https://www.aboutamazon.com/news/entertainment/amazon-prime-video-x-ray-recaps)). StudioX takes that idea to any long video, as a picture instead of a summary. Each video is processed once, not per view, into a package under 25 KB, so the cost is per episode and any Vega content app could use the same package and renderer | [The demo, moment by moment](#the-demo-moment-by-moment), [AWS section](#aws-builder-mini-challenge) |
+| **Quality of the idea** | Not a video player with a chatbot. X-Ray showed TV can tell you more; StudioX makes it generative. It turns each episode into a playable map, adapts to the genre, is spoiler-safe by design, and is driven by the remote | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [`src/map/`](src/map) |
+| **Bonus: friction log** | 48 entries (2 Critical, 22 Major, 24 Minor) across the Vega SDK, CLI, Virtual Device, Vega APIs, the Builder Tools MCP and AWS, with exact errors and a suggestion for each | **[FRICTION_LOG.md](FRICTION_LOG.md)** |
 | **AWS Builder Mini Challenge** | 11 AWS services plus the Strands Agents SDK, live in us-east-1 and defined in CDK. Eight Strands primitives (agents as tools, structured output, hooks, prompt caching, metrics, and more) and the AgentCore Runtime SDK and CLI are used in code. Results are measured | **[AWS section](#aws-builder-mini-challenge)** |
 
 ## Built on Vega OS
@@ -341,7 +341,7 @@ calls are made.
 
 ## Friction log: what we'd fix first
 
-The full log is in **[FRICTION_LOG.md](FRICTION_LOG.md)**: 46 entries and 14 feature requests,
+The full log is in **[FRICTION_LOG.md](FRICTION_LOG.md)**: 48 entries and 14 feature requests,
 each with exact errors. The top five asks:
 
 1. Make W3C URL-mode playback work on the Virtual Device, or document the raw-MSE fallback (F-45).

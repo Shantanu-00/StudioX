@@ -4,7 +4,9 @@ Research date: 21 October 2026. Target: Vega SDK 0.24, React Native 0.83,
 `@amazon-devices/react-native-kepler` 4.x. This is an implementation decision and
 validation plan, not a record of device-tested behavior.
 
-**Recommended flow: brief black OS splash → native composited StudioX title → Home.**
+**Recommended flow (21 Oct): brief black OS splash → native composited StudioX title → Home.**
+**Implemented (23 Oct): OS splash → the rendered v5 video → Home, with the native title as the
+fallback** (the owner chose the exact render; see Current state).
 
 Keep the OS splash visually identical to the opening's black field. Once the app has
 laid out and loaded its intro assets, dismiss the splash and run one continuous animation
@@ -13,11 +15,36 @@ the transition to Home.
 
 ## Current state
 
-[`Intro.tsx`](../../src/screens/Intro.tsx) is a roughly 2.8-second placeholder using
-`Animated` opacity and transforms with the native driver. It draws a simple line for the
-crack; it does not play either rendered intro. [`App.tsx`](../../src/App.tsx) routes from
-intro to Home, handles BACK, and uses a module-level flag to skip the intro when the same
-JavaScript runtime remains alive.
+**The app plays the silent v5 render at cold start, with the native cut as a fallback.**
+[`Intro.tsx`](../../src/screens/Intro.tsx) plays `studiox-intro-v5-silent.mp4` itself
+(1920×1080, 60 fps, H.264, 10 s, 789,553 bytes, no audio), so the opening has the render's
+real fracture, panes and timing. It is bundled byte-identical as
+`assets/raw/studiox-intro-v5.mp4` and played in W3C URL mode from
+`/pkg/assets/raw/studiox-intro-v5.mp4`. That is the path Amazon gave on the developer forum
+([thread 27642](https://community.amazondeveloper.com/t/proper-uri-handling-for-local-assets-in-kepler-toastkepler-and-w3c-media-video/27642));
+nothing in the published docs states it. If the video errors before its first frame or has
+not started within 3 s, [`IntroNative.tsx`](../../src/screens/IntroNative.tsx) plays the
+earlier native cut of about 3.9 s (65 clipped glyph tiles, a drawn fracture, react-native-svg
+panes, native-driver opacity and transforms). Timeline, exits and measurements are in
+[the opening sequence](opening-sequence.md#in-app-intro-the-v5-render-with-a-native-fallback).
+[`App.tsx`](../../src/App.tsx) routes from intro to Home, handles BACK, and uses a
+module-level flag to skip the intro when the same JavaScript runtime remains alive.
+
+Verified on the Vega Virtual Device (debug build, 23 Oct 2026):
+
+- The packaged-file path works: `/pkg/assets/raw/...` in URL mode opened a 1920×1080, 60/1
+  pipeline.
+- Recorded cold launches cut from the launcher straight to black, then play the full v5
+  sequence and go to Home. A VVD frame matches the same frame of the source file.
+- `playing` arrived 0.77–1.8 s after mount, and `ended` 10.5–11.3 s after mount.
+- ENTER, PLAY/PAUSE and BACK skips work, and an episode plays after the intro.
+- The start-timeout fallback ran once.
+
+Still open: the background path on the VVD (`inputd-cli` KEY_HOME did not background the
+app; covered by unit tests only), start-up latency, frame pacing and PSS on a physical
+Fire TV, synchronized audio (the render is silent; the audio rights are not cleared),
+and the OS splash handoff (the splash hooks are not used). The debug `.vpkg` grew from
+1,766,301 to 2,514,573 bytes with the file.
 
 The separate v1/v2 media exports are visual iterations. The v3 proof was rendered offline with continuous masks and a 60 fps timeline.
 The user rejected its rounded glass distortion; v4 replaces that with a reference-shaped
@@ -126,17 +153,17 @@ correctly. This permits a full-screen intro as the first screen after launch.
 [Vega media pipeline and formats](https://developer.amazon.com/docs/vega/0.24/media-player),
 [player and surface lifecycle](https://developer.amazon.com/docs/vega/0.24/media-player-select-playback)
 
-Amazon describes file-based as well as URL-based media playback. However, a working
-packaged-MP4 URI and asset-copy configuration have not been verified in this project.
-Do not call a specific `file:///pkg/assets/...` path tested until the built package and
-runtime prove it.
+Amazon describes file-based as well as URL-based media playback. In this project the
+verified configuration is a root `assets/raw/` file played as
+`/pkg/assets/raw/<name>.mp4` (no `file://` prefix, no metro or manifest change); see
+Current state. Other forms (`asset://`, `file:///pkg/...`, `require()` plus
+`resolveAssetSource`) were not tested.
 [File-based media support](https://developer.amazon.com/docs/vega-api/0.24/porting-libraries)
 
 A video keeps picture and sound on one media clock. Native compositing allows more
 flexible interaction, but its separate audio player must be synchronized and tested.
-Keep the high-quality render as the visual reference and as a fallback if the native
-approximation cannot meet the desired appearance or audio alignment on the target TV.
-Neither route is integrated by this document.
+The render is now the primary route and the native approximation is the fallback
+(Current state).
 
 There is a version inconsistency in the public media instructions: the
 [setup guide](https://developer.amazon.com/docs/vega/0.24/media-player-setup) specifies
@@ -164,7 +191,8 @@ that no future or privately ported implementation could exist.
 
 ## Integration and validation gates
 
-These are required future checks; none has been completed for the proposed intro.
+These are the required checks. Only visual timing has been checked, on the VVD by screen
+recording; the others remain open for the native intro.
 
 - **Visual timing:** compare continuous real-time playback of the native prototype and
   offline proof. Inspect the first reveal, every mask handoff, the moment of impact,
