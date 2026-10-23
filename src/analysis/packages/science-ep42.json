@@ -328,7 +328,7 @@
         }
       ],
       "image": {
-        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/26/Cristiano_Ronaldo_Croatia_v_Portugal_2_July_2026-075_%28cropped%29.jpg/500px-Cristiano_Ronaldo_Croatia_v_Portugal_2_July_2026-075_%28cropped%29.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Cristiano_Ronaldo_Croatia_v_Portugal_2_July_2026-075_%28cropped%29.jpg/330px-Cristiano_Ronaldo_Croatia_v_Portugal_2_July_2026-075_%28cropped%29.jpg",
         "credit": "Bryan Berlin · CC BY-SA 4.0 · Wikimedia Commons"
       },
       "headline": "Cristiano Ronaldo and his recovery habits"
@@ -562,7 +562,8 @@
           "protocol-s1-1",
           "people-s1-1"
         ],
-        "sim": "night"
+        "sim": "night",
+        "phase": "night"
       },
       {
         "id": "n2",
@@ -578,7 +579,8 @@
         "refs": [
           "claims-s1-1"
         ],
-        "sim": null
+        "sim": null,
+        "phase": "day"
       },
       {
         "id": "n3",
@@ -628,7 +630,8 @@
         "refs": [
           "protocol-s1-1"
         ],
-        "sim": null
+        "sim": null,
+        "phase": "night"
       },
       {
         "id": "n6",
@@ -689,7 +692,14 @@
           "cycles": 5,
           "bedtime": 1380,
           "quote": "Five ninety-minute cycles.",
-          "quoteT": 5.41
+          "quoteT": 5.41,
+          "steps": [
+            {
+              "label": "Room kept at 18°C",
+              "offsetMin": 0,
+              "icon": "thermometer"
+            }
+          ]
         }
       }
     ],

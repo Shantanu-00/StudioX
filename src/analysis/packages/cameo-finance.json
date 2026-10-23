@@ -369,77 +369,69 @@
       {
         "id": "n3",
         "group": "g1",
-        "kind": "claim",
-        "label": "Ana pays in $144,000",
+        "kind": "number",
+        "label": "Paid in, start at 25",
         "detail": "Ten more years of saving, and $36,000 more out of her pocket.",
         "t": 24.09,
         "t1": 31.01,
         "when": null,
         "value": {
           "n": 144000,
-          "unit": "USD paid in"
+          "unit": "USD"
         },
-        "verdict": "UNVERIFIED",
-        "refs": [
-          "claims-s1-4"
-        ],
+        "verdict": null,
+        "refs": [],
         "sim": null
       },
       {
         "id": "n4",
         "group": "g2",
-        "kind": "claim",
-        "label": "Ben pays in $108,000",
+        "kind": "number",
+        "label": "Paid in, start at 35",
         "detail": "$36,000 less than Ana in total.",
         "t": 24.09,
         "t1": 31.01,
         "when": null,
         "value": {
           "n": 108000,
-          "unit": "USD paid in"
+          "unit": "USD"
         },
-        "verdict": "UNVERIFIED",
-        "refs": [
-          "claims-s1-4"
-        ],
+        "verdict": null,
+        "refs": [],
         "sim": null
       },
       {
         "id": "n5",
         "group": "g1",
-        "kind": "claim",
-        "label": "Ana has about $787,000 at 65",
+        "kind": "number",
+        "label": "At 65, start at 25",
         "detail": "From $300 a month at 7% a year.",
         "t": 31.36,
         "t1": 35.98,
         "when": null,
         "value": {
           "n": 787000,
-          "unit": "USD at 65"
+          "unit": "USD"
         },
-        "verdict": "NUANCED",
-        "refs": [
-          "claims-s1-1"
-        ],
+        "verdict": null,
+        "refs": [],
         "sim": "growth"
       },
       {
         "id": "n6",
         "group": "g2",
-        "kind": "claim",
-        "label": "Ben has about $366,000 at 65",
+        "kind": "number",
+        "label": "At 65, start at 35",
         "detail": "Same monthly amount and return, ten years later.",
         "t": 31.36,
         "t1": 35.98,
         "when": null,
         "value": {
           "n": 366000,
-          "unit": "USD at 65"
+          "unit": "USD"
         },
-        "verdict": "NUANCED",
-        "refs": [
-          "claims-s1-1"
-        ],
+        "verdict": null,
+        "refs": [],
         "sim": null
       },
       {
@@ -550,7 +542,15 @@
           "laterYears": 10,
           "currency": "USD",
           "quote": "Ana starts at 25. Ben starts at 35. Both stop at 65, and both earn an average of 7 percent a year.",
-          "quoteT": 11.47
+          "quoteT": 11.47,
+          "labels": [
+            "Start at 25",
+            "Start at 35"
+          ],
+          "startAges": [
+            25,
+            35
+          ]
         }
       }
     ],

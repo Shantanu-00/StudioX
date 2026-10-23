@@ -444,7 +444,8 @@
         "refs": [
           "protocol-s1-1"
         ],
-        "sim": null
+        "sim": null,
+        "icon": "globe"
       },
       {
         "id": "n2",
@@ -460,7 +461,8 @@
         "refs": [
           "claims-s1-1"
         ],
-        "sim": null
+        "sim": null,
+        "icon": "clock"
       },
       {
         "id": "n3",
@@ -477,7 +479,8 @@
           "protocol-s1-1",
           "claims-s1-4"
         ],
-        "sim": null
+        "sim": null,
+        "icon": "lock"
       },
       {
         "id": "n4",
@@ -493,7 +496,8 @@
         "refs": [
           "protocol-s1-1"
         ],
-        "sim": null
+        "sim": null,
+        "icon": "router"
       },
       {
         "id": "n5",
@@ -510,7 +514,8 @@
           "claims-s1-2",
           "protocol-s1-1"
         ],
-        "sim": null
+        "sim": null,
+        "icon": "server"
       },
       {
         "id": "n6",
@@ -526,7 +531,8 @@
         "refs": [
           "protocol-s1-1"
         ],
-        "sim": null
+        "sim": null,
+        "icon": "database"
       },
       {
         "id": "n7",
@@ -543,7 +549,8 @@
           "claims-s1-3",
           "protocol-s1-1"
         ],
-        "sim": null
+        "sim": null,
+        "icon": "tv"
       },
       {
         "id": "n8",
@@ -559,7 +566,8 @@
         "refs": [
           "protocol-s1-1"
         ],
-        "sim": null
+        "sim": null,
+        "icon": "cloud"
       }
     ],
     "edges": [

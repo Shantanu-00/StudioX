@@ -144,8 +144,8 @@
         }
       ],
       "image": {
-        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/Neil_Armstrong_pose.jpg/500px-Neil_Armstrong_pose.jpg",
-        "credit": "Unknown authorUnknown author · Public domain · Wikimedia Commons"
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Neil_Armstrong_pose.jpg/330px-Neil_Armstrong_pose.jpg",
+        "credit": "NASA · Public domain · Wikimedia Commons"
       },
       "headline": "Neil Armstrong: commander who landed Eagle by hand"
     },
@@ -328,7 +328,7 @@
         }
       ],
       "image": {
-        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Michael_Collins_%28S69-31742%2C_restoration%29.jpg/500px-Michael_Collins_%28S69-31742%2C_restoration%29.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Michael_Collins_%28S69-31742%2C_restoration%29.jpg/330px-Michael_Collins_%28S69-31742%2C_restoration%29.jpg",
         "credit": "NASA; restored by Coffeeandcrumbs · Public domain · Wikimedia Commons"
       },
       "headline": "Michael Collins: orbited the Moon alone"
@@ -366,7 +366,7 @@
         }
       ],
       "image": {
-        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Buzz_Aldrin.jpg/500px-Buzz_Aldrin.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Buzz_Aldrin.jpg/330px-Buzz_Aldrin.jpg",
         "credit": "NASA · Public domain · Wikimedia Commons"
       },
       "headline": "Buzz Aldrin: second person on the Moon"
@@ -513,7 +513,11 @@
           "events-s1-1",
           "people-s1-3"
         ],
-        "sim": null
+        "sim": null,
+        "image": {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Michael_Collins_%28S69-31742%2C_restoration%29.jpg/330px-Michael_Collins_%28S69-31742%2C_restoration%29.jpg",
+          "credit": "NASA; restored by Coffeeandcrumbs · Public domain · Wikimedia Commons"
+        }
       },
       {
         "id": "n2",
@@ -595,7 +599,11 @@
           "events-s1-1",
           "people-s1-1"
         ],
-        "sim": null
+        "sim": null,
+        "image": {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Neil_Armstrong_pose.jpg/330px-Neil_Armstrong_pose.jpg",
+          "credit": "NASA · Public domain · Wikimedia Commons"
+        }
       },
       {
         "id": "n7",
@@ -612,7 +620,11 @@
           "events-s1-1",
           "people-s1-2"
         ],
-        "sim": null
+        "sim": null,
+        "image": {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Buzz_Aldrin.jpg/330px-Buzz_Aldrin.jpg",
+          "credit": "NASA · Public domain · Wikimedia Commons"
+        }
       }
     ],
     "edges": [
