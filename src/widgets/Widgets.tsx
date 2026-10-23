@@ -8,7 +8,7 @@ import {
   isRealStamp,
   whyOf,
 } from '../analysis/cardText';
-import {imageSource} from '../map/images';
+import {portraitSource} from '../map/images';
 import {
   ClaimWidget,
   DossierWidget,
@@ -17,6 +17,8 @@ import {
   RelationGraphWidget,
   TimelineWidget,
 } from '../analysis/schema';
+
+type TimelineEvent = TimelineWidget['events'][number];
 import {Icon} from '../components/Icon';
 import {colors, numeric, type} from '../theme';
 import {
@@ -116,7 +118,7 @@ export const DossierCard = ({
   );
 };
 
-// A round portrait, always through imageSource() (bundled thumbnails first,
+// A round portrait, always through portraitSource() (bundled face crops first,
 // else the https URL); initials on a neutral circle when there is no image
 // or it fails to load (`onFail` tells the caller, which then drops the
 // credit). Explicit size; a remote image is decoded at 2x for 1080p.
@@ -143,7 +145,7 @@ export const Portrait = ({
       </View>
     );
   }
-  const src = imageSource(url);
+  const src = portraitSource(url);
   const source =
     src && typeof src === 'object' && !Array.isArray(src) && 'uri' in src
       ? {...src, width: size * 2, height: size * 2}
@@ -163,8 +165,28 @@ export const Portrait = ({
   );
 };
 
-// Up to five events around the playhead. Events ahead of what the viewer
-// has heard stay hidden until they choose to reveal them.
+// What an event is, in words a viewer reads at a glance. The rail marker
+// carries the same meaning by shape (ring, dot, accent dot), never colour
+// alone.
+const EVENT_KIND: Record<NonNullable<TimelineEvent['kind']>, string> = {
+  claim: 'Claim, not proven',
+  fact: 'Evidence',
+  conflict: 'Contradicts the claim',
+};
+
+// "~10:08 PM" reads as a typo on a TV: say "About 10:08 PM", and drop the
+// pipeline's "(time derived from …)" aside from the label it then explains.
+export function eventWhen(when: string) {
+  const approx = /^\s*(~|≈|approx\.?|ca\.?|circa)\s*/i.exec(when);
+  const clean = when.replace(/^\s*(~|≈|approx\.?|ca\.?|circa)\s*/i, '').replace(/(\d)\s*-\s*(\d)/g, '$1–$2');
+  return {text: approx ? `About ${clean}` : clean, approx: !!approx};
+}
+export function eventLabel(label: string) {
+  return label.replace(/\s*\((?:time )?(?:derived|estimated|approximate)[^)]*\)/i, '').trim();
+}
+
+// Up to five events around the playhead, on a rail. Events ahead of what the
+// viewer has heard stay hidden until they choose to reveal them.
 export const TimelineCard = ({
   w,
   ctx,
@@ -172,37 +194,63 @@ export const TimelineCard = ({
   w: TimelineWidget;
   ctx: WidgetContext;
 }) => {
-  const isLocked = (e: TimelineWidget['events'][number]) =>
+  const isLocked = (e: TimelineEvent) =>
     !ctx.spoilersRevealed && e.evidence.t0 > ctx.now + WINDOW_AFTER;
   const heard = w.events.filter((e) => !isLocked(e));
   const ahead = w.events.filter(isLocked);
   const shown = [...heard.slice(-4), ...ahead.slice(0, 1)].slice(-5);
   return (
     <View>
-      {shown.map((e) =>
-        isLocked(e) ? (
-          <View key={e.id} style={local.event}>
-            <View style={local.lockRow}>
-              <Icon name="lock" size={14} color={colors.textTertiary} />
-              <Text style={[local.meta, local.lockText]}>
-                {`${e.when} · Ahead in the story`}
-              </Text>
+      {shown.map((e, i) => {
+        const last = i === shown.length - 1;
+        const locked = isLocked(e);
+        const when = eventWhen(e.when);
+        return (
+          <View key={e.id} style={local.event} testID={`event-${e.id}`}>
+            <View style={local.railCol}>
+              <View
+                style={[
+                  local.marker,
+                  locked
+                    ? local.markerLocked
+                    : e.kind === 'claim'
+                    ? local.markerClaim
+                    : e.kind === 'conflict'
+                    ? local.markerConflict
+                    : local.markerFact,
+                ]}
+              />
+              {!last ? <View style={local.rail} /> : null}
+            </View>
+            <View style={local.eventBody}>
+              {locked ? (
+                <View style={local.lockRow}>
+                  <Icon name="lock" size={14} color={colors.textTertiary} />
+                  <Text style={[local.meta, local.lockText]}>
+                    {`${when.text} · Later in the episode`}
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <Text style={local.when}>{when.text}</Text>
+                  {e.kind ? (
+                    <Text
+                      style={[
+                        local.kind,
+                        e.kind === 'conflict' && local.kindConflict,
+                      ]}>
+                      {EVENT_KIND[e.kind]}
+                    </Text>
+                  ) : null}
+                  <Text style={[p.primary, local.eventText]}>
+                    {eventLabel(e.label)}
+                  </Text>
+                </>
+              )}
             </View>
           </View>
-        ) : (
-          <View key={e.id} style={local.event}>
-            <View style={local.eventHead}>
-              <Text style={local.when}>{e.when}</Text>
-              {e.kind === 'conflict' ? (
-                <Text style={local.tag}>Conflict</Text>
-              ) : e.kind === 'claim' ? (
-                <Text style={local.tag}>Claimed</Text>
-              ) : null}
-            </View>
-            <Text style={p.primary}>{e.label}</Text>
-          </View>
-        ),
-      )}
+        );
+      })}
     </View>
   );
 };
@@ -357,10 +405,19 @@ const local = StyleSheet.create({
     justifyContent: 'center',
   },
   initialsText: {...type.bodyStrong, color: colors.textSecondary},
-  event: {marginBottom: 12},
-  eventHead: {flexDirection: 'row', alignItems: 'center'},
-  when: {...type.captionStrong, ...numeric, color: colors.textSecondary},
-  tag: {...type.caption, color: colors.textTertiary, marginLeft: 8},
+  event: {flexDirection: 'row'},
+  railCol: {width: 20, alignItems: 'center'},
+  marker: {width: 10, height: 10, borderRadius: 5, marginTop: 5},
+  markerFact: {backgroundColor: colors.text},
+  markerClaim: {borderWidth: 2, borderColor: colors.text},
+  markerConflict: {backgroundColor: colors.accent},
+  markerLocked: {borderWidth: 1, borderColor: colors.textTertiary},
+  rail: {flex: 1, width: 2, marginTop: 4, backgroundColor: colors.track},
+  eventBody: {flex: 1, marginLeft: 8, paddingBottom: 16},
+  when: {...type.bodyStrong, ...numeric, color: colors.text},
+  kind: {...type.caption, color: colors.textSecondary},
+  kindConflict: {color: colors.accent},
+  eventText: {marginTop: 4},
   lockRow: {flexDirection: 'row', alignItems: 'center'},
   lockText: {marginLeft: 8, color: colors.textTertiary},
   // Room under the lowest node for a two-line label.

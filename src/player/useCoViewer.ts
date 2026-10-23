@@ -5,11 +5,11 @@ import {
   askLive,
   createSession,
   Link,
+  PhoneCard,
   putNowPlaying,
   refineCard,
   shareCard,
 } from '../services/api';
-import {toPhoneCard} from '../services/phoneCards';
 import {Confirm} from '../hooks/useSystemToast';
 import {ShareContext, ShareStatus} from '../widgets/parts';
 import {AnswerState} from './CoViewPanel';
@@ -179,37 +179,33 @@ export function useNowPlaying(
   }, [store, linkId, mediaId, title]);
 }
 
-// "Send to phone" for protocol and entity_list cards (paired only).
+// "Send to phone" for whatever the panel has open (paired only). The panel
+// builds the card; one request at a time per key, no duplicate sends.
 export function useShare(
   link: Link | null,
   mediaId: string,
   store: PlaybackStore,
-  widgets: Widget[],
   confirm: Confirm | null,
 ): ShareContext | undefined {
   const [status, setStatus] = useState<Record<string, ShareStatus>>({});
   const statusRef = useRef(status);
   statusRef.current = status;
-  const widgetsRef = useRef(widgets);
-  widgetsRef.current = widgets;
 
   const send = useCallback(
-    (widgetId: string) => {
-      const w = widgetsRef.current.find((x) => x.id === widgetId);
-      const card = w ? toPhoneCard(w) : null;
-      const current = statusRef.current[widgetId];
-      if (!link || !card || current === 'sending' || current === 'sent') {
+    (key: string, card: PhoneCard) => {
+      const current = statusRef.current[key];
+      if (!link || current === 'sending' || current === 'sent') {
         return; // no duplicate sends
       }
-      setStatus((s) => ({...s, [widgetId]: 'sending'}));
+      setStatus((s) => ({...s, [key]: 'sending'}));
       shareCard(link.linkId, card, {mediaId, t: store.get().t})
         .then(() => {
-          setStatus((s) => ({...s, [widgetId]: 'sent'}));
+          setStatus((s) => ({...s, [key]: 'sent'}));
           confirm?.('Sent to your phone', `${card.title} → ${link.phoneName}`);
         })
         .catch((e) => {
           warn('share', e);
-          setStatus((s) => ({...s, [widgetId]: 'failed'}));
+          setStatus((s) => ({...s, [key]: 'failed'}));
         });
     },
     [link, mediaId, store, confirm],

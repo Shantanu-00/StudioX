@@ -131,15 +131,25 @@ export function layoutMap(
   motif: Motif = 'plain',
 ): MapLayout {
   const ctx = contextFor(explore, motif);
-  switch (explore.layout) {
-    case 'flow':
-      return layoutSpine(explore, box, ctx) ?? layoutGrid(explore, box, ctx);
-    case 'timeline':
-      return layoutTimeline(explore, box, ctx);
-    case 'compare':
-    case 'cluster':
-      return layoutColumns(explore, box, ctx);
-  }
+  const l = ((): MapLayout => {
+    switch (explore.layout) {
+      case 'flow':
+        return layoutSpine(explore, box, ctx) ?? layoutGrid(explore, box, ctx);
+      case 'timeline':
+        return layoutTimeline(explore, box, ctx);
+      case 'compare':
+      case 'cluster':
+        return layoutColumns(explore, box, ctx);
+    }
+  })();
+  // An arrowhead means "what comes next", so only sequence links carry one.
+  // A claim attached to a step (supports, because, contradicts) is a plain
+  // connector: an arrow pointing back at its step read as the story running
+  // backwards while the pulse walked forwards.
+  return {
+    ...l,
+    edges: l.edges.map((e) => (e.kind === 'then' ? e : {...e, arrow: null})),
+  };
 }
 
 // Faces and one shared height for `nodes` at width `w`, at the roomiest
@@ -443,9 +453,13 @@ function layoutGrid(explore: Explore, box: Rect, ctx: FaceContext): MapLayout {
     }
   });
 
+  const linked = (a: string, b: string) =>
+    explore.edges.some((x) => x.from === a && x.to === b);
   const edges: PlacedEdge[] = explore.edges
     .filter((e) => at.has(e.from) && at.has(e.to))
-    .map((e) => flowEdge(e, at.get(e.from)!, at.get(e.to)!, index));
+    .map((e) =>
+      flowEdge(e, at.get(e.from)!, at.get(e.to)!, index, linked(e.to, e.from)),
+    );
   return {kind: 'flow', nodes, headings, edges};
 }
 
@@ -464,24 +478,32 @@ function flowEdge(
   a: PlacedNode,
   b: PlacedNode,
   index: Map<string, number>,
+  // The same two pieces are also linked the other way ("next chunk, again").
+  twoWay = false,
 ): PlacedEdge {
   const base = {from: e.from, to: e.to, kind: e.kind, label: e.label};
-  const ay = r(a.y + a.h / 2);
-  const by = r(b.y + b.h / 2);
   const sameRow = a.y === b.y;
   const adjacent = Math.abs((index.get(a.id) ?? 0) - (index.get(b.id) ?? 0)) === 1;
   if (sameRow && adjacent) {
-    // A straight connector across the gap, the label above it.
+    // A straight connector across the gap, the label above it. A two-way
+    // pair is two parallel lines, forward above and back below, each with
+    // its own arrow, never one line with a head at both ends.
     const forward = b.x > a.x;
+    const shift = twoWay ? (forward ? -5 : 5) : 0;
+    const ay = r(a.y + a.h / 2) + shift;
+    const by = r(b.y + b.h / 2) + shift;
     const x0 = forward ? a.x + a.w + 4 : a.x - 4;
     const x1 = forward ? b.x - 4 : b.x + b.w + 4;
     const gap = Math.abs(x1 - x0);
     const lh = e.label ? labelH(e.label, gap) : 0;
+    const below = twoWay && !forward;
     return {
       ...base,
       d: `M${x0} ${ay} L${x1} ${by}`,
       arrow: forward ? arrowRight(x1, by) : arrowLeft(x1, by),
-      labelBox: e.label ? {x: Math.min(x0, x1), y: ay - 6 - lh, w: gap, h: lh} : null,
+      labelBox: e.label
+        ? {x: Math.min(x0, x1), y: below ? ay + 6 : ay - 6 - lh, w: gap, h: lh}
+        : null,
     };
   }
   if (sameRow) {
@@ -824,6 +846,12 @@ export function storyPath(
     const ay = layout.axis.y;
     return [pa.x, pa.y, pa.x, ay, pb.x, ay, pb.x, pb.y];
   }
+  // Along the drawn connectors, so the pulse never cuts across empty space
+  // or runs against an arrow when a line is there to follow.
+  const route = connectorRoute(layout, fromId, toId);
+  if (route) {
+    return route;
+  }
   const acx = r(a.x + a.w / 2);
   const acy = r(a.y + a.h / 2);
   const bcx = r(b.x + b.w / 2);
@@ -843,6 +871,92 @@ export function storyPath(
   return b.y > a.y
     ? [acx, a.y + a.h + 4, bcx, b.y - 4]
     : [acx, a.y - 4, bcx, b.y + b.h + 4];
+}
+
+// A connector's SVG path (M, L and C only, as drawn here) as a flat
+// polyline; curves are sampled.
+export function pathPoints(d: string): number[] {
+  const tok = d.match(/[MLC]|-?\d+(?:\.\d+)?/g) ?? [];
+  const out: number[] = [];
+  let cmd = 'M';
+  let x = 0;
+  let y = 0;
+  for (let i = 0; i < tok.length; ) {
+    if (/^[MLC]$/.test(tok[i])) {
+      cmd = tok[i++];
+      continue;
+    }
+    if (cmd === 'C') {
+      const [x1, y1, x2, y2, x3, y3] = tok.slice(i, i + 6).map(Number);
+      i += 6;
+      for (const t of [0.25, 0.5, 0.75, 1]) {
+        const u = 1 - t;
+        out.push(
+          u * u * u * x + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3,
+          u * u * u * y + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3,
+        );
+      }
+      x = x3;
+      y = y3;
+    } else {
+      x = Number(tok[i]);
+      y = Number(tok[i + 1]);
+      i += 2;
+      out.push(x, y);
+    }
+  }
+  return out;
+}
+
+const reversed = (pts: number[]) => {
+  const out: number[] = [];
+  for (let i = pts.length - 2; i >= 0; i -= 2) {
+    out.push(pts[i], pts[i + 1]);
+  }
+  return out;
+};
+
+// The shortest chain of drawn connectors from one piece to another (at most
+// four), as one polyline. A link drawn in the travel direction wins over
+// the same link drawn the other way. Between two connectors the path passes
+// through the piece's centre, under its card. Null when nothing links them.
+function connectorRoute(layout: MapLayout, fromId: string, toId: string): number[] | null {
+  const drawn = layout.edges.filter((e) => e.d);
+  const prev = new Map<string, {id: string; pts: number[]}>([[fromId, {id: '', pts: []}]]);
+  let frontier = [fromId];
+  for (let depth = 0; depth < 4 && !prev.has(toId) && frontier.length; depth++) {
+    const next: string[] = [];
+    for (const id of frontier) {
+      const out = drawn.filter((e) => e.from === id).map((e) => ({to: e.to, pts: pathPoints(e.d)}));
+      const back = drawn
+        .filter((e) => e.to === id)
+        .map((e) => ({to: e.from, pts: reversed(pathPoints(e.d))}));
+      for (const step of [...out, ...back]) {
+        if (!prev.has(step.to)) {
+          prev.set(step.to, {id, pts: step.pts});
+          next.push(step.to);
+        }
+      }
+    }
+    frontier = next;
+  }
+  if (!prev.has(toId) || fromId === toId) {
+    return null;
+  }
+  // The chain of pieces, then each leg between neighbours in it.
+  const ids = [toId];
+  while (ids[0] !== fromId) {
+    ids.unshift(prev.get(ids[0])!.id);
+  }
+  const out: number[] = [];
+  ids.slice(1).forEach((id, i) => {
+    if (i > 0) {
+      const p = layout.nodes.find((n) => n.id === ids[i])!;
+      out.push(r(p.x + p.w / 2), r(p.y + p.h / 2));
+    }
+    out.push(...prev.get(id)!.pts);
+  });
+  return out.length >= 4 ? out : null;
 }
 
 // ---- the D-pad neighbour map --------------------------------------------------

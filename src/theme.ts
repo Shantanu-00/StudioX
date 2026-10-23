@@ -36,6 +36,14 @@ export const type = {
   bodyStrong: {fontSize: 15, lineHeight: 21, fontWeight: '600' as const},
   caption: {fontSize: 13, lineHeight: 18, fontWeight: '400' as const},
   captionStrong: {fontSize: 13, lineHeight: 18, fontWeight: '600' as const},
+  // A section's label: caption size, bold, tracked, upper case (the text is
+  // upper-cased by the caller). Never more than a few words.
+  overline: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '700' as const,
+    letterSpacing: 1.2,
+  },
 };
 
 // Timestamps: the same family with tabular figures, so digits do not jitter.

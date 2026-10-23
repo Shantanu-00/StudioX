@@ -13,7 +13,7 @@ import {formatTime} from '../analysis/composer';
 import {Answer, ExploreNode, ExploreSim, Source} from '../analysis/schema';
 import {FocusFrame} from '../components/FocusFrame';
 import {colors, numeric, space, type} from '../theme';
-import {SourceLines, VerdictWord} from '../widgets/parts';
+import {SEND_HINT, SourceLines, VerdictWord} from '../widgets/parts';
 import {useFocusOnMount} from './focus';
 import {imageSource} from './images';
 import {creditText, isNumber, showsVerdict, valueText} from './scene/measure';
@@ -237,7 +237,11 @@ const NodeBody = ({
             preferred={first === 'send'}
             onPress={sendStatus === 'sending' || sendStatus === 'sent' ? undefined : onSend}
           />
-        ) : null}
+        ) : (
+          <Text style={styles.sendHint} testID="sheet-send-hint">
+            {SEND_HINT}
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -402,6 +406,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   hint: {...type.caption, color: colors.textSecondary, marginTop: space.xs},
+  sendHint: {...type.caption, color: colors.textTertiary, marginTop: space.s},
   actions: {marginTop: space.m, marginHorizontal: -space.s},
   row: {marginTop: space.xs / 2},
   rowInner: {

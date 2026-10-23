@@ -329,12 +329,20 @@ export function putNowPlaying(
 }
 
 export interface PhoneCard {
-  type: 'checklist' | 'list' | 'reminder';
+  type: 'checklist' | 'list' | 'reminder' | 'person';
   title: string;
   items: Array<{text: string; time?: string} | {name: string; detail: string}>;
   sources?: Array<{title: string; url: string}>;
   // `reminder` cards (phone-app.md): the phone offers "Add to calendar".
   reminder?: {title: string; start: string; repeat?: 'daily' | 'weekly'};
+  // `person` cards (phone-app.md §5): portrait, name, role, up to 3 facts.
+  person?: {
+    name: string;
+    role: string;
+    facts: string[];
+    imageUrl?: string;
+    credit?: string;
+  };
 }
 
 export function shareCard(

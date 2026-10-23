@@ -160,94 +160,99 @@ export const StepCard = ({
       : null;
   return (
     <>
-      <Animated.View
-        style={[
-          styles.card,
-          {left, top: box.y, width: cardW},
-          {backgroundColor: plain ? colors.card : theme.surface},
-          enter,
-        ]}
-        testID="map-step-card"
-        accessibilityLiveRegion="polite">
-        <View style={[styles.band, {backgroundColor: plain ? colors.text : theme.accent}]} />
-        {locked ? (
-          <View style={styles.body}>
-            <View style={styles.textCol}>
-              <View style={styles.metaRow}>
-                <Icon name="lock" size={16} color={soft} />
-                <Text style={[styles.meta, styles.metaLock, {color: soft}]}>
-                  Later in the episode
-                </Text>
-              </View>
-              <Text style={[styles.title, {color: ink}]}>
-                {theme.motif === 'caseboard' ? 'Not yet' : 'Keep watching'}
-              </Text>
-              <Text style={[styles.detail, {color: ink}]}>
-                This piece unlocks when the episode gets there.
-              </Text>
-            </View>
-          </View>
-        ) : (
-          <View style={styles.body}>
-            {media === 'image' && node.image ? (
-              <View style={styles.media}>
-                <Image
-                  source={imageSource(node.image.url)}
-                  style={[styles.image, {height: imageH}]}
-                  resizeMode="cover"
-                  accessibilityIgnoresInvertColors
-                  testID="map-step-image"
-                />
-                <Text style={[styles.credit, {color: soft}]}>{credit}</Text>
-              </View>
-            ) : media === 'glyph' ? (
-              <View style={styles.media}>
-                <View
-                  style={[
-                    styles.glyphTile,
-                    {borderColor: theme.line, backgroundColor: theme.accentSoft},
-                  ]}>
-                  <Glyph name={glyphFor(node)} size={72} color={theme.accent} strokeWidth={1.5} />
+      {/* The card sits in the middle of the room above the progress row, not
+          pinned under the header: the eye lands on it at 10 feet. */}
+      <View
+        style={[styles.stage, {left, top: box.y, width: cardW, height: maxH}]}
+        pointerEvents="box-none">
+        <Animated.View
+          style={[
+            styles.card,
+            {backgroundColor: plain ? colors.card : theme.surface},
+            enter,
+          ]}
+          testID="map-step-card"
+          accessibilityLiveRegion="polite">
+          <View style={[styles.band, {backgroundColor: plain ? colors.text : theme.accent}]} />
+          {locked ? (
+            <View style={styles.body}>
+              <View style={styles.textCol}>
+                <View style={styles.metaRow}>
+                  <Icon name="lock" size={16} color={soft} />
+                  <Text style={[styles.meta, styles.metaLock, {color: soft}]}>
+                    Later in the episode
+                  </Text>
                 </View>
-              </View>
-            ) : null}
-            <View style={styles.textCol}>
-              <View style={styles.metaRow}>
-                <Text style={[styles.meta, {color: soft}]}>{meta}</Text>
-                {showsVerdict(node) ? (
-                  <>
-                    <Text style={[styles.meta, {color: soft}]}>{'  ·  '}</Text>
-                    <VerdictWord verdict={node.verdict ?? undefined} />
-                  </>
-                ) : null}
-              </View>
-              {number && node.value ? (
-                <Text style={[styles.value, {color: ink}]} testID="map-step-value">
-                  {valueText(node.value)}
+                <Text style={[styles.title, {color: ink}]}>
+                  {theme.motif === 'caseboard' ? 'Not yet' : 'Keep watching'}
                 </Text>
-              ) : null}
-              {bar !== null ? (
-                <View style={[styles.barTrack, {backgroundColor: theme.line}]}>
+                <Text style={[styles.detail, {color: ink}]}>
+                  This piece unlocks when the episode gets there.
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.body}>
+              {media === 'image' && node.image ? (
+                <View style={styles.media}>
+                  <Image
+                    source={imageSource(node.image.url)}
+                    style={[styles.image, {height: imageH}]}
+                    resizeMode="cover"
+                    accessibilityIgnoresInvertColors
+                    testID="map-step-image"
+                  />
+                  <Text style={[styles.credit, {color: soft}]}>{credit}</Text>
+                </View>
+              ) : media === 'glyph' ? (
+                <View style={styles.media}>
                   <View
                     style={[
-                      styles.barFill,
-                      {backgroundColor: theme.accent, width: `${Math.max(2, Math.round(bar * 100))}%`},
-                    ]}
-                  />
+                      styles.glyphTile,
+                      {borderColor: theme.line, backgroundColor: theme.accentSoft},
+                    ]}>
+                    <Glyph name={glyphFor(node)} size={72} color={theme.accent} strokeWidth={1.5} />
+                  </View>
                 </View>
               ) : null}
-              <Text style={[fit.label === 'title' ? styles.title : styles.headline, {color: ink}]}>
-                {node.label}
-              </Text>
-              {node.detail ? (
-                <Text style={[fit.detail === 'body' ? styles.detail : styles.detailSmall, {color: ink}]}>
-                  {node.detail}
+              <View style={styles.textCol}>
+                <View style={styles.metaRow}>
+                  <Text style={[styles.meta, {color: soft}]}>{meta}</Text>
+                  {showsVerdict(node) ? (
+                    <>
+                      <Text style={[styles.meta, {color: soft}]}>{'  ·  '}</Text>
+                      <VerdictWord verdict={node.verdict ?? undefined} />
+                    </>
+                  ) : null}
+                </View>
+                {number && node.value ? (
+                  <Text style={[styles.value, {color: ink}]} testID="map-step-value">
+                    {valueText(node.value)}
+                  </Text>
+                ) : null}
+                {bar !== null ? (
+                  <View style={[styles.barTrack, {backgroundColor: theme.line}]}>
+                    <View
+                      style={[
+                        styles.barFill,
+                        {backgroundColor: theme.accent, width: `${Math.max(2, Math.round(bar * 100))}%`},
+                      ]}
+                    />
+                  </View>
+                ) : null}
+                <Text style={[fit.label === 'title' ? styles.title : styles.headline, {color: ink}]}>
+                  {node.label}
                 </Text>
-              ) : null}
+                {node.detail ? (
+                  <Text style={[fit.detail === 'body' ? styles.detail : styles.detailSmall, {color: ink}]}>
+                    {node.detail}
+                  </Text>
+                ) : null}
+              </View>
             </View>
-          </View>
-        )}
-      </Animated.View>
+          )}
+        </Animated.View>
+      </View>
       <View
         style={[
           styles.progress,
@@ -295,8 +300,8 @@ export const StepCard = ({
 };
 
 const styles = StyleSheet.create({
+  stage: {position: 'absolute', justifyContent: 'center'},
   card: {
-    position: 'absolute',
     borderRadius: radius.banner,
     overflow: 'hidden',
   },

@@ -38,8 +38,19 @@ jest.mock('@amazon-devices/react-native-reanimated', () =>
 jest.mock('@amazon-devices/react-native-w3cmedia', () => {
   const React = require('react');
   const {View} = require('react-native');
+  // Instances and listeners are recorded so screen tests can drive events
+  // (`VideoPlayer.instances`, `player.emit('playing')`).
   class VideoPlayer {
+    static instances: VideoPlayer[] = [];
+    listeners = new Map<string, Set<() => void>>();
+    constructor() {
+      VideoPlayer.instances.push(this);
+    }
+    emit(type: string) {
+      this.listeners.get(type)?.forEach((fn) => fn());
+    }
     src = '';
+    muted = false;
     autoplay = false;
     currentTime = 0;
     duration = 37;
@@ -48,8 +59,14 @@ jest.mock('@amazon-devices/react-native-w3cmedia', () => {
     setMediaControlFocus = jest.fn(async () => {});
     initialize = jest.fn(async () => {});
     deinitialize = jest.fn(async () => {});
-    addEventListener = jest.fn();
-    removeEventListener = jest.fn();
+    addEventListener = jest.fn((type: string, fn: () => void) => {
+      const set = this.listeners.get(type) ?? new Set<() => void>();
+      set.add(fn);
+      this.listeners.set(type, set);
+    });
+    removeEventListener = jest.fn((type: string, fn: () => void) => {
+      this.listeners.get(type)?.delete(fn);
+    });
     setSurfaceHandle = jest.fn();
     clearSurfaceHandle = jest.fn();
     play = jest.fn(async () => {});

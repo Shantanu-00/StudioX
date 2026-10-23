@@ -384,9 +384,11 @@ export const MapScreen = ({
         />
       ) : (
         <Header
-          context={context}
+          context={mode === 'step' && hasVideo ? `Paused at ${formatTime(playhead)}` : context}
           title={explore.title}
-          summary={explore.summary}
+          // Step-through shows one piece large: the summary would only
+          // compete with it.
+          summary={mode === 'step' ? '' : explore.summary}
           left={headerLeft}
           width={headerW}
         />

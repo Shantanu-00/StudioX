@@ -101,6 +101,19 @@ export const showsVerdict = (n: ExploreNode) => !!n.verdict && !isNumber(n);
 export const creditText = (credit: string) =>
   /^photo\b/i.test(credit.trim()) ? credit.trim() : `Photo: ${credit.trim()}`;
 
+// The one-line credit under a map card's photo: who and the licence, without
+// the host and the photographer's aside ("NASA (Michael Collins) · Public
+// domain · Wikimedia Commons" → "Photo: NASA · Public domain"). The full
+// credit stays on the step card and the detail sheet.
+export const cardCredit = (credit: string) =>
+  creditText(
+    credit
+      .split('·')
+      .map((x) => x.replace(/\s*\([^)]*\)/g, '').trim())
+      .filter((x) => x && !/wikimedia commons|wikipedia/i.test(x))
+      .join(' · '),
+  );
+
 // ---- a node's card -------------------------------------------------------------
 
 // What a node's card shows, decided at layout time from the room it has, so
@@ -119,7 +132,7 @@ export interface NodeFace {
 
 export const CARD = {
   gap: 4,
-  thumb: 48, // the photo, square
+  thumb: 64, // the photo, square (big enough to read a face at 10 feet)
   thumbGap: 8,
   glyph: 20,
   glyphW: 28, // the glyph and the space after it
@@ -161,7 +174,7 @@ export function faceFor(
     density < 3 &&
     wantsImage(n, ctx.motif) &&
     !!n.image &&
-    wrapLines(creditText(n.image.credit), inner, SIZE.caption[0]) <= 3;
+    wrapLines(cardCredit(n.image.credit), inner, SIZE.caption[0]) <= 2;
   return {
     pad,
     meta: density < 2 && !value,
@@ -213,7 +226,7 @@ export function nodeHeight(n: ExploreNode, w: number, face: NodeFace): number {
     h =
       Math.max(CARD.thumb, h) +
       CARD.gap +
-      linesHeight(creditText(n.image.credit), inner, 'caption');
+      linesHeight(cardCredit(n.image.credit), inner, 'caption');
   }
   return Math.ceil(2 * face.pad + h);
 }

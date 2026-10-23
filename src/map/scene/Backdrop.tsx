@@ -225,7 +225,7 @@ const Scene = ({theme, width: w, height: h, hole}: Props) => {
           <Path
             d={`M24 0V${h} M29 0V${h}`}
             stroke={theme.accent}
-            strokeOpacity={0.22}
+            strokeOpacity={0.12}
             strokeWidth={1}
           />
         </>

@@ -93,15 +93,18 @@ export const THEMES: Record<ExploreCategory, MapTheme> = {
     ring: '#FFFFFF',
     mood: 'deep space',
   },
+  // Muted for a TV: the system green (#30D158) on every rule, border and bar
+  // glowed across the whole screen. A desaturated sage carries the figures;
+  // rules and borders are barely tinted, so only the bars read as green.
   finance: {
     motif: 'ledger',
-    bg: '#040806',
-    bgDeep: '#0A1A12',
-    surface: '#0F1F17',
-    line: 'rgba(48,209,88,0.25)',
-    accent: '#30D158',
-    accentSoft: 'rgba(48,209,88,0.16)',
-    support: '#FFD60A',
+    bg: '#050806',
+    bgDeep: '#0A120E',
+    surface: '#111915',
+    line: 'rgba(150,200,170,0.16)',
+    accent: '#5BBF8A',
+    accentSoft: 'rgba(91,191,138,0.14)',
+    support: '#E3C463',
     ink: INK,
     inkSoft: INK_SOFT,
     ring: '#FFFFFF',

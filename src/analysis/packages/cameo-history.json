@@ -515,8 +515,8 @@
         ],
         "sim": null,
         "image": {
-          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Michael_Collins_%28S69-31742%2C_restoration%29.jpg/330px-Michael_Collins_%28S69-31742%2C_restoration%29.jpg",
-          "credit": "NASA; restored by Coffeeandcrumbs · Public domain · Wikimedia Commons"
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Apollo_11_Lunar_Module_Eagle_in_landing_configuration_in_lunar_orbit_from_the_Command_and_Service_Module_Columbia.jpg/1280px-Apollo_11_Lunar_Module_Eagle_in_landing_configuration_in_lunar_orbit_from_the_Command_and_Service_Module_Columbia.jpg",
+          "credit": "NASA (Michael Collins) · Public domain · Wikimedia Commons"
         }
       },
       {
@@ -582,7 +582,11 @@
         "refs": [
           "events-s1-1"
         ],
-        "sim": null
+        "sim": null,
+        "image": {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/AS11-40-5962_-_Apollo_11_-_Apollo_11_Mission_image_-_Lunar_Module_at_Tranquility_Base_-_NARA_-_16685323.jpg/1280px-AS11-40-5962_-_Apollo_11_-_Apollo_11_Mission_image_-_Lunar_Module_at_Tranquility_Base_-_NARA_-_16685323.jpg",
+          "credit": "NASA · Public domain · Wikimedia Commons"
+        }
       },
       {
         "id": "n6",
@@ -622,8 +626,8 @@
         ],
         "sim": null,
         "image": {
-          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Buzz_Aldrin.jpg/330px-Buzz_Aldrin.jpg",
-          "credit": "NASA · Public domain · Wikimedia Commons"
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Aldrin_Apollo_11_original.jpg/1280px-Aldrin_Apollo_11_original.jpg",
+          "credit": "NASA (Neil Armstrong) · Public domain · Wikimedia Commons"
         }
       }
     ],

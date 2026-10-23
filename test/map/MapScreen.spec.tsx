@@ -202,6 +202,15 @@ describe('MapScreen', () => {
     expect(screen.getByTestId('growth-done')).toBeTruthy();
   });
 
+  it('says how to link a phone instead of offering Send when unpaired', () => {
+    const {screen} = setup();
+    fireEvent.press(screen.getByTestId('map-node-n3'));
+    expect(screen.queryByTestId('sheet-send')).toBeNull();
+    expect(screen.getByTestId('sheet-send-hint').props.children).toBe(
+      'Link a phone from Home to send this to it.',
+    );
+  });
+
   it('sends a piece to a paired phone', async () => {
     const fetchMock = globalThis.fetch as jest.Mock;
     fetchMock.mockReset();

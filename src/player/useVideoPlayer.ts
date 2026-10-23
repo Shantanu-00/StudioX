@@ -17,6 +17,16 @@ export const resumePosition = (id: string) => resumeAt.get(id) ?? 0;
 // waits for it, so moving from one episode to the next cannot overlap.
 let teardown: Promise<void> = Promise.resolve();
 
+// For other W3C players in the app (the intro video): wait for every earlier
+// teardown before `initialize()`, and queue their own release on the same
+// chain so the next episode player waits for it.
+export const awaitPlayerTeardown = () => teardown;
+export function queuePlayerTeardown(job: () => Promise<void>) {
+  teardown = teardown
+    .then(job)
+    .catch((e) => console.warn('[player] queued teardown failed', e));
+}
+
 // A teardown that never settles must not block every later episode.
 const RELEASE_TIMEOUT_MS = 3000;
 // Metadata arrived but no first frame: the pipeline is stuck at READY (seen
@@ -58,7 +68,7 @@ export function pauseAndWait(p: VideoPlayer, timeoutMs = 800): Promise<void> {
 // Step 2 is the detach alone, not `removeAttribute('src')` + `load()`: the
 // empty-src load sometimes built a fresh, empty pipeline just before the
 // element was destroyed, after which no later pipeline prerolled.
-async function release(
+export async function release(
   p: VideoPlayer,
   ms: MediaSource | null,
   handle: string | null,

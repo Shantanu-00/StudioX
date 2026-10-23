@@ -1,9 +1,9 @@
 import 'react-native';
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 import * as React from 'react';
 
 import {EPISODES, uploadEpisode} from '../../src/data/episodes';
-import {Player} from '../../src/screens/Player';
+import {Player, stepFor} from '../../src/screens/Player';
 
 describe('Player', () => {
   it('mounts the video surface, the Vega SeekBar and a buffering state', () => {
@@ -44,5 +44,32 @@ describe('Player', () => {
     );
     screen.unmount();
     jest.restoreAllMocks();
+  });
+});
+
+describe('Player scrubbing', () => {
+  it('steps a twentieth of the episode, 2 to 10 seconds', () => {
+    expect(stepFor(37)).toBe(2000);
+    expect(stepFor(120)).toBe(6000);
+    expect(stepFor(3600)).toBe(10000);
+  });
+
+  it('holds the thumb while scrubbing and labels it with the time only', () => {
+    const screen = render(
+      <Player episode={EPISODES[0]} onExit={jest.fn()} registerBack={jest.fn()} />,
+    );
+    const bar = () => screen.getByTestId('seekbar');
+    expect(bar().props.displayAboveThumb).toBeUndefined();
+    const start = bar().props.currentValue;
+    act(() => {
+      bar().props.onSlidingStart();
+      bar().props.onValueChange(start + 20000);
+    });
+    // Frozen where the scrub began, whatever the clock does meanwhile.
+    expect(bar().props.currentValue).toBe(start);
+    const label = render(bar().props.displayAboveThumb());
+    expect(label.getByText('0:20')).toBeTruthy();
+    expect(label.toJSON()).toBeTruthy();
+    screen.unmount();
   });
 });

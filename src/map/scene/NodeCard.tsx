@@ -17,7 +17,7 @@ import {imageSource} from '../images';
 import type {PlacedNode} from '../layout';
 import type {MapTheme, Motif} from '../themes';
 import {Glyph, glyphFor} from './Glyph';
-import {CARD, creditText, NodeFace, showsVerdict, valueText} from './measure';
+import {CARD, cardCredit, NodeFace, showsVerdict, valueText} from './measure';
 
 // One piece of the map, drawn in its scene:
 // - caseboard: a pinned evidence card; locked, a face-down card taped "Not yet";
@@ -349,7 +349,7 @@ export const CardBody = ({
         <View style={styles.thumbText}>{text}</View>
       </View>
       <Text style={[styles.credit, styles.gap, {color: soft}]}>
-        {creditText(node.image.credit)}
+        {cardCredit(node.image.credit)}
       </Text>
     </>
   );

@@ -1,4 +1,10 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Animated,
   Easing,
@@ -201,7 +207,7 @@ export const Player = ({episode, startWithMap, onExit, registerBack}: Props) => 
     [analysis, panelT],
   );
   const {answer, ask, close: closeAnswer} = useAsk(sessionId, episode.id);
-  const share = useShare(link, episode.id, pl.store, card.widgets, confirm);
+  const share = useShare(link, episode.id, pl.store, confirm);
 
   const openPanel = useCallback(
     (focusCard?: string) => {
@@ -557,6 +563,8 @@ export const Player = ({episode, startWithMap, onExit, registerBack}: Props) => 
         answer={answer}
         share={share}
         onBack={panelBack}
+        onHide={closePanel}
+        paired={!!link}
       />
 
       {mapOpen && explore ? (
@@ -776,6 +784,22 @@ const InsightBanner = ({claim}: {claim: ClaimWidget | null}) => {
 
 // ---- scrubber: the only component that re-renders with the clock ------------
 
+// A scrub: the playhead it started from and where the thumb is now (ms).
+interface Scrub {
+  from: number;
+  to: number;
+}
+// After the last LEFT/RIGHT, wait this long before seeking: taps add up into
+// one seek instead of one media seek (and re-buffer) per press.
+export const COMMIT_MS = 600;
+
+// One tap moves about a twentieth of the episode, 2 to 10 s; holding the key
+// speeds up once a second, to at most an eighth of the episode per step.
+export const stepFor = (durationSec: number) =>
+  Math.min(10, Math.max(2, Math.round(durationSec / 20))) * 1000;
+const maxStepFor = (durationSec: number, step: number) =>
+  Math.max(step, Math.round(durationSec / 8) * 1000);
+
 interface ScrubberProps {
   store: PlaybackStore;
   analysis: EpisodeAnalysis;
@@ -793,7 +817,28 @@ const Scrubber = React.forwardRef<SeekBarHandle, ScrubberProps>(
       // An upload of unknown length (MSE reports it once fully appended):
       // never hand the SeekBar a zero total.
       Math.max(1, Math.ceil(t));
-    const thumb = useRef(0);
+    const [scrub, setScrubState] = useState<Scrub | null>(null);
+    const scrubRef = useRef<Scrub | null>(null);
+    const setScrub = useCallback((s: Scrub | null) => {
+      scrubRef.current = s;
+      setScrubState(s);
+    }, []);
+    const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const cancelCommit = () => {
+      if (commitTimer.current) {
+        clearTimeout(commitTimer.current);
+        commitTimer.current = null;
+      }
+    };
+    useEffect(() => cancelCommit, []);
+    const commit = useCallback(() => {
+      cancelCommit();
+      const s = scrubRef.current;
+      setScrub(null);
+      if (s && Math.abs(s.to - s.from) >= 250) {
+        onSeek(s.to / 1000);
+      }
+    }, [onSeek, setScrub]);
 
     const markers = useMemo(
       () =>
@@ -816,29 +861,28 @@ const Scrubber = React.forwardRef<SeekBarHandle, ScrubberProps>(
         ),
       [analysis],
     );
-    // A text-only label above the thumb: the segment you are scrubbing to.
-    // (The SeekBar's image thumbnail is off: we have no per-second previews,
-    // and a fixed poster there reads as a frozen frame.)
-    const aboveThumb = useCallback(
-      ({focused}: {focused: boolean}) => {
-        if (!focused) {
-          return null;
-        }
-        const sec = (thumb.current || t * 1000) / 1000;
-        const seg = analysis.segments.find(
-          (s) => sec >= s.start && sec < s.end,
-        );
-        return (
-          <View style={styles.thumbLabel}>
-            <Text style={styles.thumbTime}>{formatTime(sec)}</Text>
-            {seg ? (
-              <Text style={styles.thumbTitle}>{seg.title}</Text>
-            ) : null}
-          </View>
-        );
-      },
-      [analysis, t],
+    // While scrubbing, one line above the thumb: the time it will jump to.
+    // Nothing else, and nothing at all when the viewer is not scrubbing.
+    const aboveThumb = useMemo(
+      () =>
+        scrub
+          ? () => (
+              <View style={styles.thumbLabel} testID="scrub-time">
+                <Text style={styles.thumbTime} numberOfLines={1}>
+                  {formatTime(scrub.to / 1000)}
+                </Text>
+              </View>
+            )
+          : undefined,
+      [scrub],
     );
+    const step = stepFor(duration);
+    const totalMs = duration * 1000;
+    // Never exactly the end: with section markers the SeekBar only places
+    // its thumb strictly before the last one's end, so at 37/37 s it drew
+    // the thumb back at 0:00 (VVD, kepler-ui-components 3.2.2).
+    const endMs = Math.max(0, totalMs - 250);
+    const nowMs = Math.min(t * 1000, endMs);
 
     return (
       <View>
@@ -846,9 +890,19 @@ const Scrubber = React.forwardRef<SeekBarHandle, ScrubberProps>(
           ref={ref}
           hasTVPreferredFocus
           trapFocus
-          currentValue={Math.min(t, duration) * 1000}
-          totalValue={duration * 1000}
-          step={2000}
+          // Frozen at the start of a scrub: the SeekBar snaps its thumb back
+          // to `currentValue` whenever it changes, which would undo the
+          // viewer's presses four times a second while the video plays.
+          currentValue={scrub ? scrub.from : nowMs}
+          totalValue={totalMs}
+          upperSeekLimit={endMs}
+          step={step}
+          enableLongPressAcceleration
+          stepMultiplierFactor={1}
+          maxStepValue={maxStepFor(duration, step)}
+          // No `enableAnimations`: its native-driven thumb stayed at 0:00
+          // after the bar had been hidden (VVD). The plain thumb is exact,
+          // and keeps the time-shift fill between playhead and target.
           markers={markers}
           segmentColors={segmentColors}
           disableThumbnail
@@ -859,13 +913,26 @@ const Scrubber = React.forwardRef<SeekBarHandle, ScrubberProps>(
             skipForward: true,
             skipBackward: true,
           }}
-          onValueChange={(v) => {
-            thumb.current = v;
+          onSlidingStart={() => {
+            cancelCommit();
+            if (!scrubRef.current) {
+              setScrub({from: nowMs, to: nowMs});
+            }
           }}
-          onSlidingEnd={() => onSeek(thumb.current / 1000)}
-          onPress={(v) => {
-            if (Math.abs(v - t * 1000) > 1500) {
-              onSeek(v / 1000);
+          onValueChange={(v) => {
+            const s = scrubRef.current;
+            if (s && s.to !== v) {
+              setScrub({...s, to: v});
+            }
+          }}
+          onSlidingEnd={() => {
+            cancelCommit();
+            commitTimer.current = setTimeout(commit, COMMIT_MS);
+          }}
+          onPress={() => {
+            // OK while scrubbing jumps at once; otherwise play/pause.
+            if (scrubRef.current) {
+              commit();
             } else {
               onToggle();
             }
@@ -947,18 +1014,16 @@ const styles = StyleSheet.create({
   times: {flexDirection: 'row', justifyContent: 'space-between', marginTop: 4},
   time: {...type.caption, ...numeric, color: colors.textSecondary},
   hint: {...type.caption, color: colors.textTertiary, marginTop: 4},
+  // One fixed-width line: "12:34" never wraps or grows into a stack.
   thumbLabel: {
+    width: 64,
     alignItems: 'center',
-    minWidth: 64,
-    maxWidth: 280,
-    backgroundColor: colors.card,
+    backgroundColor: colors.text,
     borderRadius: radius.row,
-    paddingHorizontal: space.s,
-    paddingVertical: 4,
+    paddingVertical: 2,
     marginBottom: space.xs,
   },
-  thumbTime: {...type.captionStrong, ...numeric, color: colors.text},
-  thumbTitle: {...type.caption, color: colors.textSecondary, textAlign: 'center'},
+  thumbTime: {...type.captionStrong, ...numeric, color: colors.onFocus},
   captions: {position: 'absolute', alignItems: 'center'},
   captionText: {
     ...type.headline,

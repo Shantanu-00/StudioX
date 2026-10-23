@@ -6,6 +6,7 @@ import {validateWidget, Widget} from '../../src/analysis/schema';
 import {WidgetView} from '../../src/widgets';
 import {domainOf} from '../../src/widgets/parts';
 import {TechniqueCard} from '../../src/widgets/TechniqueCard';
+import {eventLabel, eventWhen} from '../../src/widgets/Widgets';
 
 const ctx = {
   now: 10,
@@ -193,5 +194,41 @@ describe('technique', () => {
     expect(screen.getByText('Four counts each.')).toBeTruthy();
     screen.rerender(<TechniqueCard w={technique as never} playToken={1} />);
     expect(screen.getByText('Four counts each.')).toBeTruthy();
+  });
+});
+
+describe('timeline', () => {
+  it('says "About" instead of a tilde and uses an en dash for ranges', () => {
+    expect(eventWhen('~10:08 PM')).toEqual({text: 'About 10:08 PM', approx: true});
+    expect(eventWhen('9:30-11:00 PM')).toEqual({text: '9:30–11:00 PM', approx: false});
+    expect(eventWhen('Midnight').text).toBe('Midnight');
+  });
+
+  it('drops the pipeline aside about derived times', () => {
+    expect(
+      eventLabel(
+        "Burner phone hit the pavement six minutes before the 10:14 PM ping (time derived from the transcript's relative timing).",
+      ),
+    ).toBe('Burner phone hit the pavement six minutes before the 10:14 PM ping.');
+  });
+
+  it('names each event in words: claim, evidence, contradiction', () => {
+    const w = validateWidget({
+      id: 't',
+      type: 'timeline',
+      title: 'Alibi vs. phone',
+      evidence: [{t0: 1, t1: 9}],
+      events: [
+        {id: 'a', when: '9:30 PM', label: 'He says he was at the diner.', kind: 'claim', evidence: {t0: 1, t1: 2}},
+        {id: 'b', when: '~10:08 PM', label: 'The phone breaks.', kind: 'fact', evidence: {t0: 2, t1: 3}},
+        {id: 'c', when: '10:14 PM', label: 'The phone is at the pier.', kind: 'conflict', evidence: {t0: 3, t1: 4}},
+      ],
+    }) as Widget;
+    const screen = render(<WidgetView ctx={ctx} w={w} />);
+    expect(screen.getByText('Claim, not proven')).toBeTruthy();
+    expect(screen.getByText('Evidence')).toBeTruthy();
+    expect(screen.getByText('Contradicts the claim')).toBeTruthy();
+    expect(screen.getByText('About 10:08 PM')).toBeTruthy();
+    expect(screen.queryByText(/~/)).toBeNull();
   });
 });

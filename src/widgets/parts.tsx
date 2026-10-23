@@ -1,12 +1,13 @@
 import React, {ReactNode} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {FocusFrame} from '../components/FocusFrame';
-import {sourceLine, uniqueSources} from '../analysis/cardText';
+import {sourceLine, uniqueSources, VERDICT_WORD} from '../analysis/cardText';
 import {Source, Verdict} from '../analysis/schema';
+import type {PhoneCard} from '../services/api';
 import {Icon} from '../components/Icon';
 import {colors, type} from '../theme';
 
-export {domainOf} from '../analysis/cardText';
+export {domainOf, VERDICT_WORD} from '../analysis/cardText';
 
 // Shared pieces for the co-viewer card details: the verdict as a word, a
 // compact source list and "Send to phone".
@@ -18,17 +19,19 @@ export interface WidgetContext {
   onLocked: (label: string) => void;
   spoilersRevealed: boolean;
   firstFocus: boolean;
-  // Present only when a phone is paired: protocol and entity_list cards
-  // offer "Send to phone".
+  // Present only when a phone is paired: every card detail, person and
+  // answer offers "Send to phone".
   share?: ShareContext;
 }
 
 export type ShareStatus = 'idle' | 'sending' | 'sent' | 'failed';
 
+// `key` names what is sent (a widget id, or an answer's key) for its status;
+// the caller builds the phone card (services/phoneCards.ts).
 export interface ShareContext {
   phoneName: string;
-  status: (widgetId: string) => ShareStatus;
-  send: (widgetId: string) => void;
+  status: (key: string) => ShareStatus;
+  send: (key: string, card: PhoneCard) => void;
 }
 
 // The panel draws the kind label and headline above a detail, so a widget
@@ -45,14 +48,6 @@ export const Disclaimer = ({text}: {text?: string}) =>
   text ? (
     <Text style={styles.disclaimer}>{text}</Text>
   ) : null;
-
-export const VERDICT_WORD: Record<Verdict, string> = {
-  SUPPORTED: 'Supported',
-  NUANCED: 'Needs context',
-  DISPUTED: 'Disputed',
-  DEBUNKED: 'Debunked',
-  UNVERIFIED: 'Unverified',
-};
 
 // Only claims that did not hold take the accent; every other verdict is a
 // quiet word.
@@ -119,16 +114,25 @@ export const SectionLabel = ({children}: {children: string}) => (
   <Text style={styles.sectionLabel}>{children}</Text>
 );
 
+// Not paired: a detail says once, quietly (never a button), how to get a
+// Send to phone.
+export const SEND_HINT = 'Link a phone from Home to send this to it.';
+
 // "Send to phone" in a detail's action row, with its own confirmation.
 export const ShareRow = ({
-  widgetId,
+  shareKey,
+  testID,
   title,
+  card,
   share,
   onFocus,
   onBlur,
 }: {
-  widgetId: string;
+  shareKey: string;
+  testID?: string;
   title: string;
+  // Built on press, from what is on screen then.
+  card: () => PhoneCard;
   share?: ShareContext;
   // The detail tracks its focused action (LEFT from the leftmost one closes).
   onFocus?: () => void;
@@ -137,7 +141,7 @@ export const ShareRow = ({
   if (!share) {
     return null;
   }
-  const status = share.status(widgetId);
+  const status = share.status(shareKey);
   const label =
     status === 'sending'
       ? 'Sending…'
@@ -148,7 +152,7 @@ export const ShareRow = ({
       : 'Send to phone';
   return (
     <FocusFrame
-      testID={`share-${widgetId}`}
+      testID={testID ?? `share-${shareKey}`}
       accessibilityLabel={`${
         status === 'idle' ? `Send to ${share.phoneName}` : label
       }. ${title}`}
@@ -160,7 +164,7 @@ export const ShareRow = ({
       onPress={
         status === 'sending' || status === 'sent'
           ? undefined
-          : () => share.send(widgetId)
+          : () => share.send(shareKey, card())
       }>
       {(focused) => (
         <View style={styles.shareRow} accessibilityLiveRegion="polite">

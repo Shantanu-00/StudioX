@@ -351,3 +351,40 @@ describe('timeline tags', () => {
     }
   });
 });
+
+describe('arrows and the story pulse agree', () => {
+  const science = validateExplore((BUNDLED['science-ep42'] as {explore: unknown}).explore) as Explore;
+  const tech = validateExplore((BUNDLED['cameo-tech'] as {explore: unknown}).explore) as Explore;
+
+  it('puts arrowheads only on sequence links', () => {
+    const l = layoutMap(science, BOX, 'nightsky');
+    expect(l.edges.filter((e) => e.kind !== 'then').every((e) => e.arrow === null)).toBe(true);
+    expect(l.edges.filter((e) => e.kind === 'then').every((e) => !!e.arrow)).toBe(true);
+  });
+
+  it('follows the connectors, through the step, instead of cutting across', () => {
+    const l = layoutMap(science, BOX, 'nightsky');
+    // n2 hangs under n1; n3 follows n1. From n2 to n3 the pulse climbs back
+    // to n1 (passing its centre) and then rides the n1 → n3 connector.
+    const n1 = l.nodes.find((n) => n.id === 'n1')!;
+    const p = storyPath(l, 'n2', 'n3', 'nightsky');
+    const xs = p.filter((_, i) => i % 2 === 0);
+    const ys = p.filter((_, i) => i % 2 === 1);
+    const centre = xs.findIndex(
+      (x, i) => x === Math.round(n1.x + n1.w / 2) && ys[i] === Math.round(n1.y + n1.h / 2),
+    );
+    expect(centre).toBeGreaterThan(0);
+    // After the centre it only moves right, along the arrow.
+    for (let i = centre + 1; i < xs.length; i++) {
+      expect(xs[i]).toBeGreaterThanOrEqual(xs[i - 1]);
+    }
+  });
+
+  it('draws a two-way pair as two parallel lines, not one double arrow', () => {
+    const l = layoutMap(tech, BOX, 'signal');
+    const fwd = l.edges.find((e) => e.from === 'n7' && e.to === 'n8')!;
+    const back = l.edges.find((e) => e.from === 'n8' && e.to === 'n7')!;
+    const y = (d: string) => Number(d.split(' ')[1]);
+    expect(y(fwd.d)).toBeLessThan(y(back.d));
+  });
+});

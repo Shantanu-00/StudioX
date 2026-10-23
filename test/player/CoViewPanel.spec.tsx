@@ -114,18 +114,107 @@ describe('CoViewPanel details', () => {
     expect(onSeek).toHaveBeenCalledWith(6.76);
   });
 
+  const phone = (send = jest.fn()) => ({
+    phoneName: "Ari's phone",
+    status: () => 'idle' as const,
+    send,
+  });
+
   it('offers Send to phone on a routine only when a phone is paired', () => {
     const view = {kind: 'card', id: 'protocol-s1-1'};
     const plain = setup({view}, science, 12).screen;
     expect(plain.queryByTestId('share-protocol-s1-1')).toBeNull();
     const send = jest.fn();
-    const paired = setup(
-      {view, share: {phoneName: "Ari's phone", status: () => 'idle', send}},
+    const paired = setup({view, share: phone(send)}, science, 12).screen;
+    expect(paired.queryByTestId('detail-note')).toBeNull();
+    fireEvent.press(paired.getByTestId('share-protocol-s1-1'));
+    expect(send).toHaveBeenCalledWith(
+      'protocol-s1-1',
+      expect.objectContaining({type: 'checklist'}),
+    );
+  });
+
+  it('offers Send to phone on a fact check, after Back and Jump to', () => {
+    const send = jest.fn();
+    const {screen} = setup(
+      {view: {kind: 'card', id: 'claims-s1-1'}, share: phone(send), onBack: jest.fn()},
       science,
       12,
+    );
+    const ids = screen
+      .getAllByRole('button')
+      .map((b) => b.props.testID)
+      .filter((id) => /^(detail-back|jump-|share-)/.test(id ?? ''));
+    expect(ids).toEqual(['detail-back', 'jump-6', 'share-claims-s1-1']);
+    fireEvent.press(screen.getByTestId('share-claims-s1-1'));
+    expect(send).toHaveBeenCalledWith(
+      'claims-s1-1',
+      expect.objectContaining({type: 'list', items: expect.any(Array)}),
+    );
+  });
+
+  it('offers Send to phone on the crime timeline without what is ahead', () => {
+    const send = jest.fn();
+    const {screen, cards} = setup(
+      {view: {kind: 'card', id: 'events-s1-1'}, share: phone(send)},
+      crime,
+      10,
+    );
+    expect(cards.map((w) => w.id)).toContain('events-s1-1');
+    fireEvent.press(screen.getByTestId('share-events-s1-1'));
+    const [key, card] = send.mock.calls[0];
+    expect(key).toBe('events-s1-1');
+    expect(card.type).toBe('list');
+    // Event at 30 s is past 10 s (+4): kept back.
+    expect(card.items[card.items.length - 1].name).toBe('Later');
+  });
+
+  it('offers Send to phone on a person and on a ready answer', () => {
+    const send = jest.fn();
+    const person = setup(
+      {view: {kind: 'person', id: 'people-s1-1'}, share: phone(send)},
+      crime,
+      10,
     ).screen;
-    fireEvent.press(paired.getByTestId('share-protocol-s1-1'));
-    expect(send).toHaveBeenCalledWith('protocol-s1-1');
+    fireEvent.press(person.getByTestId('share-people-s1-1'));
+    expect(send).toHaveBeenLastCalledWith(
+      'people-s1-1',
+      expect.objectContaining({type: 'person'}),
+    );
+    const answer: AnswerState = {
+      question: 'Is the 37% from a real study?',
+      t: 12,
+      status: 'ready',
+      text: 'Probably Naska et al. (2007) [0:08].',
+      cites: [8],
+      sources: [],
+      live: true,
+    };
+    const ready = setup({answer, share: phone(send)}).screen;
+    fireEvent.press(ready.getByTestId('share-answer'));
+    expect(send).toHaveBeenLastCalledWith(
+      'answer-live-12-Is the 37% from a real study?',
+      expect.objectContaining({title: 'Is the 37% from a real study?'}),
+    );
+    const loading = setup({
+      answer: {...answer, status: 'loading'},
+      share: phone(send),
+    }).screen;
+    expect(loading.queryByTestId('share-answer')).toBeNull();
+  });
+
+  it('says how to link a phone, as a line and not a button, when unpaired', () => {
+    const hint = 'Link a phone from Home to send this to it.';
+    for (const [extra, analysis, t] of [
+      [{view: {kind: 'card', id: 'claims-s1-1'}}, science, 12],
+      [{view: {kind: 'card', id: 'events-s1-1'}}, crime, 10],
+      [{view: {kind: 'person', id: 'people-s1-1'}}, crime, 10],
+    ] as const) {
+      const {screen} = setup({...extra, onBack: jest.fn()}, analysis, t);
+      expect(screen.getByTestId('detail-note').props.children).toBe(hint);
+      expect(screen.queryByTestId(/^share-/)).toBeNull();
+      expect(screen.getByTestId('detail-back')).toBeTruthy();
+    }
   });
 
   it('offers “Try it” first on the sleep routine when the Map has its sim', () => {
@@ -349,5 +438,56 @@ describe('CoViewPanel text', () => {
       12,
     ).screen;
     expect(clamped(detail)).toBe(0);
+  });
+});
+
+describe('CoViewPanel list sections and LEFT', () => {
+  beforeAll(() => jest.useFakeTimers());
+  afterAll(() => jest.useRealTimers());
+  beforeEach(() => (useTVEventHandler as unknown as jest.Mock).mockClear());
+
+  it('labels its sections and explains the Map with a play row', () => {
+    const {screen} = setup({onMap: jest.fn()}, science, 12);
+    expect(screen.getByText('STORY MAP')).toBeTruthy();
+    expect(screen.getByText('PEOPLE')).toBeTruthy();
+    expect(screen.getByText('ASK THE CO-VIEWER')).toBeTruthy();
+    expect(screen.getByText('Play the story map')).toBeTruthy();
+    expect(screen.getByText('The whole story so far as one picture')).toBeTruthy();
+  });
+
+  it('names a lone card\'s section by its kind, without repeating it on the row', () => {
+    const one = crime.widgets.find((w) => w.type === 'timeline')!;
+    const {screen} = setup({cards: [one], people: []}, crime, 12);
+    expect(screen.getByText('TIMELINE')).toBeTruthy();
+    expect(screen.queryByText('Timeline')).toBeNull();
+  });
+
+  it('hides the panel with LEFT from a row once focus has settled on it', () => {
+    const onHide = jest.fn();
+    const {screen, cards} = setup({onHide});
+    fireEvent(screen.getByTestId(`card-${cards[0].id}`), 'focus');
+    press('left'); // the key that moved focus here
+    expect(onHide).not.toHaveBeenCalled();
+    settle();
+    press('left');
+    expect(onHide).toHaveBeenCalledTimes(1);
+  });
+
+  it('moves along the people ribbon with LEFT instead of hiding', () => {
+    const onHide = jest.fn();
+    const two = science.widgets.filter((w) => w.type === 'dossier').slice(0, 1);
+    const people = [
+      two[0],
+      {...two[0], id: 'people-x', name: 'Second Person'},
+    ] as typeof two;
+    const {screen} = setup({onHide, people});
+    fireEvent(screen.getByTestId('person-people-x'), 'focus');
+    settle();
+    press('left');
+    expect(onHide).not.toHaveBeenCalled();
+    fireEvent(screen.getByTestId(`person-${two[0].id}`), 'focus');
+    settle();
+    press('left');
+    expect(onHide).toHaveBeenCalledTimes(1);
   });
 });

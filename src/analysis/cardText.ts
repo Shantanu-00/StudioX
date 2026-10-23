@@ -82,7 +82,16 @@ export const KIND_LABEL: Record<Widget['type'], string> = {
   technique: 'Try it',
 };
 
-const stripQuotes = (s: string) => s.replace(/^["“]+|["”]+$/g, '');
+// A verdict as a word (the TV and the phone card say the same).
+export const VERDICT_WORD: Record<Verdict, string> = {
+  SUPPORTED: 'Supported',
+  NUANCED: 'Needs context',
+  DISPUTED: 'Disputed',
+  DEBUNKED: 'Debunked',
+  UNVERIFIED: 'Unverified',
+};
+
+export const stripQuotes = (s: string) => s.replace(/^["“]+|["”]+$/g, '');
 
 // The card headline: the curator's `headline`, else the card's own title
 // (the claim itself for a fact check), cut to 70 characters.

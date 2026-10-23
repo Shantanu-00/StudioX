@@ -30,9 +30,13 @@ import {answerStamps, formatTime} from '../analysis/composer';
 import {headlineOf, jumpTarget, KIND_LABEL, nameLines} from '../analysis/cardText';
 import {Answer, DossierWidget, ExploreSim, Source, Widget} from '../analysis/schema';
 import {FocusFrame} from '../components/FocusFrame';
+import {Icon} from '../components/Icon';
+import {PhoneCard} from '../services/api';
+import {answerPhoneCard, toPhoneCard} from '../services/phoneCards';
 import {colors, motion, numeric, radius, space, type} from '../theme';
 import {WidgetView} from '../widgets';
 import {
+  SEND_HINT,
   ShareContext,
   ShareRow,
   SourceLines,
@@ -106,6 +110,11 @@ interface Props {
   // Leaves the open detail or answer for the list: the same step as BACK.
   // Without it a detail has no Back control and LEFT does nothing.
   onBack?: () => void;
+  // LEFT from the list's left edge: hide the panel, the video goes back to
+  // full screen and stays paused (DOWN or Menu brings the panel back).
+  onHide?: () => void;
+  // A phone is linked: questions can also be asked by voice there.
+  paired?: boolean;
 }
 
 // The co-viewer: a solid panel on the right 360 dp; the video shrinks into
@@ -165,6 +174,7 @@ const Body = (props: Props) => {
         answer={answer}
         onSeek={props.onSeek}
         onBack={props.onBack}
+        share={props.share}
       />
     );
   }
@@ -209,8 +219,12 @@ function useFocusOnMount(enabled: boolean) {
   return ref;
 }
 
-// ---- the list: people, collapsed cards, questions -------------------------
+// ---- the list: map, people, cards, questions ------------------------------
 
+// The list is sectioned the way TV apps section a page: a small overline
+// label per group (Story map, People, the card kind, Ask) with a short
+// translucent rule after it, never a full-width divider. Every section's
+// content starts on the same left edge as the title.
 const ListView = ({
   open,
   title,
@@ -222,6 +236,8 @@ const ListView = ({
   asks = [],
   onAsk,
   onMap,
+  onHide,
+  paired,
 }: Props) => {
   // Deterministic first focus: the restored row, else the first card, else
   // the first person, else the first question.
@@ -235,69 +251,106 @@ const ListView = ({
   const first = focusKey && keys.includes(focusKey) ? focusKey : keys[0];
   const preferred = (key: string) => open && !mapFirst && key === first;
   const showCaption = cards.length === 0 && !!caption;
+  // One card: its kind names the section (and the row drops its own kind
+  // line); several: "This moment", each row says what it is.
+  const cardsLabel = cards.length === 1 ? KIND_LABEL[cards[0].type] : 'This moment';
+  const edge = useEdgeFocus(onHide);
+  useTVEventHandler((evt) => {
+    if (evt.eventKeyAction !== 1 && evt.eventType === 'left') {
+      edge.left();
+    }
+  });
 
   // One scroll view for the whole list: header, people, cards and
   // questions wrap in full, and the view follows D-pad focus (Vega
   // ScrollView), so long text never pushes a row off the panel.
   return (
-    <ScrollView
-      style={styles.scroll}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        {showCaption ? (
-          <Text style={styles.caption} accessibilityLiveRegion="polite">
-            {caption}
-          </Text>
-        ) : null}
+    <DetailFocus.Provider value={edge}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{title}</Text>
+          {showCaption ? (
+            <Text style={styles.caption} accessibilityLiveRegion="polite">
+              {caption}
+            </Text>
+          ) : null}
+        </View>
         {onMap ? (
-          <MapAction preferred={open && mapFirst} onPress={onMap} />
+          <View style={styles.section}>
+            <SectionHead label="Story map" />
+            <MapRow preferred={open && mapFirst} onPress={onMap} />
+          </View>
         ) : null}
         {people.length ? (
-          <View style={styles.people}>
-            {people.map((p) => (
-              <PersonChip
-                key={p.id}
-                w={p}
-                preferred={preferred(personKey(p.id))}
-                onPress={() =>
-                  onView({kind: 'person', id: p.id}, personKey(p.id))
-                }
+          <View style={styles.section}>
+            <SectionHead label="People" />
+            <View style={styles.people}>
+              {people.map((p, i) => (
+                <PersonChip
+                  key={p.id}
+                  w={p}
+                  leftmost={i === 0}
+                  preferred={preferred(personKey(p.id))}
+                  onPress={() =>
+                    onView({kind: 'person', id: p.id}, personKey(p.id))
+                  }
+                />
+              ))}
+            </View>
+          </View>
+        ) : null}
+        {cards.length ? (
+          <View style={styles.section}>
+            <SectionHead label={cardsLabel} />
+            {cards.map((w) => (
+              <CardRow
+                key={w.id}
+                w={w}
+                showKind={cards.length > 1}
+                preferred={preferred(cardKey(w.id))}
+                onPress={() => onView({kind: 'card', id: w.id}, cardKey(w.id))}
               />
             ))}
           </View>
         ) : null}
-      </View>
-      <View style={styles.cards}>
-        {cards.map((w) => (
-          <CardRow
-            key={w.id}
-            w={w}
-            preferred={preferred(cardKey(w.id))}
-            onPress={() => onView({kind: 'card', id: w.id}, cardKey(w.id))}
-          />
-        ))}
-      </View>
-      {asks.length && onAsk ? (
-        <View style={styles.asks}>
-          {asks.map((a, i) => (
-            <AskRow
-              key={`${a.t}-${a.question}`}
-              index={i}
-              question={a.question}
-              preferred={preferred(askKey(i))}
-              onPress={() => onAsk(i)}
-            />
-          ))}
-        </View>
-      ) : null}
-    </ScrollView>
+        {asks.length && onAsk ? (
+          <View style={styles.section}>
+            <SectionHead label="Ask the co-viewer" />
+            {asks.map((a, i) => (
+              <AskRow
+                key={`${a.t}-${a.question}`}
+                index={i}
+                question={a.question}
+                preferred={preferred(askKey(i))}
+                onPress={() => onAsk(i)}
+              />
+            ))}
+            <Text style={styles.askHint}>
+              {paired
+                ? 'Answers are ready now. Or ask your own by voice on your phone.'
+                : 'Answers are ready now. Link a phone to ask your own by voice.'}
+            </Text>
+          </View>
+        ) : null}
+      </ScrollView>
+    </DetailFocus.Provider>
   );
 };
 
-// "Map": the whole conversation so far as one picture (src/map).
-const MapAction = ({
+// A section's overline: the label, then a short translucent rule.
+const SectionHead = ({label}: {label: string}) => (
+  <View style={styles.sectionHead} accessibilityRole="header">
+    <Text style={styles.sectionLabel}>{label.toUpperCase()}</Text>
+    <View style={styles.sectionRule} />
+  </View>
+);
+
+// The Map as a row that says what it is: a play mark, what it does and what
+// you will see, so a first-time viewer knows why to open it.
+const MapRow = ({
   preferred,
   onPress,
 }: {
@@ -305,18 +358,36 @@ const MapAction = ({
   onPress: () => void;
 }) => {
   const ref = useFocusOnMount(preferred);
+  const slot = useDetailSlot({edge: true});
   return (
     <FocusFrame
       ref={ref}
       testID="panel-map"
-      accessibilityLabel="Map: see the whole conversation so far as one picture"
-      variant="button"
+      accessibilityLabel="Play the story map: the whole story so far as one picture, piece by piece"
       hasTVPreferredFocus={preferred}
-      style={styles.mapAction}
-      contentStyle={styles.actionInner}
+      style={styles.row}
+      contentStyle={[styles.rowInner, styles.mapInner]}
+      onFocus={slot.onFocus}
+      onBlur={slot.onBlur}
       onPress={onPress}>
       {(focused) => (
-        <Text style={[styles.actionText, focused && styles.onFocus]}>Map</Text>
+        <>
+          <View style={[styles.playMark, focused && styles.playMarkOn]}>
+            <Icon
+              name="play"
+              size={14}
+              color={focused ? colors.text : colors.onFocus}
+            />
+          </View>
+          <View style={styles.mapText}>
+            <Text style={[styles.rowHeadline, styles.noGap, focused && styles.onFocus]}>
+              Play the story map
+            </Text>
+            <Text style={[styles.rowKind, focused && styles.onFocusDim]}>
+              The whole story so far as one picture
+            </Text>
+          </View>
+        </>
       )}
     </FocusFrame>
   );
@@ -334,6 +405,7 @@ const AskRow = ({
   onPress: () => void;
 }) => {
   const ref = useFocusOnMount(preferred);
+  const slot = useDetailSlot({edge: true});
   return (
     <FocusFrame
       ref={ref}
@@ -342,6 +414,8 @@ const AskRow = ({
       hasTVPreferredFocus={preferred}
       style={styles.ask}
       contentStyle={styles.askInner}
+      onFocus={slot.onFocus}
+      onBlur={slot.onBlur}
       onPress={onPress}>
       {(focused) => (
         <Text style={[styles.askText, focused && styles.onFocus]}>
@@ -356,16 +430,20 @@ const AskRow = ({
 // headline (70 characters at most, wrapped in full). SELECT expands it.
 const CardRow = ({
   w,
+  showKind,
   preferred,
   onPress,
 }: {
   w: Widget;
+  // False when the section label already names the kind.
+  showKind: boolean;
   preferred: boolean;
   onPress: () => void;
 }) => {
   const verdict = w.type === 'claim' ? w.verdict : undefined;
   const headline = headlineOf(w);
   const ref = useFocusOnMount(preferred);
+  const slot = useDetailSlot({edge: true});
   return (
     <FocusFrame
       ref={ref}
@@ -376,23 +454,32 @@ const CardRow = ({
       hasTVPreferredFocus={preferred}
       style={styles.row}
       contentStyle={styles.rowInner}
+      onFocus={slot.onFocus}
+      onBlur={slot.onBlur}
       onPress={onPress}>
       {(focused) => (
         <>
-          <View style={styles.rowTop}>
-            <Text style={[styles.rowKind, focused && styles.onFocusDim]}>
-              {KIND_LABEL[w.type]}
-            </Text>
-            {verdict ? (
-              <>
+          {showKind || verdict ? (
+            <View style={styles.rowTop}>
+              {showKind ? (
+                <Text style={[styles.rowKind, focused && styles.onFocusDim]}>
+                  {KIND_LABEL[w.type]}
+                </Text>
+              ) : null}
+              {showKind && verdict ? (
                 <Text style={[styles.rowKind, focused && styles.onFocusDim]}>
                   {'  ·  '}
                 </Text>
-                <VerdictWord verdict={verdict} onFocus={focused} />
-              </>
-            ) : null}
-          </View>
-          <Text style={[styles.rowHeadline, focused && styles.onFocus]}>
+              ) : null}
+              {verdict ? <VerdictWord verdict={verdict} onFocus={focused} /> : null}
+            </View>
+          ) : null}
+          <Text
+            style={[
+              styles.rowHeadline,
+              !(showKind || verdict) && styles.noGap,
+              focused && styles.onFocus,
+            ]}>
             {headline}
           </Text>
         </>
@@ -410,16 +497,20 @@ const RING_GAP = 2;
 const CHIP = PORTRAIT + 2 * (RING + RING_GAP);
 const PersonChip = ({
   w,
+  leftmost,
   preferred,
   onPress,
 }: {
   w: DossierWidget;
+  leftmost: boolean;
   preferred: boolean;
   onPress: () => void;
 }) => {
   const [focused, setFocused] = useState(false);
   const [first, last] = nameLines(w.name);
   const ref = useFocusOnMount(preferred);
+  // Only the first chip of the ribbon is on the panel's left edge.
+  const slot = useDetailSlot({edge: leftmost});
   return (
     <View style={styles.person}>
       <FocusFrame
@@ -429,8 +520,14 @@ const PersonChip = ({
         variant="card"
         hasTVPreferredFocus={preferred}
         contentStyle={styles.portraitFrame}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onFocus={() => {
+          setFocused(true);
+          slot.onFocus();
+        }}
+        onBlur={() => {
+          setFocused(false);
+          slot.onBlur();
+        }}
         onPress={onPress}>
         {(on) => (
           <>
@@ -495,33 +592,53 @@ function useDetailSlot({edge = false} = {}) {
   };
 }
 
+// Tracks which control has focus; `left()` takes the LEFT step (`onLeft`)
+// when it comes from a control on the left edge that had already settled
+// there (the list hides the panel, a detail goes back).
+function useEdgeFocus(onLeft?: () => void) {
+  const spot = useRef<Spot | null>(null);
+  const leftRef = useRef(onLeft);
+  leftRef.current = onLeft;
+  return useMemo(
+    () => ({
+      spot,
+      enter: (id: object, edge: boolean, reader: boolean) => {
+        spot.current = {id, edge, reader, since: Date.now()};
+      },
+      leave: (id: object) => {
+        if (spot.current?.id === id) {
+          spot.current = null;
+        }
+      },
+      left: () => {
+        const s = spot.current;
+        if (s?.edge && leftRef.current && Date.now() - s.since >= LEFT_SETTLE_MS) {
+          leftRef.current();
+        }
+      },
+    }),
+    [],
+  );
+}
+
 const DetailFrame = ({
   testID,
   onBack,
   backPreferred,
   actions,
+  note,
   children,
 }: {
   testID: string;
   onBack?: () => void;
   backPreferred: boolean;
   actions?: ReactNode;
+  // One quiet line under the actions (never focusable).
+  note?: string | null;
   children: ReactNode;
 }) => {
-  const spot = useRef<Spot | null>(null);
-  const api = useMemo<DetailApi>(
-    () => ({
-      enter: (id, edge, reader) => {
-        spot.current = {id, edge, reader, since: Date.now()};
-      },
-      leave: (id) => {
-        if (spot.current?.id === id) {
-          spot.current = null;
-        }
-      },
-    }),
-    [],
-  );
+  const api = useEdgeFocus(onBack);
+  const spot = api.spot;
 
   // The reader: scroll offsets in refs (the key handler reads them), plus
   // state so the hint and the DOWN block follow.
@@ -552,9 +669,7 @@ const DetailFrame = ({
       return;
     }
     if (evt.eventType === 'left') {
-      if (s.edge && onBack && Date.now() - s.since >= LEFT_SETTLE_MS) {
-        onBack();
-      }
+      api.left();
       return;
     }
     if (s.reader && (evt.eventType === 'down' || evt.eventType === 'up')) {
@@ -630,6 +745,11 @@ const DetailFrame = ({
           ) : null}
           {actions}
         </View>
+        {note ? (
+          <Text style={styles.detailNote} testID="detail-note">
+            {note}
+          </Text>
+        ) : null}
       </View>
     </DetailFocus.Provider>
   );
@@ -677,15 +797,18 @@ const Action = ({
   );
 };
 
-// "Send to phone" as a detail action (tracked like the others).
+// "Send to phone" as a detail action (tracked like the others). Never the
+// preferred action: it sits after Back and Jump to.
 const ShareAction = (props: {
-  widgetId: string;
+  shareKey: string;
+  testID: string;
   title: string;
+  card: () => PhoneCard;
   share?: ShareContext;
 }) => {
   const slot = useDetailSlot();
   return props.share ? (
-    <View testID={`share-${props.widgetId}-slot`} onLayout={slot.onLayout}>
+    <View testID={`${props.testID}-slot`} onLayout={slot.onLayout}>
       <ShareRow {...props} onFocus={slot.onFocus} onBlur={slot.onBlur} />
     </View>
   ) : null;
@@ -731,7 +854,6 @@ const CardDetail = ({w, ...p}: Props & {w: Widget}) => {
     w.type === 'claim' && !w.headline
       ? w.claim.replace(/^["“]+|["”]+$/g, '')
       : headlineOf(w);
-  const shareable = w.type === 'protocol' || w.type === 'entity_list';
   const locked = w.type === 'timeline' && timelineHasLocked(w, ctx);
   const playable = w.type === 'technique';
   // A card a Map simulation belongs to: trying it is the first action.
@@ -742,6 +864,7 @@ const CardDetail = ({w, ...p}: Props & {w: Widget}) => {
       testID={`detail-${w.id}`}
       onBack={p.onBack}
       backPreferred={t === null && !locked && !playable && !sim}
+      note={p.share ? null : SEND_HINT}
       actions={
         <>
           {sim && onTry ? (
@@ -754,9 +877,13 @@ const CardDetail = ({w, ...p}: Props & {w: Widget}) => {
             />
           ) : null}
           {t !== null ? <JumpAction t={t} preferred={!sim} onSeek={p.onSeek} /> : null}
-          {shareable ? (
-            <ShareAction widgetId={w.id} title={headlineOf(w)} share={p.share} />
-          ) : null}
+          <ShareAction
+            shareKey={w.id}
+            testID={`share-${w.id}`}
+            title={headlineOf(w)}
+            card={() => toPhoneCard(w, p)}
+            share={p.share}
+          />
           {locked ? (
             <Action
               testID={`reveal-${w.id}`}
@@ -798,8 +925,8 @@ const CardDetail = ({w, ...p}: Props & {w: Widget}) => {
   );
 };
 
-// A person: the photo large beside the name, the facts, and Jump to only
-// when a fact or the card has a real timestamp.
+// A person: the photo large beside the name, the facts, Jump to only when a
+// fact or the card has a real timestamp, and Send to phone.
 const PersonDetail = ({w, ...p}: Props & {w: DossierWidget}) => {
   const t = jumpTarget(w);
   return (
@@ -807,7 +934,19 @@ const PersonDetail = ({w, ...p}: Props & {w: DossierWidget}) => {
       testID={`detail-${w.id}`}
       onBack={p.onBack}
       backPreferred={t === null}
-      actions={t !== null ? <JumpAction t={t} onSeek={p.onSeek} /> : null}>
+      note={p.share ? null : SEND_HINT}
+      actions={
+        <>
+          {t !== null ? <JumpAction t={t} onSeek={p.onSeek} /> : null}
+          <ShareAction
+            shareKey={w.id}
+            testID={`share-${w.id}`}
+            title={w.name}
+            card={() => toPhoneCard(w, p)}
+            share={p.share}
+          />
+        </>
+      }>
       <DossierCard w={w} ctx={ctxOf(p)} />
     </DetailFrame>
   );
@@ -823,10 +962,12 @@ const AnswerView = ({
   answer,
   onSeek,
   onBack,
+  share,
 }: {
   answer: AnswerState;
   onSeek: (t: number) => void;
   onBack?: () => void;
+  share?: ShareContext;
 }) => {
   const [showSources, setShowSources] = useState(false);
   const loading = answer.status === 'loading';
@@ -837,6 +978,7 @@ const AnswerView = ({
       testID="answer"
       onBack={onBack}
       backPreferred={stamps.length === 0 && sources.length === 0}
+      note={loading || share ? null : SEND_HINT}
       actions={
         <>
           {stamps.map((t, i) => (
@@ -859,6 +1001,17 @@ const AnswerView = ({
               onPress={() => setShowSources((s) => !s)}
             />
           ) : null}
+          {loading ? null : (
+            <ShareAction
+              shareKey={`answer-${answer.live ? 'live' : 'prepared'}-${answer.t}-${
+                answer.question
+              }`}
+              testID="share-answer"
+              title={answer.question}
+              card={() => answerPhoneCard(answer)}
+              share={share}
+            />
+          )}
         </>
       }>
       <Text style={styles.detailKind}>
@@ -897,10 +1050,48 @@ const styles = StyleSheet.create({
   },
   body: {flex: 1},
   header: {paddingHorizontal: space.s},
+  section: {marginTop: space.l},
+  sectionHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: space.s,
+    marginBottom: space.xs,
+  },
+  sectionLabel: {...type.overline, color: colors.textTertiary},
+  // Short and translucent: it groups, it does not cut the panel in two.
+  sectionRule: {
+    flex: 1,
+    maxWidth: 120,
+    height: 1,
+    marginLeft: space.s,
+    backgroundColor: 'rgba(235,235,245,0.14)',
+  },
+  mapInner: {flexDirection: 'row', alignItems: 'center'},
+  playMark: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.text,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: space.s,
+    paddingLeft: 2, // optical centre of the triangle
+  },
+  playMarkOn: {backgroundColor: colors.onFocus},
+  mapText: {flex: 1},
+  noGap: {marginTop: 0},
+  askHint: {
+    ...type.caption,
+    color: colors.textTertiary,
+    paddingHorizontal: space.s,
+    marginTop: space.xs,
+  },
   title: {...type.title, color: colors.text},
   caption: {...type.body, color: colors.textSecondary, marginTop: space.xs},
-  people: {flexDirection: 'row', marginTop: space.m},
-  person: {width: 72, alignItems: 'center', marginRight: space.xs},
+  // The ring's outer edge lines up with the text column; names centre under
+  // their portrait.
+  people: {flexDirection: 'row', paddingHorizontal: space.s},
+  person: {width: CHIP, alignItems: 'center', marginRight: space.m},
   portraitFrame: {
     width: CHIP,
     height: CHIP,
@@ -920,13 +1111,12 @@ const styles = StyleSheet.create({
     ...type.caption,
     color: colors.textSecondary,
     textAlign: 'center',
-    width: 72,
+    width: CHIP + space.m,
   },
   personNameOn: {color: colors.text},
   // Pulled out by the rows' padding so focus fills reach past the text.
   scroll: {flex: 1, marginHorizontal: -space.s},
   scrollContent: {paddingBottom: space.xs},
-  cards: {marginTop: space.m},
   row: {marginBottom: space.xs / 2},
   rowInner: {paddingHorizontal: space.s, paddingVertical: space.s},
   rowTop: {flexDirection: 'row', alignItems: 'center'},
@@ -934,8 +1124,7 @@ const styles = StyleSheet.create({
   rowHeadline: {...type.bodyStrong, color: colors.text, marginTop: 2},
   onFocus: {color: colors.onFocus},
   onFocusDim: {color: colors.onFocus, opacity: 0.62},
-  asks: {marginTop: space.xs},
-  ask: {marginTop: space.xs / 2},
+  ask: {marginBottom: space.xs / 2},
   askInner: {paddingHorizontal: space.s, paddingVertical: space.xs},
   askText: {...type.body, color: colors.textSecondary},
   footer: {...type.caption, color: colors.textTertiary, marginTop: space.s},
@@ -956,9 +1145,9 @@ const styles = StyleSheet.create({
   detailKind: {...type.caption, color: colors.textSecondary},
   detailTitle: {...type.headline, color: colors.text, marginTop: 4},
   detailBody: {marginTop: space.m, paddingBottom: space.xs},
+  detailNote: {...type.caption, color: colors.textTertiary, marginTop: space.xs},
   actions: {flexDirection: 'row', flexWrap: 'wrap', marginTop: space.xs},
   action: {marginRight: space.xs, marginTop: space.xs},
-  mapAction: {alignSelf: 'flex-start', marginTop: space.s},
   actionInner: {
     height: 40,
     paddingHorizontal: space.m,
