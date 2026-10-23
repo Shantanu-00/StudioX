@@ -1,5 +1,7 @@
 # StudioX: see the whole story
 
+[![CI](https://github.com/Shantanu-00/StudioX/actions/workflows/ci.yml/badge.svg)](https://github.com/Shantanu-00/StudioX/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) ![Vega OS](https://img.shields.io/badge/Fire%20TV-Vega%20OS-232f3e) ![AWS](https://img.shields.io/badge/AWS-Bedrock%20AgentCore%20%C2%B7%20Strands-ff9900)
+
 **An AI co-viewer for video podcasts on Fire TV, built natively for Vega OS and powered by Strands
 agents on Amazon Bedrock AgentCore.**
 

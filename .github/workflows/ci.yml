@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tv-app:
+    name: Vega app (typecheck, lint, Jest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npx jest --ci --maxWorkers=2
+
+  backend:
+    name: Backend (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Shared core (schema, verdict and map rules)
+        run: uv run --python 3.13 --with pytest pytest backend/shared/tests -q
+      - name: Pipeline Lambdas
+        run: uv run --python 3.13 --with pytest pytest backend/functions/pipeline/tests -q
+      - name: API Lambda
+        working-directory: backend/functions/api
+        run: uv run --python 3.13 --with pytest pytest -q
+      - name: Strands agents (recorded Bedrock fixtures, offline)
+        run: uv run --python 3.13 --with pytest --with strands-agents --with bedrock-agentcore pytest backend/agents/tests -q
+
+  infra:
+    name: CDK (TypeScript)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/infra
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: backend/infra/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
