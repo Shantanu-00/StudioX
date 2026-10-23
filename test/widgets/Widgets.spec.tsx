@@ -1,10 +1,11 @@
 import 'react-native';
-import {render} from '@testing-library/react-native';
+import {fireEvent, render} from '@testing-library/react-native';
 import * as React from 'react';
 
 import {validateWidget, Widget} from '../../src/analysis/schema';
 import {WidgetView} from '../../src/widgets';
 import {domainOf} from '../../src/widgets/parts';
+import {TechniqueCard} from '../../src/widgets/TechniqueCard';
 
 const ctx = {
   now: 10,
@@ -95,5 +96,102 @@ describe('person detail', () => {
     expect(screen.getByText('Swore he never left the diner.')).toBeTruthy();
     expect(screen.getByText('Phone pinged at Pier 9.')).toBeTruthy();
     expect(screen.queryByText('Cameras were cut.')).toBeNull();
+  });
+});
+
+describe('person detail with a photo', () => {
+  const url = 'https://upload.wikimedia.org/x/Cristiano_Ronaldo.jpg';
+  const person = validateWidget({
+    id: 'cr',
+    type: 'dossier',
+    name: 'Cristiano Ronaldo',
+    role: 'Portuguese footballer (born 1985)',
+    evidence: [{t0: 0, t1: 6.76}],
+    image: {url, credit: 'Bryan Berlin · CC BY-SA 4.0 · Wikimedia Commons'},
+    facts: [
+      {
+        text: 'Has won five Ballons d’Or and four European Golden Shoes, and was named FIFA’s world’s best player five times.',
+        source: 'Wikipedia',
+      },
+      {
+        text: 'Dr. Julian says Ronaldo optimizes recovery with R90 polyphasic sleep cycles.',
+        evidence: {t0: 0, t1: 5.41},
+      },
+      {
+        text: 'The R90 routine is described as five 90-minute sleep cycles.',
+        evidence: {t0: 5.41, t1: 6.76},
+      },
+    ],
+  }) as Widget;
+
+  it('draws the photo large, through imageSource, with its credit', () => {
+    const screen = render(<WidgetView ctx={ctx} w={person} />);
+    const photo = screen.getByTestId('dossier-portrait');
+    expect(photo.props.source).toEqual(
+      expect.objectContaining({uri: url, width: 208, height: 208}),
+    );
+    expect(photo.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({width: 104, height: 104}),
+      ]),
+    );
+    expect(screen.queryByTestId('dossier-initials')).toBeNull();
+    expect(
+      screen.getByText('Photo: Bryan Berlin · CC BY-SA 4.0 · Wikimedia Commons'),
+    ).toBeTruthy();
+  });
+
+  it('keeps every fact whole: no "Dr." stub, no line limit', () => {
+    const screen = render(<WidgetView ctx={ctx} w={person} />);
+    expect(screen.queryByText('Dr.')).toBeNull();
+    const fact = screen.getByText(
+      'Dr. Julian says Ronaldo optimizes recovery with R90 polyphasic sleep cycles.',
+    );
+    expect(fact.props.numberOfLines).toBeUndefined();
+    expect(
+      screen.getByText(/FIFA’s world’s best player five times\.$/).props
+        .numberOfLines,
+    ).toBeUndefined();
+  });
+
+  it('shows real fact times only, never 0:00', () => {
+    const screen = render(<WidgetView ctx={ctx} w={person} />);
+    expect(screen.queryByText('0:00')).toBeNull();
+    expect(screen.getByText('0:05')).toBeTruthy();
+  });
+
+  it('falls back to the monogram, without a credit, when the photo fails', () => {
+    const screen = render(<WidgetView ctx={ctx} w={person} />);
+    fireEvent(screen.getByTestId('dossier-portrait'), 'error');
+    expect(screen.queryByTestId('dossier-portrait')).toBeNull();
+    expect(screen.getByText('CR')).toBeTruthy();
+    expect(screen.queryByTestId('dossier-credit')).toBeNull();
+  });
+});
+
+describe('technique', () => {
+  const technique = validateWidget({
+    id: 't',
+    type: 'technique',
+    title: 'Box breathing',
+    shape: 'box',
+    phases: [
+      {label: 'In', seconds: 4},
+      {label: 'Hold', seconds: 4},
+      {label: 'Out', seconds: 4},
+      {label: 'Hold', seconds: 4},
+    ],
+    caption: 'Four counts each.',
+    evidence: [{t0: 3, t1: 9}],
+  });
+
+  it('renders at rest until Play is pressed', () => {
+    expect(technique).not.toBeNull();
+    const screen = render(
+      <TechniqueCard w={technique as never} playToken={0} />,
+    );
+    expect(screen.getByText('Four counts each.')).toBeTruthy();
+    screen.rerender(<TechniqueCard w={technique as never} playToken={1} />);
+    expect(screen.getByText('Four counts each.')).toBeTruthy();
   });
 });

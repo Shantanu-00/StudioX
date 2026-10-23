@@ -43,9 +43,7 @@ export const WidgetShell = ({
 
 export const Disclaimer = ({text}: {text?: string}) =>
   text ? (
-    <Text style={styles.disclaimer} numberOfLines={2}>
-      {text}
-    </Text>
+    <Text style={styles.disclaimer}>{text}</Text>
   ) : null;
 
 export const VERDICT_WORD: Record<Verdict, string> = {
@@ -93,7 +91,7 @@ export const VerdictStamp = VerdictWord;
 // The banner's small accent dot (debunked/disputed only, always beside words).
 export const AccentDot = () => <View style={styles.dot} />;
 
-// Up to three sources, one line each: "title · domain · date". Not
+// Up to three sources, "title · domain · date", each wrapped in full. Not
 // focusable: the TV cannot open links.
 export const SourceLines = ({
   sources,
@@ -109,7 +107,7 @@ export const SourceLines = ({
     <View style={styles.sources}>
       {label ? <Text style={styles.sectionLabel}>Sources</Text> : null}
       {list.map((s) => (
-        <Text key={s.url} style={styles.sourceLine} numberOfLines={1}>
+        <Text key={s.url} style={styles.sourceLine}>
           {sourceLine(s)}
         </Text>
       ))}
@@ -126,10 +124,15 @@ export const ShareRow = ({
   widgetId,
   title,
   share,
+  onFocus,
+  onBlur,
 }: {
   widgetId: string;
   title: string;
   share?: ShareContext;
+  // The detail tracks its focused action (LEFT from the leftmost one closes).
+  onFocus?: () => void;
+  onBlur?: () => void;
 }) => {
   if (!share) {
     return null;
@@ -152,6 +155,8 @@ export const ShareRow = ({
       variant="button"
       style={styles.action}
       contentStyle={styles.actionInner}
+      onFocus={onFocus}
+      onBlur={onBlur}
       onPress={
         status === 'sending' || status === 'sent'
           ? undefined

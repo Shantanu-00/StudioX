@@ -2,7 +2,13 @@ import React, {useState} from 'react';
 import {Image, StyleSheet, Text, View} from 'react-native';
 import Svg, {Circle, Line, Rect} from '@amazon-devices/react-native-svg';
 import {formatTime, WINDOW_AFTER} from '../analysis/composer';
-import {firstSentence, initialsOf, whyOf} from '../analysis/cardText';
+import {
+  firstSentence,
+  initialsOf,
+  isRealStamp,
+  whyOf,
+} from '../analysis/cardText';
+import {imageSource} from '../map/images';
 import {
   ClaimWidget,
   DossierWidget,
@@ -23,8 +29,9 @@ import {
 
 // The expanded body of each co-viewer card, drawn under the panel's
 // headline. Nothing here is focusable: the detail view owns its actions
-// (Jump to, Send to phone, Show spoilers). Every list is bounded so a detail
-// never runs past the panel.
+// (Back, Jump to, Send to phone, Show spoilers) and scrolls the body when it
+// is taller than the panel. Text is never cut: every line wraps in full;
+// only the number of items is bounded.
 
 const BODY_W = 312; // panel 360 − 2 × 24 padding
 
@@ -33,15 +40,13 @@ const BODY_W = 312; // panel 360 − 2 × 24 padding
 export const ClaimCard = ({w}: {w: ClaimWidget; ctx?: WidgetContext}) => (
   <View>
     {w.headline ? (
-      <Text style={p.primary} numberOfLines={3}>
+      <Text style={p.primary}>
         “{w.claim.replace(/^["“]+|["”]+$/g, '')}”
       </Text>
     ) : null}
     <View style={local.metaRow}>
-      <Text style={local.meta} numberOfLines={1}>
-        {w.speaker}
-      </Text>
-      {w.evidence[0] ? (
+      <Text style={[local.meta, local.metaSpeaker]}>{w.speaker}</Text>
+      {isRealStamp(w.evidence[0]?.t0) ? (
         <Text style={[local.meta, local.metaTime]}>
           {formatTime(w.evidence[0].t0)}
         </Text>
@@ -49,9 +54,7 @@ export const ClaimCard = ({w}: {w: ClaimWidget; ctx?: WidgetContext}) => (
     </View>
     <View style={local.block}>
       <SectionLabel>Why</SectionLabel>
-      <Text style={p.primary} numberOfLines={3}>
-        {whyOf(w)}
-      </Text>
+      <Text style={p.primary}>{whyOf(w)}</Text>
     </View>
     <SourceLines sources={w.sources} />
   </View>
@@ -68,75 +71,94 @@ export function factsAt(w: DossierWidget, now: number) {
   }));
 }
 
-// A person: portrait, name, role, up to three facts with their timestamps
-// and the photo credit.
+// A person: the photo large beside the name and role, up to three facts
+// with their timestamps, and the photo credit whenever the photo shows.
+export const PERSON_PHOTO = 104;
 export const DossierCard = ({
   w,
   ctx,
 }: {
   w: DossierWidget;
   ctx: WidgetContext;
-}) => (
-  <View>
-    <View style={local.personHead}>
-      <Portrait name={w.name} url={w.image?.url} size={64} />
-      <View style={local.personText}>
-        <Text style={local.personName} numberOfLines={1}>
-          {w.name}
-        </Text>
-        <Text style={local.meta} numberOfLines={2}>
-          {w.role}
-        </Text>
+}) => {
+  const [failed, setFailed] = useState(false);
+  const photo = !!w.image && !failed;
+  return (
+    <View>
+      <View style={local.personHead}>
+        <Portrait
+          name={w.name}
+          url={w.image?.url}
+          size={PERSON_PHOTO}
+          onFail={() => setFailed(true)}
+        />
+        <View style={local.personText}>
+          <Text style={local.personName}>{w.name}</Text>
+          <Text style={[local.meta, local.personRole]}>{w.role}</Text>
+        </View>
       </View>
+      {photo ? (
+        <Text style={local.credit} testID="dossier-credit">
+          {`Photo: ${w.image!.credit}`}
+        </Text>
+      ) : null}
+      {factsAt(w, ctx.now).map((f, i) => (
+        <View key={i} style={local.fact}>
+          <Text style={[p.primary, local.factText]}>{f.text}</Text>
+          {isRealStamp(f.evidence?.t0) ? (
+            <Text style={[local.meta, local.factTime]}>
+              {formatTime(f.evidence!.t0)}
+            </Text>
+          ) : null}
+        </View>
+      ))}
     </View>
-    {factsAt(w, ctx.now).map((f, i) => (
-      <View key={i} style={local.fact}>
-        <Text style={[p.primary, local.factText]} numberOfLines={2}>
-          {f.text}
-        </Text>
-        {f.evidence ? (
-          <Text style={[local.meta, local.factTime]}>
-            {formatTime(f.evidence.t0)}
-          </Text>
-        ) : null}
-      </View>
-    ))}
-    {w.image ? (
-      <Text style={local.credit} numberOfLines={1}>
-        {`Photo: ${w.image.credit}`}
-      </Text>
-    ) : null}
-  </View>
-);
+  );
+};
 
-// A round portrait (https only); initials on a neutral circle if there is no
-// image or it fails to load. Explicit size, decoded at 2× for 1080p.
+// A round portrait, always through imageSource() (bundled thumbnails first,
+// else the https URL); initials on a neutral circle when there is no image
+// or it fails to load (`onFail` tells the caller, which then drops the
+// credit). Explicit size; a remote image is decoded at 2x for 1080p.
 export const Portrait = ({
   name,
   url,
   size,
+  onFail,
 }: {
   name: string;
   url?: string;
   size: number;
+  onFail?: () => void;
 }) => {
   const [failed, setFailed] = useState(false);
   const round = {width: size, height: size, borderRadius: size / 2};
   if (!url || failed) {
     return (
-      <View style={[local.initials, round]}>
+      <View
+        testID="dossier-initials"
+        style={[local.initials, round]}
+        accessibilityLabel={name}>
         <Text style={local.initialsText}>{initialsOf(name)}</Text>
       </View>
     );
   }
+  const src = imageSource(url);
+  const source =
+    src && typeof src === 'object' && !Array.isArray(src) && 'uri' in src
+      ? {...src, width: size * 2, height: size * 2}
+      : src;
   return (
     <Image
       testID="dossier-portrait"
       accessibilityLabel={`Portrait of ${name}`}
-      source={{uri: url, width: size * 2, height: size * 2}}
+      source={source}
       style={[local.portrait, round]}
       resizeMode="cover"
-      onError={() => setFailed(true)}
+      onError={() => {
+        setFailed(true);
+        onFail?.();
+      }}
     />
   );
 };
@@ -162,7 +184,7 @@ export const TimelineCard = ({
           <View key={e.id} style={local.event}>
             <View style={local.lockRow}>
               <Icon name="lock" size={14} color={colors.textTertiary} />
-              <Text style={[local.meta, local.lockText]} numberOfLines={1}>
+              <Text style={[local.meta, local.lockText]}>
                 {`${e.when} · Ahead in the story`}
               </Text>
             </View>
@@ -170,18 +192,14 @@ export const TimelineCard = ({
         ) : (
           <View key={e.id} style={local.event}>
             <View style={local.eventHead}>
-              <Text style={local.when} numberOfLines={1}>
-                {e.when}
-              </Text>
+              <Text style={local.when}>{e.when}</Text>
               {e.kind === 'conflict' ? (
                 <Text style={local.tag}>Conflict</Text>
               ) : e.kind === 'claim' ? (
                 <Text style={local.tag}>Claimed</Text>
               ) : null}
             </View>
-            <Text style={p.primary} numberOfLines={2}>
-              {e.label}
-            </Text>
+            <Text style={p.primary}>{e.label}</Text>
           </View>
         ),
       )}
@@ -246,7 +264,6 @@ export const RelationGraphCard = ({w}: {w: RelationGraphWidget}) => {
         return (
           <Text
             key={n.id}
-            numberOfLines={1}
             style={[
               local.nodeLabel,
               n.kind === 'person' && local.nodeLabelPerson,
@@ -279,15 +296,11 @@ export const EntityListCard = ({w}: {w: EntityListWidget; ctx?: WidgetContext}) 
       {items.map((it, i) => (
         <View key={`${it.name}-${i}`} style={local.item}>
           <View style={local.itemHead}>
-            <Text style={[p.strong, local.itemName]} numberOfLines={1}>
-              {it.name}
-            </Text>
+            <Text style={[p.strong, local.itemName]}>{it.name}</Text>
             {it.dose ? <Text style={local.meta}>{it.dose}</Text> : null}
           </View>
           {i === 0 || items[i - 1].asSaid !== it.asSaid ? (
-            <Text style={local.meta} numberOfLines={2}>
-              {it.asSaid}
-            </Text>
+            <Text style={local.meta}>{it.asSaid}</Text>
           ) : null}
         </View>
       ))}
@@ -299,7 +312,7 @@ export const EntityListCard = ({w}: {w: EntityListWidget; ctx?: WidgetContext}) 
   );
 };
 
-// A routine: up to five numbered steps, one line each with its detail.
+// A routine: up to five numbered steps, each with its detail in full.
 export const ProtocolCard = ({w}: {w: ProtocolWidget; ctx?: WidgetContext}) => {
   const steps = w.steps.slice(0, 5);
   return (
@@ -308,12 +321,8 @@ export const ProtocolCard = ({w}: {w: ProtocolWidget; ctx?: WidgetContext}) => {
         <View key={`${s.label}-${i}`} style={local.step}>
           <Text style={local.stepIndex}>{i + 1}</Text>
           <View style={local.stepBody}>
-            <Text style={p.strong} numberOfLines={1}>
-              {s.label}
-            </Text>
-            <Text style={local.meta} numberOfLines={1}>
-              {s.detail}
-            </Text>
+            <Text style={p.strong}>{s.label}</Text>
+            <Text style={local.meta}>{s.detail}</Text>
           </View>
         </View>
       ))}
@@ -330,15 +339,17 @@ export const ProtocolCard = ({w}: {w: ProtocolWidget; ctx?: WidgetContext}) => {
 const local = StyleSheet.create({
   meta: {...type.caption, color: colors.textSecondary},
   metaRow: {flexDirection: 'row', marginTop: 8},
+  metaSpeaker: {flexShrink: 1},
   metaTime: {...numeric, marginLeft: 8, color: colors.textTertiary},
   block: {marginTop: 16},
-  personHead: {flexDirection: 'row', alignItems: 'center', marginBottom: 8},
+  personHead: {flexDirection: 'row', alignItems: 'center'},
   personText: {flex: 1, marginLeft: 16},
   personName: {...type.headline, color: colors.text},
+  personRole: {marginTop: 2},
   fact: {flexDirection: 'row', alignItems: 'flex-start', marginTop: 12},
   factText: {flex: 1},
   factTime: {...numeric, marginLeft: 12, marginTop: 2, color: colors.textTertiary},
-  credit: {...type.caption, color: colors.textTertiary, marginTop: 16},
+  credit: {...type.caption, color: colors.textTertiary, marginTop: 8},
   portrait: {backgroundColor: colors.card},
   initials: {
     backgroundColor: colors.card,
@@ -352,7 +363,8 @@ const local = StyleSheet.create({
   tag: {...type.caption, color: colors.textTertiary, marginLeft: 8},
   lockRow: {flexDirection: 'row', alignItems: 'center'},
   lockText: {marginLeft: 8, color: colors.textTertiary},
-  graph: {width: BODY_W, height: GRAPH_H + 16},
+  // Room under the lowest node for a two-line label.
+  graph: {width: BODY_W, height: GRAPH_H + 40},
   nodeLabel: {
     ...type.caption,
     position: 'absolute',

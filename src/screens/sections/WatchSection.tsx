@@ -1,5 +1,11 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import {TVFocusGuideView} from '@amazon-devices/react-native-kepler';
 import Animated, {
   Easing,
@@ -31,8 +37,12 @@ export const PLAY_ID = 'hero-play';
 export const MAP_ID = 'hero-map';
 const PAIR_ID = 'tile-pair';
 const cameoId = (id: string) => `cameo-${id}`;
-// How far the page rises when focus is on the "More maps" row.
-const RISE = 150;
+// How far the page rises when focus is on the "More maps" row: enough for
+// two-line map titles to clear the 27 dp bottom safe margin.
+const RISE = 170;
+// Top of the "Episodes" row; the hero sits above it, anchored at its bottom
+// edge, so a longer title or synopsis grows upward and never overlaps it.
+const ROW_TOP = 318;
 
 // Whether an episode's local package carries a valid, eligible Map.
 const hasMap = (id: string) => !!localPackage(id)?.analysis.explore;
@@ -68,6 +78,8 @@ export const WatchSection = ({
     transform: [{translateY: Math.round(-RISE * rise.value)}],
   }));
   const fade = useAnimatedStyle(() => ({opacity: 1 - rise.value}));
+  const win = useWindowDimensions();
+  const heroBottom = {bottom: win.height - ROW_TOP + space.xxl};
   // DOWN from Map did not reach the tiles with Cartesian focus alone (VVD):
   // it points at the first tile explicitly, once the tile is mounted.
   const firstTile = useRef<View | null>(null);
@@ -85,19 +97,19 @@ export const WatchSection = ({
     <View style={styles.root}>
       <Backdrop id={hero.id} source={hero.backdrop} />
 
-      <Animated.View style={[styles.hero, fade]} accessibilityLiveRegion="polite">
-        <Text style={styles.show} numberOfLines={1}>
+      <Animated.View
+        style={[styles.hero, heroBottom, fade]}
+        accessibilityLiveRegion="polite">
+        <Text style={styles.show}>
           {displayCase(`${hero.show} · ${hero.label}`)}
         </Text>
-        <Text style={styles.title} numberOfLines={2}>
-          {hero.title}
-        </Text>
-        <Text style={styles.meta} numberOfLines={1}>
+        <Text style={styles.title}>{hero.title}</Text>
+        <Text style={styles.meta}>
           {`${hero.genre} · ${hero.durationSec} sec`}
         </Text>
-        <Text style={styles.synopsis} numberOfLines={2}>
-          {hero.synopsis}
-        </Text>
+        {hero.synopsis ? (
+          <Text style={styles.synopsis}>{hero.synopsis}</Text>
+        ) : null}
         <View style={styles.actions}>
         <FocusFrame
           testID={PLAY_ID}
@@ -204,7 +216,7 @@ export const WatchSection = ({
           <View style={styles.mapsBlock}>
             <View style={styles.mapsTitleRow}>
               <Text style={styles.rowTitle}>More maps</Text>
-              <Text style={styles.mapsNote} numberOfLines={1}>
+              <Text style={styles.mapsNote}>
                 Example transcripts written by StudioX
               </Text>
             </View>
@@ -223,13 +235,11 @@ export const WatchSection = ({
                   {(focused) => (
                     <>
                       <Text
-                        style={[styles.mapCardKind, focused && styles.onFocusDim]}
-                        numberOfLines={1}>
+                        style={[styles.mapCardKind, focused && styles.onFocusDim]}>
                         {c.category}
                       </Text>
                       <Text
-                        style={[styles.mapCardTitle, focused && styles.playTextFocused]}
-                        numberOfLines={2}>
+                        style={[styles.mapCardTitle, focused && styles.playTextFocused]}>
                         {c.title}
                       </Text>
                     </>
@@ -256,14 +266,10 @@ const Caption = ({
   title: string;
 }) => (
   <View style={styles.caption}>
-    <Text
-      style={[styles.tileOverline, focused && styles.tileOverlineOn]}
-      numberOfLines={1}>
+    <Text style={[styles.tileOverline, focused && styles.tileOverlineOn]}>
       {overline}
     </Text>
-    <Text
-      style={[styles.tileTitle, focused && styles.tileTitleOn]}
-      numberOfLines={1}>
+    <Text style={[styles.tileTitle, focused && styles.tileTitleOn]}>
       {title}
     </Text>
   </View>
@@ -275,7 +281,7 @@ const TILE_H = 126;
 const styles = StyleSheet.create({
   // Rendered full-screen under the nav rail so the art bleeds to the edges.
   root: {...StyleSheet.absoluteFillObject},
-  hero: {position: 'absolute', left: space.content, top: 56, width: 440},
+  hero: {position: 'absolute', left: space.content, width: 440},
   show: {...type.caption, color: colors.textSecondary},
   title: {...type.title, color: colors.text, marginTop: 4},
   meta: {...type.caption, color: colors.textSecondary, marginTop: space.xs},
@@ -287,9 +293,18 @@ const styles = StyleSheet.create({
   mapText: {marginLeft: 0},
   mapsBlock: {marginTop: space.l},
   mapsTitleRow: {flexDirection: 'row', alignItems: 'baseline'},
-  mapsNote: {...type.caption, color: colors.textTertiary, marginLeft: space.s},
+  mapsNote: {
+    ...type.caption,
+    color: colors.textTertiary,
+    marginLeft: space.s,
+    flexShrink: 1,
+  },
   mapCard: {width: TILE_W, marginRight: space.l},
-  mapCardInner: {height: 72, paddingHorizontal: space.s, paddingVertical: space.xs},
+  mapCardInner: {
+    minHeight: 72,
+    paddingHorizontal: space.s,
+    paddingVertical: space.xs,
+  },
   mapCardKind: {...type.caption, color: colors.textSecondary},
   mapCardTitle: {...type.bodyStrong, color: colors.text, marginTop: 2},
   onFocusDim: {color: colors.onFocus, opacity: 0.62},
@@ -302,9 +317,9 @@ const styles = StyleSheet.create({
   },
   playText: {...type.bodyStrong, color: colors.text, marginLeft: space.xs},
   playTextFocused: {color: colors.onFocus},
-  rowBlock: {position: 'absolute', left: space.content, right: 0, top: 318},
+  rowBlock: {position: 'absolute', left: space.content, right: 0, top: ROW_TOP},
   rowTitle: {...type.headline, color: colors.text, marginBottom: space.s},
-  row: {flexDirection: 'row'},
+  row: {flexDirection: 'row', alignItems: 'flex-start'},
   tile: {width: TILE_W, marginRight: space.l},
   tileArt: {height: TILE_H},
   tileImage: {

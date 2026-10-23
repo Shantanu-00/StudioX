@@ -170,7 +170,7 @@ const Inbox = ({
               inbox.thread === 'ok' ? styles.dotLive : styles.dotIdle,
             ]}
           />
-          <Text style={styles.linkText} numberOfLines={1}>
+          <Text style={styles.linkText}>
             {inbox.thread === 'error'
               ? 'Can’t reach StudioX · retrying'
               : `Linked to ${link.phoneName}`}
@@ -212,7 +212,7 @@ const Inbox = ({
           </ScrollView>
         </TVFocusGuideView>
       ) : (
-        <Text style={styles.areaNote} numberOfLines={1}>
+        <Text style={styles.areaNote}>
           {inbox.uploads === 'loading'
             ? 'Loading…'
             : inbox.uploads === 'unavailable'
@@ -239,7 +239,7 @@ const Inbox = ({
           }}
         />
       ) : (
-        <Text style={styles.areaNote} numberOfLines={2}>
+        <Text style={styles.areaNote}>
           {inbox.thread === 'loading'
             ? 'Loading…'
             : inbox.thread === 'error'
@@ -315,8 +315,7 @@ const UploadTile = React.forwardRef<
         )}
       </FocusFrame>
       <Text
-        style={[styles.tileTitle, focused && styles.tileTitleOn]}
-        numberOfLines={1}>
+        style={[styles.tileTitle, focused && styles.tileTitleOn]}>
         {media.title}
       </Text>
       <StatusText line={line} testID={`upload-status-${media.mediaId}`} />
@@ -328,8 +327,7 @@ const StatusText = ({line, testID}: {line: StatusLine; testID?: string}) => (
   <View style={styles.statusRow}>
     <Text
       testID={testID}
-      style={[styles.statusText, toneStyle(line.tone)]}
-      numberOfLines={1}>
+      style={[styles.statusText, toneStyle(line.tone)]}>
       {line.text}
     </Text>
   </View>
@@ -446,8 +444,7 @@ const MessageRow = React.forwardRef<
                 styles.sender,
                 mine && styles.senderMine,
                 focused && styles.onFocusDim,
-              ]}
-              numberOfLines={1}>
+              ]}>
               {[m.from.name, clockTime(m.at), KIND_TAG[m.kind]]
                 .filter(Boolean)
                 .join(' · ')}
@@ -458,8 +455,7 @@ const MessageRow = React.forwardRef<
                   styles.body,
                   mine && styles.bodyMine,
                   focused && styles.onFocus,
-                ]}
-                numberOfLines={m.kind === 'answer' ? 4 : 3}>
+                ]}>
                 {m.text}
               </Text>
             ) : null}
@@ -470,8 +466,7 @@ const MessageRow = React.forwardRef<
               ? m.card.sources.map((s) => (
                   <Text
                     key={s.url}
-                    style={[styles.source, focused && styles.onFocusDim]}
-                    numberOfLines={1}>
+                    style={[styles.source, focused && styles.onFocusDim]}>
                     {sourceLine(s)}
                   </Text>
                 ))
@@ -502,8 +497,7 @@ const StatusMessage = ({
         styles.statusLine,
         st ? toneStyle(st.tone) : styles.toneLive,
         focused && styles.onFocus,
-      ]}
-      numberOfLines={1}>
+      ]}>
       {text}
     </Text>
   );
@@ -516,27 +510,23 @@ const ShareCard = ({m, focused}: {m: Message; focused: boolean}) => {
   return (
     <View style={styles.share}>
       <Text
-        style={[styles.shareType, focused && styles.onFocusDim]}
-        numberOfLines={1}>
+        style={[styles.shareType, focused && styles.onFocusDim]}>
         {displayCase(card.type.toUpperCase())}
       </Text>
       <Text
-        style={[styles.shareTitle, focused && styles.onFocus]}
-        numberOfLines={1}>
+        style={[styles.shareTitle, focused && styles.onFocus]}>
         {card.title}
       </Text>
       {shown.map((item, i) => (
         <Text
           key={`${i}-${item}`}
-          style={[styles.shareItem, focused && styles.onFocusDim]}
-          numberOfLines={1}>
+          style={[styles.shareItem, focused && styles.onFocusDim]}>
           {item}
         </Text>
       ))}
       {more > 0 ? (
         <Text
-          style={[styles.shareMore, focused && styles.onFocusDim]}
-          numberOfLines={1}>
+          style={[styles.shareMore, focused && styles.onFocusDim]}>
           {`${more} more`}
         </Text>
       ) : null}

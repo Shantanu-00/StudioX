@@ -6,6 +6,8 @@ import {
   headlineOf,
   initialsOf,
   isQuestionable,
+  isRealStamp,
+  jumpTarget,
   nameLines,
   sourceLine,
   teaserOf,
@@ -88,5 +90,94 @@ describe('card text', () => {
     expect(displayCase('SHADOW FILES · CASE 104')).toBe(
       'Shadow Files · Case 104',
     );
+  });
+});
+
+describe('first sentence', () => {
+  it('does not stop at a title before a name', () => {
+    const fact =
+      'Dr. Julian says Ronaldo optimizes recovery with R90 polyphasic sleep cycles.';
+    expect(firstSentence(fact)).toBe(fact);
+    expect(firstSentence(`${fact} Second sentence.`)).toBe(fact);
+    expect(firstSentence('Mr. and Mrs. Smith moved to St. Ives. Then left.')).toBe(
+      'Mr. and Mrs. Smith moved to St. Ives.',
+    );
+    expect(firstSentence('Prof. Lee and Dr Ana spoke. Next.')).toBe(
+      'Prof. Lee and Dr Ana spoke.',
+    );
+  });
+
+  it('does not stop at dotted acronyms, initials, vs. or e.g.', () => {
+    expect(firstSentence('The U.S. team won gold. Next.')).toBe(
+      'The U.S. team won gold.',
+    );
+    expect(firstSentence('Some compounds, e.g. apigenin, help. More.')).toBe(
+      'Some compounds, e.g. apigenin, help.',
+    );
+    expect(firstSentence('That is i.e. a test. More.')).toBe(
+      'That is i.e. a test.',
+    );
+    expect(firstSentence('Naps vs. nights is the question. More.')).toBe(
+      'Naps vs. nights is the question.',
+    );
+    expect(firstSentence('J. K. Rowling wrote it. More.')).toBe(
+      'J. K. Rowling wrote it.',
+    );
+  });
+
+  it('does not stop inside a decimal', () => {
+    expect(firstSentence('Strain fell 3.5 percent. More.')).toBe(
+      'Strain fell 3.5 percent.',
+    );
+    expect(firstSentence('It costs $1.50 a day.')).toBe('It costs $1.50 a day.');
+  });
+
+  it('still ends at a real full stop, ! or ?, with closing quotes', () => {
+    expect(firstSentence('One. Two.')).toBe('One.');
+    expect(firstSentence('Is it true? Maybe.')).toBe('Is it true?');
+    expect(firstSentence('Wow! Yes.')).toBe('Wow!');
+    expect(firstSentence('He said “sleep in cycles.” Then left.')).toBe(
+      'He said “sleep in cycles.”',
+    );
+    expect(firstSentence('No full stop here')).toBe('No full stop here');
+    expect(firstSentence('  spaced   out.  ')).toBe('spaced out.');
+  });
+});
+
+describe('jump target', () => {
+  const dossier = (facts: object[], evidence = [{t0: 0, t1: 6}]) =>
+    validateWidget({
+      id: 'd1',
+      type: 'dossier',
+      name: 'Cristiano Ronaldo',
+      role: 'Footballer',
+      facts,
+      evidence,
+    }) as Widget;
+
+  it('treats a missing or sub-second stamp as absent', () => {
+    expect(isRealStamp(undefined)).toBe(false);
+    expect(isRealStamp(null)).toBe(false);
+    expect(isRealStamp(0)).toBe(false);
+    expect(isRealStamp(0.6)).toBe(false);
+    expect(isRealStamp(Number.NaN)).toBe(false);
+    expect(isRealStamp(1)).toBe(true);
+  });
+
+  it('skips 0:00 stamps and returns null when nothing real is left', () => {
+    expect(
+      jumpTarget(
+        dossier([
+          {text: 'A fact.', evidence: {t0: 0, t1: 5}},
+          {text: 'Another fact.', evidence: {t0: 5.41, t1: 6.76}},
+        ]),
+      ),
+    ).toBe(5.41);
+    expect(
+      jumpTarget(dossier([{text: 'A fact.', evidence: {t0: 0, t1: 5}}])),
+    ).toBeNull();
+    expect(jumpTarget(dossier([{text: 'A fact.', source: 'Wikipedia'}]))).toBeNull();
+    expect(jumpTarget(claim())).toBe(6);
+    expect(jumpTarget(claim({evidence: [{t0: 0, t1: 4}]}))).toBeNull();
   });
 });

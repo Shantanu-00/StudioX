@@ -56,7 +56,7 @@ export const LinkSection = () => {
 
           {state.phase === 'live' && waiting && (
             <View style={styles.fallback}>
-              <Text style={styles.fallbackLabel} numberOfLines={1}>
+              <Text style={styles.fallbackLabel}>
                 {`Or open ${host(state.pairing.url)}/link and enter`}
               </Text>
               <Text style={styles.code}>{formatCode(state.pairing.code)}</Text>
@@ -66,7 +66,7 @@ export const LinkSection = () => {
           <Status state={state} />
 
           {link && !(state.phase === 'live' && state.status === 'linked') ? (
-            <Text style={styles.linked} numberOfLines={1}>
+            <Text style={styles.linked}>
               {`Already linked: ${link.phoneName}`}
             </Text>
           ) : null}
@@ -134,7 +134,7 @@ const Status = ({state}: {state: LinkPairingState}) => {
             tone === 'alert' && styles.dotAlert,
           ]}
         />
-        <Text style={styles.statusText} numberOfLines={1}>
+        <Text style={styles.statusText}>
           {text}
         </Text>
         {state.phase === 'live' && state.status === 'waiting' && (
@@ -142,7 +142,7 @@ const Status = ({state}: {state: LinkPairingState}) => {
         )}
       </View>
       {detail ? (
-        <Text style={styles.statusDetail} numberOfLines={2}>
+        <Text style={styles.statusDetail}>
           {detail}
         </Text>
       ) : null}

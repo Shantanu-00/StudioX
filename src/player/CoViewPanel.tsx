@@ -1,8 +1,24 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  LayoutChangeEvent,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import {
   FocusManager,
   TVFocusGuideView,
+  useTVEventHandler,
 } from '@amazon-devices/react-native-kepler';
 import Animated, {
   Easing,
@@ -14,7 +30,7 @@ import {answerStamps, formatTime} from '../analysis/composer';
 import {headlineOf, jumpTarget, KIND_LABEL, nameLines} from '../analysis/cardText';
 import {Answer, DossierWidget, Source, Widget} from '../analysis/schema';
 import {FocusFrame} from '../components/FocusFrame';
-import {colors, motion, numeric, space, type} from '../theme';
+import {colors, motion, numeric, radius, space, type} from '../theme';
 import {WidgetView} from '../widgets';
 import {
   ShareContext,
@@ -23,6 +39,7 @@ import {
   VerdictWord,
   WidgetContext,
 } from '../widgets/parts';
+import {TechniqueCard} from '../widgets/TechniqueCard';
 import {DossierCard, Portrait, timelineHasLocked} from '../widgets/Widgets';
 
 export const PANEL_W = 360;
@@ -42,7 +59,9 @@ export interface AnswerState {
 }
 
 // What the panel shows: the list of collapsed cards, or one card or person
-// expanded. BACK goes detail → list → closed (Player owns the chain).
+// expanded. BACK goes detail → list → closed (Player owns the chain); in a
+// detail or an answer, the on-screen Back and LEFT from the leftmost control
+// take the same first step (`onBack`).
 export type PanelView =
   | {kind: 'list'}
   | {kind: 'card'; id: string}
@@ -80,6 +99,9 @@ interface Props {
   share?: ShareContext;
   // Present when the episode has a Map: a "Map" action in the header.
   onMap?: () => void;
+  // Leaves the open detail or answer for the list: the same step as BACK.
+  // Without it a detail has no Back control and LEFT does nothing.
+  onBack?: () => void;
 }
 
 // The co-viewer: a solid panel on the right 360 dp; the video shrinks into
@@ -124,9 +146,7 @@ export const CoViewPanel = (props: Props) => {
           <View style={styles.body}>
             <Body {...props} />
           </View>
-          <Text style={styles.footer} numberOfLines={1}>
-            {footer}
-          </Text>
+          <Text style={styles.footer}>{footer}</Text>
         </TVFocusGuideView>
       ) : null}
     </Animated.View>
@@ -136,7 +156,13 @@ export const CoViewPanel = (props: Props) => {
 const Body = (props: Props) => {
   const {answer, view, cards, people} = props;
   if (answer) {
-    return <AnswerView answer={answer} onSeek={props.onSeek} />;
+    return (
+      <AnswerView
+        answer={answer}
+        onSeek={props.onSeek}
+        onBack={props.onBack}
+      />
+    );
   }
   if (view.kind === 'card') {
     const w = cards.find((c) => c.id === view.id);
@@ -206,38 +232,40 @@ const ListView = ({
   const preferred = (key: string) => open && !mapFirst && key === first;
   const showCaption = cards.length === 0 && !!caption;
 
+  // One scroll view for the whole list: header, people, cards and
+  // questions wrap in full, and the view follows D-pad focus (Vega
+  // ScrollView), so long text never pushes a row off the panel.
   return (
-    <>
-      <Text style={styles.title} numberOfLines={2}>
-        {title}
-      </Text>
-      {showCaption ? (
-        <Text
-          style={styles.caption}
-          numberOfLines={3}
-          accessibilityLiveRegion="polite">
-          {caption}
-        </Text>
-      ) : null}
-      {onMap ? <MapAction preferred={open && mapFirst} onPress={onMap} /> : null}
-      {people.length ? (
-        <View style={styles.people}>
-          {people.map((p) => (
-            <PersonChip
-              key={p.id}
-              w={p}
-              preferred={preferred(personKey(p.id))}
-              onPress={() =>
-                onView({kind: 'person', id: p.id}, personKey(p.id))
-              }
-            />
-          ))}
-        </View>
-      ) : null}
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}>
+      <View style={styles.header}>
+        <Text style={styles.title}>{title}</Text>
+        {showCaption ? (
+          <Text style={styles.caption} accessibilityLiveRegion="polite">
+            {caption}
+          </Text>
+        ) : null}
+        {onMap ? (
+          <MapAction preferred={open && mapFirst} onPress={onMap} />
+        ) : null}
+        {people.length ? (
+          <View style={styles.people}>
+            {people.map((p) => (
+              <PersonChip
+                key={p.id}
+                w={p}
+                preferred={preferred(personKey(p.id))}
+                onPress={() =>
+                  onView({kind: 'person', id: p.id}, personKey(p.id))
+                }
+              />
+            ))}
+          </View>
+        ) : null}
+      </View>
+      <View style={styles.cards}>
         {cards.map((w) => (
           <CardRow
             key={w.id}
@@ -246,7 +274,7 @@ const ListView = ({
             onPress={() => onView({kind: 'card', id: w.id}, cardKey(w.id))}
           />
         ))}
-      </ScrollView>
+      </View>
       {asks.length && onAsk ? (
         <View style={styles.asks}>
           {asks.map((a, i) => (
@@ -260,7 +288,7 @@ const ListView = ({
           ))}
         </View>
       ) : null}
-    </>
+    </ScrollView>
   );
 };
 
@@ -312,9 +340,7 @@ const AskRow = ({
       contentStyle={styles.askInner}
       onPress={onPress}>
       {(focused) => (
-        <Text
-          style={[styles.askText, focused && styles.onFocus]}
-          numberOfLines={2}>
+        <Text style={[styles.askText, focused && styles.onFocus]}>
           {question}
         </Text>
       )}
@@ -323,7 +349,7 @@ const AskRow = ({
 };
 
 // A collapsed card: what it is (and the verdict, as a word), then its
-// headline in at most two lines. SELECT expands it.
+// headline (70 characters at most, wrapped in full). SELECT expands it.
 const CardRow = ({
   w,
   preferred,
@@ -362,9 +388,7 @@ const CardRow = ({
               </>
             ) : null}
           </View>
-          <Text
-            style={[styles.rowHeadline, focused && styles.onFocus]}
-            numberOfLines={2}>
+          <Text style={[styles.rowHeadline, focused && styles.onFocus]}>
             {headline}
           </Text>
         </>
@@ -373,9 +397,13 @@ const CardRow = ({
   );
 };
 
-// A person in the ribbon: a round portrait that lifts on focus (image only),
-// first and last name below it, outside the scaled layer.
+// A person in the ribbon: a round portrait that lifts on focus and gets a
+// 2 dp white ring (a shape: a fill alone would not read as focus), first and
+// last name below it, outside the scaled layer.
 const PORTRAIT = 56;
+const RING = 2;
+const RING_GAP = 2;
+const CHIP = PORTRAIT + 2 * (RING + RING_GAP);
 const PersonChip = ({
   w,
   preferred,
@@ -400,17 +428,22 @@ const PersonChip = ({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onPress={onPress}>
-        {() => <Portrait name={w.name} url={w.image?.url} size={PORTRAIT} />}
+        {(on) => (
+          <>
+            <Portrait name={w.name} url={w.image?.url} size={PORTRAIT} />
+            <View
+              testID={on ? `person-ring-${w.id}` : undefined}
+              pointerEvents="none"
+              style={[styles.ring, on && styles.ringOn]}
+            />
+          </>
+        )}
       </FocusFrame>
-      <Text
-        style={[styles.personName, focused && styles.personNameOn]}
-        numberOfLines={1}>
+      <Text style={[styles.personName, focused && styles.personNameOn]}>
         {first}
       </Text>
       {last ? (
-        <Text
-          style={[styles.personName, focused && styles.personNameOn]}
-          numberOfLines={1}>
+        <Text style={[styles.personName, focused && styles.personNameOn]}>
           {last}
         </Text>
       ) : null}
@@ -420,38 +453,238 @@ const PersonChip = ({
 
 // ---- details ----------------------------------------------------------------
 
+// A detail is a reader (the text, scrolled with the D-pad when it is taller
+// than the panel) above a fixed row of actions, Back first. The actions can
+// never be pushed off-screen by long text. LEFT from the leftmost control
+// (Back, the first action of a wrapped row, or the reader) leaves the detail,
+// like BACK.
+
+// Which detail control has focus. `since` guards LEFT: a key event can reach
+// JS just after the focus move it caused, so LEFT closes only from a control
+// that already had focus before the key went down.
+interface Spot {
+  id: object;
+  edge: boolean;
+  reader: boolean;
+  since: number;
+}
+interface DetailApi {
+  enter: (id: object, edge: boolean, reader: boolean) => void;
+  leave: (id: object) => void;
+}
+const DetailFocus = createContext<DetailApi | null>(null);
+export const LEFT_SETTLE_MS = 80;
+
+// Wires one control into the detail's focus tracking. Actions sit in a
+// wrapping row: a slot laid out at x = 0 is the leftmost of its line (until
+// it is measured it is not). Back is always leftmost.
+function useDetailSlot({edge = false} = {}) {
+  const api = useContext(DetailFocus);
+  const id = useRef({}).current;
+  const x = useRef(Number.NaN);
+  return {
+    onLayout: (e: LayoutChangeEvent) => {
+      x.current = e.nativeEvent.layout.x;
+    },
+    onFocus: () => api?.enter(id, edge || Math.abs(x.current) < 1, false),
+    onBlur: () => api?.leave(id),
+  };
+}
+
+const DetailFrame = ({
+  testID,
+  onBack,
+  backPreferred,
+  actions,
+  children,
+}: {
+  testID: string;
+  onBack?: () => void;
+  backPreferred: boolean;
+  actions?: ReactNode;
+  children: ReactNode;
+}) => {
+  const spot = useRef<Spot | null>(null);
+  const api = useMemo<DetailApi>(
+    () => ({
+      enter: (id, edge, reader) => {
+        spot.current = {id, edge, reader, since: Date.now()};
+      },
+      leave: (id) => {
+        if (spot.current?.id === id) {
+          spot.current = null;
+        }
+      },
+    }),
+    [],
+  );
+
+  // The reader: scroll offsets in refs (the key handler reads them), plus
+  // state so the hint and the DOWN block follow.
+  const scroll = useRef<ScrollView>(null);
+  const viewH = useRef(0);
+  const contentH = useRef(0);
+  const y = useRef(0);
+  const [, setTick] = useState(0);
+  const maxY = () => Math.max(0, Math.ceil(contentH.current - viewH.current));
+  const scrollTo = (next: number, animated = true) => {
+    const to = Math.max(0, Math.min(maxY(), Math.round(next)));
+    if (to !== y.current) {
+      y.current = to;
+      scroll.current?.scrollTo({y: to, animated});
+    }
+    setTick((n) => n + 1);
+  };
+  const measured = () => scrollTo(y.current, false); // re-clamp after a resize
+  const overflow = maxY() > 1;
+  const atEnd = y.current >= maxY() - 1;
+
+  useTVEventHandler((evt) => {
+    if (evt.eventKeyAction === 1) {
+      return; // key up
+    }
+    const s = spot.current;
+    if (!s) {
+      return;
+    }
+    if (evt.eventType === 'left') {
+      if (s.edge && onBack && Date.now() - s.since >= LEFT_SETTLE_MS) {
+        onBack();
+      }
+      return;
+    }
+    if (s.reader && (evt.eventType === 'down' || evt.eventType === 'up')) {
+      const step = Math.max(48, Math.round(viewH.current * 0.7));
+      scrollTo(y.current + (evt.eventType === 'down' ? step : -step));
+    }
+  });
+
+  // The reader is part of the frame (outside its own provider).
+  const readerId = useRef({}).current;
+  const [self, setSelf] = useState<View | null>(null);
+  const [reading, setReading] = useState(false);
+  // UP is blocked on the reader (nothing above it); DOWN is blocked until
+  // the text has been read to the end, then moves on to the actions.
+  // Vega's Pressable implements nextFocus*, its types omit them.
+  const block: object = self
+    ? {nextFocusUp: self, nextFocusDown: atEnd ? undefined : self}
+    : {};
+
+  return (
+    <DetailFocus.Provider value={api}>
+      <View style={styles.detail} testID={testID}>
+        <Pressable
+          ref={setSelf}
+          testID="detail-reader"
+          accessibilityLabel="Details. Press up or down to read."
+          focusable={overflow}
+          {...block}
+          style={[styles.reader, reading && styles.readerOn]}
+          onFocus={() => {
+            setReading(true);
+            api.enter(readerId, true, true);
+          }}
+          onBlur={() => {
+            setReading(false);
+            api.leave(readerId);
+          }}>
+          <ScrollView
+            ref={scroll}
+            testID="detail-reader-scroll"
+            style={styles.readerScroll}
+            showsVerticalScrollIndicator={false}
+            onLayout={(e) => {
+              viewH.current = e.nativeEvent.layout.height;
+              measured();
+            }}
+            onContentSizeChange={(_, h) => {
+              contentH.current = h;
+              measured();
+            }}>
+            {children}
+          </ScrollView>
+        </Pressable>
+        {overflow ? (
+          <Text style={styles.readerHint} testID="detail-reader-hint">
+            {reading
+              ? atEnd
+                ? 'Press ▼ for the actions'
+                : 'Press ▲ ▼ to scroll'
+              : 'Press ▲ to read more'}
+          </Text>
+        ) : null}
+        <View style={styles.actions}>
+          {onBack ? (
+            <Action
+              testID="detail-back"
+              label="Back"
+              accessibilityLabel="Back to the list"
+              preferred={backPreferred}
+              edge
+              onPress={onBack}
+            />
+          ) : null}
+          {actions}
+        </View>
+      </View>
+    </DetailFocus.Provider>
+  );
+};
+
 // A detail's actions; the preferred one takes focus when the view opens.
 const Action = ({
   testID,
   label,
   accessibilityLabel,
   preferred,
+  edge = false,
   onPress,
 }: {
   testID: string;
   label: string;
   accessibilityLabel?: string;
   preferred: boolean;
+  // Always the leftmost control (Back).
+  edge?: boolean;
   onPress: () => void;
 }) => {
   const ref = useFocusOnMount(preferred);
+  const slot = useDetailSlot({edge});
   return (
-    <FocusFrame
-      ref={ref}
-      testID={testID}
-      accessibilityLabel={accessibilityLabel ?? label}
-      variant="button"
-      hasTVPreferredFocus={preferred}
-      style={styles.action}
-      contentStyle={styles.actionInner}
-      onPress={onPress}>
-      {(focused) => (
-        <Text style={[styles.actionText, focused && styles.onFocus]}>
-          {label}
-        </Text>
-      )}
-    </FocusFrame>
+    <View testID={`${testID}-slot`} onLayout={slot.onLayout}>
+      <FocusFrame
+        ref={ref}
+        testID={testID}
+        accessibilityLabel={accessibilityLabel ?? label}
+        variant="button"
+        hasTVPreferredFocus={preferred}
+        style={styles.action}
+        contentStyle={styles.actionInner}
+        onFocus={slot.onFocus}
+        onBlur={slot.onBlur}
+        onPress={onPress}>
+        {(focused) => (
+          <Text style={[styles.actionText, focused && styles.onFocus]}>
+            {label}
+          </Text>
+        )}
+      </FocusFrame>
+    </View>
   );
+};
+
+// "Send to phone" as a detail action (tracked like the others).
+const ShareAction = (props: {
+  widgetId: string;
+  title: string;
+  share?: ShareContext;
+}) => {
+  const slot = useDetailSlot();
+  return props.share ? (
+    <View testID={`share-${props.widgetId}-slot`} onLayout={slot.onLayout}>
+      <ShareRow {...props} onFocus={slot.onFocus} onBlur={slot.onBlur} />
+    </View>
+  ) : null;
 };
 
 const JumpAction = ({t, onSeek}: {t: number; onSeek: (t: number) => void}) => (
@@ -473,21 +706,53 @@ const ctxOf = (p: Props): WidgetContext => ({
 });
 
 // One card expanded in place of the list: kind and verdict, the headline,
-// the body, then its actions (Jump to, Send to phone, Show what's ahead).
+// the body, then its actions (Back, Jump to, Send to phone, Show what's
+// ahead, Play). A technique's demonstration runs only on Play.
 const CardDetail = ({w, ...p}: Props & {w: Widget}) => {
   const ctx = ctxOf(p);
+  const [plays, setPlays] = useState(0);
   const verdict = w.type === 'claim' ? w.verdict : undefined;
   const t = jumpTarget(w);
   // Without a curator headline, a claim's headline is the claim itself:
-  // draw it whole (three lines at most) rather than cut.
+  // draw it whole rather than cut.
   const title =
     w.type === 'claim' && !w.headline
       ? w.claim.replace(/^["“]+|["”]+$/g, '')
       : headlineOf(w);
   const shareable = w.type === 'protocol' || w.type === 'entity_list';
   const locked = w.type === 'timeline' && timelineHasLocked(w, ctx);
+  const playable = w.type === 'technique';
   return (
-    <View style={styles.detail} testID={`detail-${w.id}`}>
+    <DetailFrame
+      testID={`detail-${w.id}`}
+      onBack={p.onBack}
+      backPreferred={t === null && !locked && !playable}
+      actions={
+        <>
+          {t !== null ? <JumpAction t={t} onSeek={p.onSeek} /> : null}
+          {shareable ? (
+            <ShareAction widgetId={w.id} title={headlineOf(w)} share={p.share} />
+          ) : null}
+          {locked ? (
+            <Action
+              testID={`reveal-${w.id}`}
+              label="Show what’s ahead"
+              accessibilityLabel="Show what happens later in the story"
+              preferred={t === null}
+              onPress={() => p.onLocked(headlineOf(w))}
+            />
+          ) : null}
+          {playable ? (
+            <Action
+              testID={`play-${w.id}`}
+              label={plays ? 'Play again' : 'Play'}
+              accessibilityLabel={`Play the demonstration: ${w.title}`}
+              preferred={t === null}
+              onPress={() => setPlays((n) => n + 1)}
+            />
+          ) : null}
+        </>
+      }>
       <View style={styles.rowTop}>
         <Text style={styles.detailKind}>{KIND_LABEL[w.type]}</Text>
         {verdict ? (
@@ -497,109 +762,97 @@ const CardDetail = ({w, ...p}: Props & {w: Widget}) => {
           </>
         ) : null}
       </View>
-      <Text style={styles.detailTitle} numberOfLines={3}>
-        {title}
-      </Text>
+      <Text style={styles.detailTitle}>{title}</Text>
       <View style={styles.detailBody}>
-        <WidgetView w={w} ctx={ctx} />
+        {w.type === 'technique' ? (
+          <TechniqueCard w={w} playToken={plays} />
+        ) : (
+          <WidgetView w={w} ctx={ctx} />
+        )}
       </View>
-      <View style={styles.actions}>
-        {t !== null && t !== undefined ? (
-          <JumpAction t={t} onSeek={p.onSeek} />
-        ) : null}
-        {shareable ? (
-          <ShareRow widgetId={w.id} title={headlineOf(w)} share={p.share} />
-        ) : null}
-        {locked ? (
-          <Action
-            testID={`reveal-${w.id}`}
-            label="Show what’s ahead"
-            accessibilityLabel="Show what happens later in the story"
-            preferred={t === null || t === undefined}
-            onPress={() => p.onLocked(headlineOf(w))}
-          />
-        ) : null}
-      </View>
-    </View>
+    </DetailFrame>
   );
 };
 
+// A person: the photo large beside the name, the facts, and Jump to only
+// when a fact or the card has a real timestamp.
 const PersonDetail = ({w, ...p}: Props & {w: DossierWidget}) => {
   const t = jumpTarget(w);
   return (
-    <View style={styles.detail} testID={`detail-${w.id}`}>
+    <DetailFrame
+      testID={`detail-${w.id}`}
+      onBack={p.onBack}
+      backPreferred={t === null}
+      actions={t !== null ? <JumpAction t={t} onSeek={p.onSeek} /> : null}>
       <DossierCard w={w} ctx={ctxOf(p)} />
-      <View style={styles.actions}>
-        {t !== null && t !== undefined ? (
-          <JumpAction t={t} onSeek={p.onSeek} />
-        ) : null}
-      </View>
-    </View>
+    </DetailFrame>
   );
 };
 
 // ---- an answer ----------------------------------------------------------------
 
 // The answer replaces the panel body, so focus cannot wander into rows
-// underneath; BACK returns to the question that opened it. The answer is
-// four lines at most; its sources fold under "Sources (n)".
+// underneath; Back, LEFT or BACK returns to the question that opened it. The
+// answer wraps in full (the reader scrolls it); its sources fold under
+// "Sources (n)".
 const AnswerView = ({
   answer,
   onSeek,
+  onBack,
 }: {
   answer: AnswerState;
   onSeek: (t: number) => void;
+  onBack?: () => void;
 }) => {
   const [showSources, setShowSources] = useState(false);
   const loading = answer.status === 'loading';
   const stamps = loading ? [] : answerStamps(answer.text, answer.cites, 2);
   const sources = answer.sources.slice(0, 3);
   return (
-    <View style={styles.detail} testID="answer">
-      <Text style={styles.detailKind} numberOfLines={1}>
+    <DetailFrame
+      testID="answer"
+      onBack={onBack}
+      backPreferred={stamps.length === 0 && sources.length === 0}
+      actions={
+        <>
+          {stamps.map((t, i) => (
+            <Action
+              key={t}
+              testID={`answer-cite-${t}`}
+              label={`Jump to ${formatTime(t)}`}
+              preferred={i === 0}
+              onPress={() => onSeek(t)}
+            />
+          ))}
+          {sources.length ? (
+            <Action
+              testID="answer-sources"
+              label={`Sources (${sources.length})`}
+              accessibilityLabel={`${showSources ? 'Hide' : 'Show'} ${
+                sources.length
+              } sources`}
+              preferred={stamps.length === 0}
+              onPress={() => setShowSources((s) => !s)}
+            />
+          ) : null}
+        </>
+      }>
+      <Text style={styles.detailKind}>
         {`${answer.live ? 'Live answer' : 'Prepared answer'} · AI, not the hosts`}
       </Text>
-      <Text style={styles.detailTitle} numberOfLines={2}>
-        {answer.question}
-      </Text>
+      <Text style={styles.detailTitle}>{answer.question}</Text>
       <View style={styles.detailBody} accessibilityLiveRegion="polite">
         {loading ? (
           <Text style={styles.answerWait}>Asking the co-viewer…</Text>
         ) : (
-          <Text style={styles.answerText} numberOfLines={showSources ? 2 : 4}>
-            {answer.text}
-          </Text>
+          <Text style={styles.answerText}>{answer.text}</Text>
         )}
         {answer.note ? (
-          <Text style={styles.answerNote} numberOfLines={2}>
-            {answer.note}
-          </Text>
+          <Text style={styles.answerNote}>{answer.note}</Text>
         ) : null}
         {showSources ? <SourceLines sources={sources} label={false} /> : null}
       </View>
-      <View style={styles.actions}>
-        {stamps.map((t, i) => (
-          <Action
-            key={t}
-            testID={`answer-cite-${t}`}
-            label={`Jump to ${formatTime(t)}`}
-            preferred={i === 0}
-            onPress={() => onSeek(t)}
-          />
-        ))}
-        {sources.length ? (
-          <Action
-            testID="answer-sources"
-            label={`Sources (${sources.length})`}
-            accessibilityLabel={`${showSources ? 'Hide' : 'Show'} ${
-              sources.length
-            } sources`}
-            preferred={stamps.length === 0}
-            onPress={() => setShowSources((s) => !s)}
-          />
-        ) : null}
-      </View>
-    </View>
+    </DetailFrame>
   );
 };
 
@@ -619,11 +872,26 @@ const styles = StyleSheet.create({
     paddingBottom: space.m,
   },
   body: {flex: 1},
+  header: {paddingHorizontal: space.s},
   title: {...type.title, color: colors.text},
   caption: {...type.body, color: colors.textSecondary, marginTop: space.xs},
   people: {flexDirection: 'row', marginTop: space.m},
   person: {width: 72, alignItems: 'center', marginRight: space.xs},
-  portraitFrame: {borderRadius: PORTRAIT / 2, backgroundColor: 'transparent'},
+  portraitFrame: {
+    width: CHIP,
+    height: CHIP,
+    borderRadius: CHIP / 2,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ring: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: CHIP / 2,
+    borderWidth: RING,
+    borderColor: 'transparent',
+  },
+  ringOn: {borderColor: colors.text},
   personName: {
     ...type.caption,
     color: colors.textSecondary,
@@ -631,8 +899,10 @@ const styles = StyleSheet.create({
     width: 72,
   },
   personNameOn: {color: colors.text},
-  scroll: {flex: 1, marginTop: space.m, marginHorizontal: -space.s},
+  // Pulled out by the rows' padding so focus fills reach past the text.
+  scroll: {flex: 1, marginHorizontal: -space.s},
   scrollContent: {paddingBottom: space.xs},
+  cards: {marginTop: space.m},
   row: {marginBottom: space.xs / 2},
   rowInner: {paddingHorizontal: space.s, paddingVertical: space.s},
   rowTop: {flexDirection: 'row', alignItems: 'center'},
@@ -640,15 +910,28 @@ const styles = StyleSheet.create({
   rowHeadline: {...type.bodyStrong, color: colors.text, marginTop: 2},
   onFocus: {color: colors.onFocus},
   onFocusDim: {color: colors.onFocus, opacity: 0.62},
-  asks: {marginTop: space.xs, marginHorizontal: -space.s},
+  asks: {marginTop: space.xs},
   ask: {marginTop: space.xs / 2},
   askInner: {paddingHorizontal: space.s, paddingVertical: space.xs},
   askText: {...type.body, color: colors.textSecondary},
   footer: {...type.caption, color: colors.textTertiary, marginTop: space.s},
   detail: {flex: 1},
+  // The reader keeps the text at the panel's 312 dp column: pulled out by
+  // its padding plus the 2 dp ring, which shows only while it has focus.
+  reader: {
+    flex: 1,
+    marginHorizontal: -space.s,
+    paddingHorizontal: space.s - RING,
+    borderWidth: RING,
+    borderColor: 'transparent',
+    borderRadius: radius.row,
+  },
+  readerOn: {borderColor: colors.text},
+  readerScroll: {flex: 1},
+  readerHint: {...type.caption, color: colors.textTertiary, marginTop: 4},
   detailKind: {...type.caption, color: colors.textSecondary},
   detailTitle: {...type.headline, color: colors.text, marginTop: 4},
-  detailBody: {flex: 1, marginTop: space.m, overflow: 'hidden'},
+  detailBody: {marginTop: space.m, paddingBottom: space.xs},
   actions: {flexDirection: 'row', flexWrap: 'wrap', marginTop: space.xs},
   action: {marginRight: space.xs, marginTop: space.xs},
   mapAction: {alignSelf: 'flex-start', marginTop: space.s},

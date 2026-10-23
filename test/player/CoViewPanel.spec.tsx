@@ -1,6 +1,7 @@
 import 'react-native';
-import {fireEvent, render} from '@testing-library/react-native';
+import {act, fireEvent, render} from '@testing-library/react-native';
 import * as React from 'react';
+import {useTVEventHandler} from '@amazon-devices/react-native-kepler';
 
 import {headlineOf, peopleAt} from '../../src/analysis/cardText';
 import {
@@ -12,6 +13,7 @@ import {localPackage} from '../../src/analysis/packageLoader';
 import {
   AnswerState,
   CoViewPanel,
+  LEFT_SETTLE_MS,
   LIST,
   PanelView,
 } from '../../src/player/CoViewPanel';
@@ -154,5 +156,170 @@ describe('CoViewPanel Map action', () => {
     const {screen} = setup({onMap});
     fireEvent.press(screen.getByTestId('panel-map'));
     expect(onMap).toHaveBeenCalled();
+  });
+});
+
+// The kepler preset mocks useTVEventHandler as jest.fn(): drive the handler
+// registered last, as the remote would.
+const press = (eventType: string) => {
+  const calls = (useTVEventHandler as unknown as jest.Mock).mock.calls;
+  act(() => {
+    calls[calls.length - 1][0]({eventType, eventKeyAction: 0});
+  });
+};
+const settle = () =>
+  act(() => {
+    jest.advanceTimersByTime(LEFT_SETTLE_MS + 20);
+  });
+const layoutAt = (x: number) => ({
+  nativeEvent: {layout: {x, y: 0, width: 100, height: 40}},
+});
+
+describe('CoViewPanel person', () => {
+  const person = {kind: 'person', id: 'people-s1-1'} as PanelView;
+
+  it('rings the portrait in white while it has focus', () => {
+    const {screen, people} = setup({}, science, 3);
+    const id = people[0].id;
+    expect(screen.queryByTestId(`person-ring-${id}`)).toBeNull();
+    fireEvent(screen.getByTestId(`person-${id}`), 'focus');
+    const ring = Object.assign(
+      {},
+      ...[screen.getByTestId(`person-ring-${id}`).props.style].flat(),
+    );
+    expect(ring).toEqual(
+      expect.objectContaining({borderWidth: 2, borderColor: '#F5F5F7'}),
+    );
+    fireEvent(screen.getByTestId(`person-${id}`), 'blur');
+    expect(screen.queryByTestId(`person-ring-${id}`)).toBeNull();
+  });
+
+  it('opens with the photo, its credit, whole facts and no Jump to 0:00', () => {
+    const {screen} = setup({view: person, onBack: jest.fn()}, science, 12);
+    expect(screen.getByTestId('detail-people-s1-1')).toBeTruthy();
+    expect(screen.getByTestId('dossier-portrait')).toBeTruthy();
+    expect(screen.getByText(/^Photo: /)).toBeTruthy();
+    expect(screen.queryByText('Dr.')).toBeNull();
+    expect(screen.queryByText('Jump to 0:00')).toBeNull();
+    expect(screen.queryByText('0:00')).toBeNull();
+  });
+
+  it('offers no Jump to at all without a real timestamp', () => {
+    const w = {
+      ...science.widgets.find((x) => x.id === 'people-s1-1')!,
+      evidence: [{t0: 0, t1: 4}],
+      facts: [{text: 'Only a reference fact.', source: 'Wikipedia'}],
+    };
+    const {screen} = setup(
+      {view: person, people: [w], onBack: jest.fn()},
+      science,
+      12,
+    );
+    expect(screen.queryByText(/^Jump to/)).toBeNull();
+    expect(screen.getByTestId('detail-back')).toBeTruthy();
+  });
+});
+
+describe('CoViewPanel leaving a detail', () => {
+  beforeAll(() => jest.useFakeTimers());
+  afterAll(() => jest.useRealTimers());
+  beforeEach(() => (useTVEventHandler as unknown as jest.Mock).mockClear());
+  const card = {kind: 'card', id: 'claims-s1-1'} as PanelView;
+
+  it('has a focusable on-screen Back that takes the BACK step', () => {
+    const onBack = jest.fn();
+    const {screen} = setup({view: card, onBack});
+    fireEvent.press(screen.getByTestId('detail-back'));
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes with LEFT from Back once it has settled on it', () => {
+    const onBack = jest.fn();
+    const {screen} = setup({view: card, onBack});
+    fireEvent(screen.getByTestId('detail-back'), 'focus');
+    press('left'); // the same key that moved focus here
+    expect(onBack).not.toHaveBeenCalled();
+    settle();
+    press('left');
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not close with LEFT from an action that is not leftmost', () => {
+    const onBack = jest.fn();
+    const {screen} = setup({view: card, onBack});
+    fireEvent(screen.getByTestId('jump-6-slot'), 'layout', layoutAt(76));
+    fireEvent(screen.getByTestId('jump-6'), 'focus');
+    settle();
+    press('left');
+    expect(onBack).not.toHaveBeenCalled();
+    // Wrapped to the start of a second line, the same action is leftmost.
+    fireEvent(screen.getByTestId('jump-6-slot'), 'layout', layoutAt(0));
+    fireEvent(screen.getByTestId('jump-6'), 'focus');
+    settle();
+    press('left');
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes an answer with Back and LEFT too', () => {
+    const onBack = jest.fn();
+    const answer: AnswerState = {
+      question: 'Is the 37% from a real study?',
+      t: 12,
+      status: 'ready',
+      text: 'Probably Naska et al. (2007).',
+      cites: [0],
+      sources: [],
+      live: true,
+    };
+    const {screen} = setup({answer, onBack});
+    // A 0 s cite is not a moment: no "Jump to 0:00".
+    expect(screen.queryByText('Jump to 0:00')).toBeNull();
+    fireEvent(screen.getByTestId('detail-back'), 'focus');
+    settle();
+    press('left');
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('scrolls long text with the D-pad from a focusable reader', () => {
+    const {screen} = setup({view: card, onBack: jest.fn()});
+    const reader = screen.getByTestId('detail-reader');
+    expect(reader.props.focusable).toBe(false);
+    expect(screen.queryByTestId('detail-reader-hint')).toBeNull();
+    const scroll = screen.getByTestId('detail-reader-scroll');
+    fireEvent(scroll, 'layout', {
+      nativeEvent: {layout: {x: 0, y: 0, width: 312, height: 300}},
+    });
+    fireEvent(scroll, 'contentSizeChange', 312, 700);
+    expect(screen.getByTestId('detail-reader').props.focusable).toBe(true);
+    expect(screen.getByText('Press ▲ to read more')).toBeTruthy();
+    fireEvent(screen.getByTestId('detail-reader'), 'focus');
+    expect(screen.getByText('Press ▲ ▼ to scroll')).toBeTruthy();
+    press('down');
+    press('down');
+    expect(screen.getByText('Press ▼ for the actions')).toBeTruthy();
+    press('up');
+    expect(screen.getByText('Press ▲ ▼ to scroll')).toBeTruthy();
+  });
+});
+
+describe('CoViewPanel text', () => {
+  it('never clamps content text in the list or a detail', () => {
+    const list = setup({}, science, 12).screen;
+    // Only the one-word verdicts keep a single line.
+    const clamped = (s: typeof list) =>
+      s.UNSAFE_root.findAll(
+        (n) =>
+          typeof n.type === 'string' &&
+          n.props.numberOfLines != null &&
+          !String(n.props.testID ?? '').startsWith('verdict-'),
+      ).length;
+    expect(clamped(list)).toBe(0);
+    list.unmount();
+    const detail = setup(
+      {view: {kind: 'card', id: 'claims-s1-1'}, onBack: jest.fn()},
+      science,
+      12,
+    ).screen;
+    expect(clamped(detail)).toBe(0);
   });
 });

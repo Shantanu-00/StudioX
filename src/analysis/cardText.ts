@@ -31,11 +31,44 @@ export const displayCase = (s: string) =>
     a + b.toLowerCase(),
   );
 
+// Words that end in a full stop without ending the sentence: titles before a
+// name ("Dr. Julian"), "vs.", "approx." and the like. Lower case, no dot.
+const ABBREVIATIONS = new Set([
+  'dr', 'mr', 'mrs', 'ms', 'mx', 'prof', 'st', 'mt', 'ft', 'sr', 'jr',
+  'gen', 'col', 'lt', 'sgt', 'capt', 'rev', 'hon', 'vs', 'approx', 'ca',
+  'cf', 'fig', 'vol', 'dept',
+]);
+
+// True when the full stop at `dot` ends an abbreviation, an initial or a
+// dotted acronym ("Dr.", "J.", "U.S.", "e.g.") rather than the sentence.
+function isAbbreviation(t: string, dot: number): boolean {
+  const start = t.lastIndexOf(' ', dot - 1) + 1;
+  const word = t.slice(start, dot).replace(/^[("“‘'[]+/, '');
+  if (!word) {
+    return false;
+  }
+  if (ABBREVIATIONS.has(word.toLowerCase())) {
+    return true;
+  }
+  // A single letter ("J. K. Rowling") or letters joined by dots
+  // ("U.S", "e.g", "i.e", "a.m").
+  return /^[A-Za-z]$/.test(word) || /^(?:[A-Za-z]\.)+[A-Za-z]$/.test(word);
+}
+
 // The first sentence of a passage (whole passage if it has no full stop).
+// A sentence ends at ".", "!" or "?" (and any closing quote or bracket)
+// followed by a space or the end; full stops inside numbers ("3.5") and
+// after abbreviations ("Dr.", "U.S.", "e.g.", "vs.") do not end it.
 export function firstSentence(text: string): string {
   const t = text.replace(/\s+/g, ' ').trim();
-  const m = /^(.+?[.!?])(\s|$)/.exec(t);
-  return m ? m[1] : t;
+  const end = /[.!?]["”’')\]]*(?= |$)/g;
+  for (let m = end.exec(t); m; m = end.exec(t)) {
+    if (t[m.index] === '.' && isAbbreviation(t, m.index)) {
+      continue;
+    }
+    return t.slice(0, m.index + m[0].length);
+  }
+  return t;
 }
 
 // What a card is, as a small uppercase label.
@@ -140,14 +173,23 @@ export const initialsOf = (name: string) =>
     .map((p) => p[0].toUpperCase())
     .join('');
 
-// The first evidence timestamp a card points at (where "Jump to" goes).
+// A timestamp worth showing or jumping to. Under a second reads "0:00",
+// which is what a missing time defaults to, and jumping there is a restart,
+// not a reference to a moment: such stamps are treated as absent.
+export const isRealStamp = (t: number | null | undefined): t is number =>
+  typeof t === 'number' && Number.isFinite(t) && t >= 1;
+
+// The first real evidence timestamp a card points at (where "Jump to" goes),
+// or null: then the card offers no "Jump to" at all.
 export function jumpTarget(w: Widget): number | null {
-  switch (w.type) {
-    case 'dossier':
-      return w.facts.find((f) => f.evidence)?.evidence?.t0 ?? w.evidence[0]?.t0;
-    default:
-      return w.evidence[0]?.t0 ?? null;
-  }
+  const stamps =
+    w.type === 'dossier'
+      ? [
+          ...w.facts.map((f) => f.evidence?.t0),
+          ...w.evidence.map((e) => e.t0),
+        ]
+      : w.evidence.map((e) => e.t0);
+  return stamps.find(isRealStamp) ?? null;
 }
 
 // People in the ribbon: dossiers whose evidence starts at or before `t`

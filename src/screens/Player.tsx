@@ -222,6 +222,15 @@ export const Player = ({episode, startWithMap, onExit, registerBack}: Props) => 
     setFocusKey(key);
     setView(v);
   }, []);
+  // The panel's on-screen Back (and LEFT from a detail's leftmost control):
+  // the same first step as BACK, answer or detail → list.
+  const panelBack = useCallback(() => {
+    if (answer) {
+      closeAnswer(); // focus returns to the question (focusKey)
+    } else {
+      setView(LIST); // focus returns to the row that opened it
+    }
+  }, [answer, closeAnswer]);
   const onAsk = useCallback(
     (i: number) => {
       const a = asks[i];
@@ -480,12 +489,10 @@ export const Player = ({episode, startWithMap, onExit, registerBack}: Props) => 
             <View style={styles.bottomScrim} pointerEvents="none" />
           ) : null}
           <View style={[styles.top, {right: sideRight}]} pointerEvents="none">
-            <Text style={styles.show} numberOfLines={1}>
+            <Text style={styles.show}>
               {displayCase(`${episode.show} · ${episode.label}`)}
             </Text>
-            <Text style={styles.title} numberOfLines={1}>
-              {episode.title}
-            </Text>
+            <Text style={styles.title}>{episode.title}</Text>
           </View>
           <View style={[styles.bottom, {right: sideRight}]}>
             <Scrubber
@@ -528,6 +535,7 @@ export const Player = ({episode, startWithMap, onExit, registerBack}: Props) => 
         onAsk={onAsk}
         answer={answer}
         share={share}
+        onBack={panelBack}
       />
 
       {mapOpen && explore ? (
@@ -735,9 +743,7 @@ const InsightBanner = ({claim}: {claim: ClaimWidget | null}) => {
         </View>
       ) : null}
       <View style={styles.bannerText}>
-        <Text style={styles.bannerTeaser} numberOfLines={2}>
-          {teaserOf(c)}
-        </Text>
+        <Text style={styles.bannerTeaser}>{teaserOf(c)}</Text>
         <Text style={styles.bannerHint} numberOfLines={1}>
           Press ▼ for details
         </Text>
@@ -804,9 +810,7 @@ const Scrubber = React.forwardRef<SeekBarHandle, ScrubberProps>(
           <View style={styles.thumbLabel}>
             <Text style={styles.thumbTime}>{formatTime(sec)}</Text>
             {seg ? (
-              <Text style={styles.thumbTitle} numberOfLines={1}>
-                {seg.title}
-              </Text>
+              <Text style={styles.thumbTitle}>{seg.title}</Text>
             ) : null}
           </View>
         );
@@ -880,9 +884,7 @@ const Captions = ({
     <View
       pointerEvents="none"
       style={[styles.captions, {bottom, left, right}]}>
-      <Text style={styles.captionText} numberOfLines={2}>
-        {line.text}
-      </Text>
+      <Text style={styles.captionText}>{line.text}</Text>
     </View>
   );
 };
@@ -934,7 +936,7 @@ const styles = StyleSheet.create({
     marginBottom: space.xs,
   },
   thumbTime: {...type.captionStrong, ...numeric, color: colors.text},
-  thumbTitle: {...type.caption, color: colors.textSecondary},
+  thumbTitle: {...type.caption, color: colors.textSecondary, textAlign: 'center'},
   captions: {position: 'absolute', alignItems: 'center'},
   captionText: {
     ...type.headline,

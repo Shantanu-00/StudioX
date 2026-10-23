@@ -110,7 +110,8 @@ export function answerStamps(text: string, cites: number[], max = 4) {
     inline.push(Number(m[1]) * 60 + Number(m[2]));
   }
   return [...new Set([...cites, ...inline])]
-    .filter((n) => Number.isFinite(n) && n >= 0)
+    // Under a second reads "0:00", a default rather than a moment: dropped.
+    .filter((n) => Number.isFinite(n) && n >= 1)
     .sort((a, b) => a - b)
     .slice(0, max);
 }

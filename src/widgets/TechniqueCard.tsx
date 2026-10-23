@@ -6,7 +6,6 @@ import Animated, {
   SharedValue,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withTiming,
 } from '@amazon-devices/react-native-reanimated';
 import {TechniqueWidget} from '../analysis/schema';
@@ -14,16 +13,25 @@ import {colors, type} from '../theme';
 import {WidgetShell, styles as p} from './parts';
 
 // Demonstrations driven by an agent-written spec, animated on the UI thread
-// with Reanimated so the JS thread stays free for remote input.
+// with Reanimated so the JS thread stays free for remote input. Nothing runs
+// on its own: at rest the card shows the whole pattern (every bar full, the
+// dot at the start); each Play press (`playToken`) runs it once, then it
+// settles.
 // `bars`: phases fill one after another (e.g. R90 sleep cycles).
 // `box`: a dot travels a square, one edge per phase (e.g. box breathing).
 
 // Real durations are compressed so a cycle is watchable: 15 min → 1 s.
 const SECONDS_PER_REAL_SECOND = 900;
 
-export const TechniqueCard = ({w}: {w: TechniqueWidget}) => {
-  const progress = useSharedValue(0);
+export const TechniqueCard = ({
+  w,
+  playToken = 0,
+}: {
+  w: TechniqueWidget;
+  playToken?: number;
+}) => {
   const n = w.phases.length;
+  const progress = useSharedValue(w.shape === 'bars' ? n : 0);
   const loopMs =
     w.shape === 'bars'
       ? w.phases.reduce(
@@ -33,14 +41,16 @@ export const TechniqueCard = ({w}: {w: TechniqueWidget}) => {
       : w.phases.reduce((s, ph) => s + ph.seconds, 0) * 1000;
 
   useEffect(() => {
+    if (playToken === 0) {
+      return;
+    }
     progress.value = 0;
-    progress.value = withRepeat(
-      withTiming(n, {duration: Math.max(1000, loopMs), easing: Easing.linear}),
-      -1,
-      false,
-    );
+    progress.value = withTiming(n, {
+      duration: Math.max(1000, loopMs),
+      easing: Easing.inOut(Easing.cubic),
+    });
     return () => cancelAnimation(progress);
-  }, [progress, n, loopMs]);
+  }, [progress, n, loopMs, playToken]);
 
   return (
     <WidgetShell kind="TECHNIQUE" title={w.title}>
