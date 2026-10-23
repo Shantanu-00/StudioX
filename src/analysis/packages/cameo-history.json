@@ -1,0 +1,672 @@
+{
+  "mediaId": "cameo-history",
+  "provenance": "pipeline",
+  "version": 1,
+  "generatedAt": "2026-10-22T23:24:36Z",
+  "models": {
+    "segment": "us.anthropic.claude-sonnet-5-5",
+    "lenses": "orchestrator us.anthropic.claude-haiku-5-5; claims+people us.anthropic.claude-sonnet-5-5; burst+protocol+events us.anthropic.claude-haiku-5-5",
+    "stance": "us.anthropic.claude-sonnet-5-5",
+    "curate": "us.anthropic.claude-sonnet-5-5",
+    "map": "us.anthropic.claude-sonnet-5-5",
+    "answers": "us.anthropic.claude-haiku-5-5",
+    "search": "nova_grounding us.amazon.nova-2-lite-v1:0",
+    "searchPathsUsed": "nova_grounding"
+  },
+  "verdictRules": "v2",
+  "transcript": [
+    {
+      "t0": 0.0,
+      "t1": 9.23,
+      "speaker": "Narrator",
+      "text": "July 20, 1969. At 1:44 in the afternoon, Eastern time, the lunar module Eagle undocks from Columbia, with Neil Armstrong and Buzz Aldrin aboard."
+    },
+    {
+      "t0": 9.58,
+      "t1": 12.66,
+      "speaker": "Narrator",
+      "text": "Michael Collins stays behind, orbiting the Moon alone."
+    },
+    {
+      "t0": 13.01,
+      "t1": 18.39,
+      "speaker": "Narrator",
+      "text": "At 4:05 PM, Eagle's descent engine fires for the powered descent to the surface."
+    },
+    {
+      "t0": 18.74,
+      "t1": 26.05,
+      "speaker": "Narrator",
+      "text": "Minutes later, the guidance computer throws a 1202 program alarm. Mission control decides it is safe to keep going."
+    },
+    {
+      "t0": 26.4,
+      "t1": 36.02,
+      "speaker": "Narrator",
+      "text": "The planned landing spot is strewn with boulders, so Armstrong takes manual control and flies on, looking for flat ground, while the fuel runs low."
+    },
+    {
+      "t0": 36.37,
+      "t1": 42.14,
+      "speaker": "Narrator",
+      "text": "At 4:17 PM, Eagle touches down in the Sea of Tranquility. The Eagle has landed."
+    },
+    {
+      "t0": 42.49,
+      "t1": 50.18,
+      "speaker": "Narrator",
+      "text": "That night, at 10:56 PM, Armstrong steps onto the Moon: one small step for man, one giant leap for mankind."
+    },
+    {
+      "t0": 50.53,
+      "t1": 54.38,
+      "speaker": "Narrator",
+      "text": "About twenty minutes later, Aldrin joins him on the surface."
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1",
+      "start": 0.0,
+      "end": 54.98,
+      "title": "Apollo 11 Moon Landing, July 20, 1969",
+      "genre": "science"
+    }
+  ],
+  "moments": [
+    {
+      "t": 0.0,
+      "caption": "Eagle undocks from Columbia at 1:44 PM Eastern with Armstrong and Aldrin aboard."
+    },
+    {
+      "t": 9.6,
+      "caption": "Michael Collins stays in orbit alone."
+    },
+    {
+      "t": 13.0,
+      "caption": "4:05 PM: the descent engine fires to start powered descent."
+    },
+    {
+      "t": 18.7,
+      "caption": "A 1202 program alarm sounds, and Mission Control calls it safe to continue."
+    },
+    {
+      "t": 26.4,
+      "caption": "Boulders at the planned site force Armstrong to take manual control."
+    },
+    {
+      "t": 36.4,
+      "caption": "4:17 PM: Eagle lands in the Sea of Tranquility."
+    },
+    {
+      "t": 42.5,
+      "caption": "10:56 PM: Armstrong steps onto the Moon."
+    },
+    {
+      "t": 50.5,
+      "caption": "About twenty minutes later, Aldrin joins him on the surface."
+    }
+  ],
+  "widgets": [
+    {
+      "id": "people-s1-1",
+      "type": "dossier",
+      "evidence": [
+        {
+          "t0": 0.0,
+          "t1": 54.38
+        }
+      ],
+      "name": "Neil Armstrong",
+      "role": "American astronaut (1930–2012)",
+      "facts": [
+        {
+          "text": "Commander of Apollo 11; first person to walk on the Moon.",
+          "source": "Wikipedia"
+        },
+        {
+          "text": "Before NASA he was a naval aviator, test pilot and later a university professor.",
+          "source": "Wikipedia"
+        },
+        {
+          "text": "Took manual control of Eagle to avoid a boulder-strewn landing spot.",
+          "evidence": {
+            "t0": 26.4,
+            "t1": 36.02
+          }
+        },
+        {
+          "text": "Stepped onto the Moon at 10:56 PM: 'one small step for man, one giant leap for mankind.'",
+          "evidence": {
+            "t0": 42.49,
+            "t1": 50.18
+          }
+        }
+      ],
+      "image": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/Neil_Armstrong_pose.jpg/500px-Neil_Armstrong_pose.jpg",
+        "credit": "Unknown authorUnknown author · Public domain · Wikimedia Commons"
+      },
+      "headline": "Neil Armstrong: commander who landed Eagle by hand"
+    },
+    {
+      "id": "events-s1-1",
+      "type": "timeline",
+      "evidence": [
+        {
+          "t0": 0.0,
+          "t1": 9.23
+        },
+        {
+          "t0": 13.01,
+          "t1": 18.39
+        },
+        {
+          "t0": 36.37,
+          "t1": 42.14
+        },
+        {
+          "t0": 42.49,
+          "t1": 50.18
+        },
+        {
+          "t0": 50.53,
+          "t1": 54.38
+        }
+      ],
+      "title": "Apollo 11 landing day, July 20, 1969",
+      "events": [
+        {
+          "id": "e1",
+          "when": "1:44 PM",
+          "label": "Lunar module Eagle undocks from Columbia with Armstrong and Aldrin aboard (Eastern time).",
+          "kind": "fact",
+          "evidence": {
+            "t0": 0.0,
+            "t1": 9.23
+          }
+        },
+        {
+          "id": "e2",
+          "when": "4:05 PM",
+          "label": "Eagle's descent engine fires for powered descent to the surface.",
+          "kind": "fact",
+          "evidence": {
+            "t0": 13.01,
+            "t1": 18.39
+          }
+        },
+        {
+          "id": "e3",
+          "when": "4:17 PM",
+          "label": "Eagle touches down in the Sea of Tranquility.",
+          "kind": "fact",
+          "evidence": {
+            "t0": 36.37,
+            "t1": 42.14
+          }
+        },
+        {
+          "id": "e4",
+          "when": "10:56 PM",
+          "label": "Armstrong steps onto the Moon: 'one small step for man.'",
+          "kind": "fact",
+          "evidence": {
+            "t0": 42.49,
+            "t1": 50.18
+          }
+        },
+        {
+          "id": "e5",
+          "when": "~11:16 PM",
+          "label": "Aldrin joins Armstrong on the surface about twenty minutes after the first step (derived from 'about twenty minutes later').",
+          "kind": "claim",
+          "evidence": {
+            "t0": 50.53,
+            "t1": 54.38
+          }
+        }
+      ],
+      "headline": "Landing day timeline: undock 1:44 PM to Aldrin's steps"
+    },
+    {
+      "id": "claims-s1-1",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 18.74,
+          "t1": 26.05
+        }
+      ],
+      "claim": "A 1202 program alarm hit Eagle's guidance computer during descent, and mission control decided it was safe to continue.",
+      "speaker": "Narrator",
+      "context": "The sources agree that Apollo 11's guidance computer gave 1202 (and 1201) alarms during descent. Mission Control, advised by Garman and Bales, judged them a non-critical overload and let the landing continue.",
+      "source": "T apollo 11 1201 1202 guidance computer restarts · spacedaily.com",
+      "counter": "The call was made by specific controllers (Garman, Bales, Kranz), with a go/no-go each time the alarm recurred. The sources don't give exact timing.",
+      "verdict": "SUPPORTED",
+      "sources": [
+        {
+          "title": "T apollo 11 1201 1202 guidance computer restarts · spacedaily.com",
+          "url": "https://spacedaily.com/t-apollo-11-1201-1202-guidance-computer-restarts/"
+        },
+        {
+          "title": "Apollo era hero john jack garman dies · nasa.gov",
+          "url": "https://www.nasa.gov/image-feature/apollo-era-hero-john-jack-garman-dies/"
+        },
+        {
+          "title": "Steve Bales · en.wikipedia.org",
+          "url": "https://en.wikipedia.org/wiki/Steve_Bales"
+        },
+        {
+          "title": "Jack Garman · en.wikipedia.org",
+          "url": "https://en.wikipedia.org/wiki/Jack_Garman"
+        }
+      ],
+      "headline": "1202 alarm hit the computer, but Mission Control said go"
+    },
+    {
+      "id": "claims-s1-2",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 26.4,
+          "t1": 36.02
+        }
+      ],
+      "claim": "Armstrong took manual control to avoid a boulder-strewn landing area and flew on while fuel ran low.",
+      "speaker": "Narrator",
+      "context": "Sources agree Armstrong took (semi-)manual control to avoid a boulder-strewn area and craters, and searched for a landing site while fuel was low. Quoted fuel margins vary: about 25 seconds at landing, 60 seconds, or 2 minutes at takeover.",
+      "source": "Apollo 11 moon landing · airandspace.si.edu",
+      "counter": "Fuel figures differ by source and moment. Control was semi-manual (autopilot-assisted), and the \"fuel\" was a margin estimate, not an emergency.",
+      "verdict": "SUPPORTED",
+      "sources": [
+        {
+          "title": "Apollo 11 moon landing · airandspace.si.edu",
+          "url": "https://airandspace.si.edu/explore/stories/apollo-11-moon-landing"
+        },
+        {
+          "title": "Apollo 11 · planetary.org",
+          "url": "https://www.planetary.org/space-missions/apollo-11"
+        },
+        {
+          "title": "4c0e6f 22386bbb65eb4faf8faeb22e64182e0f.pdf · docs.wixstatic.com",
+          "url": "https://docs.wixstatic.com/ugd/4c0e6f_22386bbb65eb4faf8faeb22e64182e0f.pdf"
+        },
+        {
+          "title": "purdue.edu",
+          "url": "https://www.purdue.edu/uns/html4ever/1999/9903.Moon.landing.dialogue.html"
+        }
+      ],
+      "headline": "Armstrong flew manually past boulders as fuel ran low"
+    },
+    {
+      "id": "people-s1-3",
+      "type": "dossier",
+      "evidence": [
+        {
+          "t0": 9.58,
+          "t1": 12.66
+        }
+      ],
+      "name": "Michael Collins",
+      "role": "American astronaut (1930–2021)",
+      "facts": [
+        {
+          "text": "Flew the command module Columbia around the Moon while his crewmates landed.",
+          "source": "Wikipedia"
+        },
+        {
+          "text": "Also a test pilot and major general in the U.S. Air Force Reserve.",
+          "source": "Wikipedia"
+        },
+        {
+          "text": "Stayed behind in lunar orbit alone while Eagle descended.",
+          "evidence": {
+            "t0": 9.58,
+            "t1": 12.66
+          }
+        }
+      ],
+      "image": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Michael_Collins_%28S69-31742%2C_restoration%29.jpg/500px-Michael_Collins_%28S69-31742%2C_restoration%29.jpg",
+        "credit": "NASA; restored by Coffeeandcrumbs · Public domain · Wikimedia Commons"
+      },
+      "headline": "Michael Collins: orbited the Moon alone"
+    },
+    {
+      "id": "people-s1-2",
+      "type": "dossier",
+      "evidence": [
+        {
+          "t0": 0.0,
+          "t1": 54.38
+        }
+      ],
+      "name": "Buzz Aldrin",
+      "role": "American astronaut (born 1930)",
+      "facts": [
+        {
+          "text": "Second person to walk on the Moon, after Armstrong; Lunar Module Eagle pilot on Apollo 11.",
+          "source": "Wikipedia"
+        },
+        {
+          "text": "Made three spacewalks as pilot of NASA's 1966 Gemini 12 mission.",
+          "source": "Wikipedia"
+        },
+        {
+          "text": "Last surviving Apollo 11 crew member after Armstrong (2012) and Collins (2021).",
+          "source": "Wikipedia"
+        },
+        {
+          "text": "Joined Armstrong on the surface about twenty minutes after the first step.",
+          "evidence": {
+            "t0": 50.53,
+            "t1": 54.38
+          }
+        }
+      ],
+      "image": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Buzz_Aldrin.jpg/500px-Buzz_Aldrin.jpg",
+        "credit": "NASA · Public domain · Wikimedia Commons"
+      },
+      "headline": "Buzz Aldrin: second person on the Moon"
+    }
+  ],
+  "funnel": {
+    "candidates": 12,
+    "kept": 8,
+    "shown": 6,
+    "byLens": {
+      "claims": {
+        "candidates": 8,
+        "kept": 4
+      },
+      "people": {
+        "candidates": 3,
+        "kept": 3
+      },
+      "events": {
+        "candidates": 1,
+        "kept": 1
+      }
+    }
+  },
+  "rejected": [
+    {
+      "lens": "claims",
+      "text": "Eagle undocks at 1:44 PM and Collins orbits alone",
+      "reason": "Routine mission chronology and not a doubtful claim. The focus list also excludes it."
+    },
+    {
+      "lens": "claims",
+      "text": "Powered descent engine fired at 4:05 PM",
+      "reason": "Outside the stated focus, and the details are routine chronology."
+    },
+    {
+      "lens": "claims",
+      "text": "Aldrin joins Armstrong about twenty minutes later",
+      "reason": "Outside the stated focus and a minor detail."
+    },
+    {
+      "lens": "claims",
+      "text": "'One small step for man' quote",
+      "reason": "Common knowledge."
+    },
+    {
+      "lens": "claims",
+      "text": "Eagle touched down in the Sea of Tranquility at 4:17 PM Eastern time on July 20, 1969.",
+      "reason": "not selected by curator"
+    },
+    {
+      "lens": "claims",
+      "text": "Armstrong stepped onto the Moon at 10:56 PM Eastern time on July 20, 1969.",
+      "reason": "not selected by curator"
+    }
+  ],
+  "answers": [
+    {
+      "question": "How much fuel was left when Eagle touched down?",
+      "t": 42.14,
+      "text": "The episode doesn't say how much fuel was left at touchdown. It only says that during the manual flight to find flat ground, \"the fuel runs low.\" No amount is given so far, and I can't see later in the episode.",
+      "cites": [
+        26,
+        36
+      ],
+      "sources": [],
+      "mapNode": "n5"
+    },
+    {
+      "question": "Why did the Moonwalk wait until that night?",
+      "t": 50.2,
+      "text": "The episode hasn't explained the wait yet. It only shows touchdown at 4:17 PM and the first step at 10:56 PM, about six and a half hours later. From general knowledge, Apollo crews had a long set of post-landing checks and rest before going outside, but that isn't covered in what we've watched so far.",
+      "cites": [
+        36,
+        42
+      ],
+      "sources": [],
+      "mapNode": "n6"
+    },
+    {
+      "question": "What was the 1202 alarm, and why was it safe to keep going?",
+      "t": 26.05,
+      "text": "The transcript only says the guidance computer threw a 1202 program alarm minutes after the descent engine fired, and that mission control decided it was safe to keep going. It doesn't explain the alarm or the reasoning yet. From a web search (spacedaily.com), the 1202 alarm signaled that the computer's executive routine had more jobs requesting processing than it could handle with its limited temporary memory. Controllers judged it safe because the alarms were intermittent and the computer recovered between them while still performing its essential guidance functions.",
+      "cites": [
+        18
+      ],
+      "sources": [
+        {
+          "title": "T apollo 11 1201 1202 guidance computer restarts · spacedaily.com",
+          "url": "https://spacedaily.com/t-apollo-11-1201-1202-guidance-computer-restarts/"
+        }
+      ]
+    },
+    {
+      "question": "Why did Armstrong have to fly Eagle manually?",
+      "t": 36.02,
+      "text": "The narrator says the planned landing spot was strewn with boulders, so Armstrong took manual control to look for flat ground. Fuel was running low while he did it. The transcript so far doesn't say whether the 1202 alarm played any part in that decision.",
+      "cites": [
+        26,
+        18
+      ],
+      "sources": []
+    },
+    {
+      "question": "What was Michael Collins doing while the others landed?",
+      "t": 13.0,
+      "text": "So far the episode says Michael Collins stayed behind in orbit around the Moon, alone, while Armstrong and Aldrin undocked in the lunar module Eagle. It hasn't covered the landing yet, so I can't say what he was doing during it.",
+      "cites": [
+        9
+      ],
+      "sources": []
+    }
+  ],
+  "explore": {
+    "eligible": true,
+    "reason": "A clear history: Apollo 11 landing day events in story order.",
+    "category": "history",
+    "layout": "timeline",
+    "title": "Apollo 11 landing day",
+    "summary": "July 20, 1969 from Eagle's undocking to Aldrin joining Armstrong on the Moon.",
+    "groups": [
+      {
+        "id": "g1",
+        "title": "Descent"
+      },
+      {
+        "id": "g2",
+        "title": "On the surface"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n1",
+        "group": "g1",
+        "kind": "event",
+        "label": "Eagle undocks from Columbia",
+        "detail": "Armstrong and Aldrin are aboard. Michael Collins stays behind, orbiting the Moon alone.",
+        "t": 0,
+        "t1": 12.66,
+        "when": "1:44 PM",
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "events-s1-1",
+          "people-s1-3"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n2",
+        "group": "g1",
+        "kind": "event",
+        "label": "Descent engine fires",
+        "detail": "Eagle begins its powered descent to the surface.",
+        "t": 13.01,
+        "t1": 18.39,
+        "when": "4:05 PM",
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "events-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n3",
+        "group": "g1",
+        "kind": "claim",
+        "label": "1202 alarm, but Mission Control says go",
+        "detail": "The guidance computer throws a 1202 program alarm. Mission control decides it is safe to keep going.",
+        "t": 18.74,
+        "t1": 26.05,
+        "when": "Minutes later",
+        "value": null,
+        "verdict": "SUPPORTED",
+        "refs": [
+          "claims-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n4",
+        "group": "g1",
+        "kind": "claim",
+        "label": "Armstrong flies by hand past boulders",
+        "detail": "The planned spot is strewn with boulders. Armstrong takes manual control and looks for flat ground while fuel runs low.",
+        "t": 26.4,
+        "t1": 36.02,
+        "when": "Before landing",
+        "value": null,
+        "verdict": "SUPPORTED",
+        "refs": [
+          "claims-s1-2",
+          "people-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n5",
+        "group": "g1",
+        "kind": "event",
+        "label": "Eagle lands in the Sea of Tranquility",
+        "detail": "\"The Eagle has landed.\"",
+        "t": 36.37,
+        "t1": 42.14,
+        "when": "4:17 PM",
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "events-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n6",
+        "group": "g2",
+        "kind": "event",
+        "label": "Armstrong steps onto the Moon",
+        "detail": "\"One small step for man, one giant leap for mankind.\"",
+        "t": 42.49,
+        "t1": 50.18,
+        "when": "10:56 PM",
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "events-s1-1",
+          "people-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n7",
+        "group": "g2",
+        "kind": "event",
+        "label": "Aldrin joins him on the surface",
+        "detail": "About twenty minutes after Armstrong's first step.",
+        "t": 50.53,
+        "t1": 54.38,
+        "when": "About 11:16 PM",
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "events-s1-1",
+          "people-s1-2"
+        ],
+        "sim": null
+      }
+    ],
+    "edges": [
+      {
+        "from": "n1",
+        "to": "n2",
+        "kind": "then",
+        "label": null
+      },
+      {
+        "from": "n2",
+        "to": "n3",
+        "kind": "then",
+        "label": null
+      },
+      {
+        "from": "n3",
+        "to": "n4",
+        "kind": "then",
+        "label": null
+      },
+      {
+        "from": "n4",
+        "to": "n5",
+        "kind": "then",
+        "label": null
+      },
+      {
+        "from": "n5",
+        "to": "n6",
+        "kind": "then",
+        "label": "That night"
+      },
+      {
+        "from": "n6",
+        "to": "n7",
+        "kind": "then",
+        "label": "About 20 minutes later"
+      }
+    ],
+    "sims": [],
+    "questions": [
+      {
+        "nodeId": "n5",
+        "t": 42.14,
+        "question": "How much fuel was left when Eagle touched down?"
+      },
+      {
+        "nodeId": "n6",
+        "t": 50.2,
+        "question": "Why did the Moonwalk wait until that night?"
+      }
+    ]
+  },
+  "title": "Apollo 11: the landing day",
+  "example": true
+}

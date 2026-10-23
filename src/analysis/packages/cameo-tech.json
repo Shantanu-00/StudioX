@@ -1,0 +1,631 @@
+{
+  "mediaId": "cameo-tech",
+  "provenance": "pipeline",
+  "version": 1,
+  "generatedAt": "2026-10-22T23:22:45Z",
+  "models": {
+    "segment": "us.anthropic.claude-sonnet-5-5",
+    "lenses": "orchestrator us.anthropic.claude-haiku-5-5; claims+people us.anthropic.claude-sonnet-5-5; burst+protocol+events us.anthropic.claude-haiku-5-5",
+    "stance": "us.anthropic.claude-sonnet-5-5",
+    "curate": "us.anthropic.claude-sonnet-5-5",
+    "map": "us.anthropic.claude-sonnet-5-5",
+    "answers": "us.anthropic.claude-haiku-5-5",
+    "search": "nova_grounding us.amazon.nova-2-lite-v1:0",
+    "searchPathsUsed": "nova_grounding"
+  },
+  "verdictRules": "v2",
+  "transcript": [
+    {
+      "t0": 0.0,
+      "t1": 5.38,
+      "speaker": "Narrator",
+      "text": "You press play on your TV remote. Here's what happens in the next second."
+    },
+    {
+      "t0": 5.73,
+      "t1": 18.81,
+      "speaker": "Narrator",
+      "text": "First, the app needs an address. It asks a DNS server to turn a name like video dot example dot com into an IP address, usually in well under a tenth of a second."
+    },
+    {
+      "t0": 19.16,
+      "t1": 26.08,
+      "speaker": "Narrator",
+      "text": "Then it opens a secure connection, HTTPS, so nobody along the way can read or change what's sent."
+    },
+    {
+      "t0": 26.43,
+      "t1": 30.66,
+      "speaker": "Narrator",
+      "text": "The request leaves through your Wi-Fi router to your internet provider."
+    },
+    {
+      "t0": 31.01,
+      "t1": 39.47,
+      "speaker": "Narrator",
+      "text": "From there it doesn't travel to some faraway data centre. It goes to a nearby edge server of a content delivery network."
+    },
+    {
+      "t0": 39.82,
+      "t1": 51.36,
+      "speaker": "Narrator",
+      "text": "If the edge already has the video cached, it answers straight away. If not, it fetches it once from the origin server and keeps a copy for the next viewer."
+    },
+    {
+      "t0": 51.71,
+      "t1": 62.86,
+      "speaker": "Narrator",
+      "text": "The video comes back in small chunks of a few seconds each, and the player keeps asking for the next one, picking a lower quality if your connection slows."
+    },
+    {
+      "t0": 63.21,
+      "t1": 68.98,
+      "speaker": "Narrator",
+      "text": "That round trip, every few seconds, is why the picture starts fast and keeps going."
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1",
+      "start": 0.0,
+      "end": 69.58,
+      "title": "What happens when you press play",
+      "genre": "science"
+    }
+  ],
+  "moments": [
+    {
+      "t": 5.7,
+      "caption": "Step 1: DNS turns the video's name into an IP address."
+    },
+    {
+      "t": 19.2,
+      "caption": "Step 2: A secure HTTPS connection is opened."
+    },
+    {
+      "t": 26.4,
+      "caption": "Step 3: The request goes via your router to your internet provider."
+    },
+    {
+      "t": 31.0,
+      "caption": "Step 4: It reaches a nearby CDN edge server, not a distant data centre."
+    },
+    {
+      "t": 39.8,
+      "caption": "Cached video is sent right away; otherwise the edge fetches it once from the origin."
+    },
+    {
+      "t": 51.7,
+      "caption": "Video arrives in small chunks, with quality lowered if your connection slows."
+    }
+  ],
+  "widgets": [
+    {
+      "id": "protocol-s1-1",
+      "type": "protocol",
+      "evidence": [
+        {
+          "t0": 5.73,
+          "t1": 18.81
+        },
+        {
+          "t0": 19.16,
+          "t1": 26.08
+        },
+        {
+          "t0": 26.43,
+          "t1": 30.66
+        },
+        {
+          "t0": 31.01,
+          "t1": 39.47
+        },
+        {
+          "t0": 39.82,
+          "t1": 51.36
+        },
+        {
+          "t0": 51.71,
+          "t1": 62.86
+        },
+        {
+          "t0": 63.21,
+          "t1": 68.98
+        }
+      ],
+      "title": "What the player does, in order, after you press play",
+      "steps": [
+        {
+          "label": "Resolve the address",
+          "detail": "The app asks a DNS server to turn the video name into an IP address, usually in well under a tenth of a second.",
+          "evidence": {
+            "t0": 5.73,
+            "t1": 18.81
+          }
+        },
+        {
+          "label": "Open a secure connection",
+          "detail": "The app opens an HTTPS connection so nobody along the way can read or change what is sent.",
+          "evidence": {
+            "t0": 19.16,
+            "t1": 26.08
+          }
+        },
+        {
+          "label": "Send the request out",
+          "detail": "The request leaves through your Wi-Fi router to your internet provider.",
+          "evidence": {
+            "t0": 26.43,
+            "t1": 30.66
+          }
+        },
+        {
+          "label": "Route to a nearby edge server",
+          "detail": "It goes to a nearby CDN edge server rather than a faraway data centre.",
+          "evidence": {
+            "t0": 31.01,
+            "t1": 39.47
+          }
+        },
+        {
+          "label": "Serve from cache or fetch once",
+          "detail": "If the edge has the video cached it answers at once; otherwise it fetches from the origin once and keeps a copy.",
+          "evidence": {
+            "t0": 39.82,
+            "t1": 51.36
+          }
+        },
+        {
+          "label": "Fetch video in small chunks",
+          "detail": "Video arrives in chunks of a few seconds; the player picks a lower quality if the connection slows.",
+          "evidence": {
+            "t0": 51.71,
+            "t1": 62.86
+          }
+        },
+        {
+          "label": "Keep requesting the next chunk",
+          "detail": "The player repeats the request for the next chunk every few seconds, which keeps playback going.",
+          "evidence": {
+            "t0": 63.21,
+            "t1": 68.98
+          }
+        }
+      ],
+      "headline": "What happens, step by step, after you press play"
+    },
+    {
+      "id": "claims-s1-4",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 19.16,
+          "t1": 26.08
+        }
+      ],
+      "claim": "HTTPS means nobody along the way can read or change what's sent.",
+      "speaker": "Narrator",
+      "context": "Sources say HTTPS encrypts content, but metadata such as the SNI hostname is often visible to ISPs and firewalls. ECH can hide it but isn't widely deployed. They don't dispute that content is protected from reading or tampering.",
+      "source": "datatracker.ietf.org",
+      "counter": "The claim holds for message content, but observers can still see the destination domain, IPs, and that a connection exists.",
+      "verdict": "NUANCED",
+      "sources": [
+        {
+          "title": "datatracker.ietf.org",
+          "url": "https://datatracker.ietf.org/doc/html/rfc8744"
+        },
+        {
+          "title": "Encrypted client hello closing the sni metadata gap · cdt.org",
+          "url": "https://cdt.org/insights/encrypted-client-hello-closing-the-sni-metadata-gap/"
+        },
+        {
+          "title": "rfc-editor.org",
+          "url": "https://www.rfc-editor.org/info/rfc9849/"
+        },
+        {
+          "title": "Encrypted client hello ech · emergentmind.com",
+          "url": "https://www.emergentmind.com/topics/encrypted-client-hello-ech"
+        }
+      ],
+      "headline": "HTTPS keeps what you send private and untampered",
+      "teaser": "Can anyone still see what you're doing?"
+    },
+    {
+      "id": "claims-s1-1",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 5.73,
+          "t1": 18.81
+        }
+      ],
+      "claim": "DNS lookups usually take well under a tenth of a second.",
+      "speaker": "Narrator",
+      "context": "Sources give typical DNS lookup times of roughly 10–100 ms, with some ranges up to 120 ms. Public resolvers and cached answers are far faster. Uncached ISP lookups can reach 80–200 ms.",
+      "source": "What is dns latency · cleanbrowsing.org",
+      "counter": "\"Well under 0.1 s\" fits cached and public-resolver lookups. Uncached ISP lookups can approach or exceed 100 ms.",
+      "verdict": "NUANCED",
+      "sources": [
+        {
+          "title": "What is dns latency · cleanbrowsing.org",
+          "url": "https://cleanbrowsing.org/learn/what-is-dns-latency"
+        },
+        {
+          "title": "Fix slow dns lookup · dnsrobot.net",
+          "url": "https://dnsrobot.net/blog/fix-slow-dns-lookup"
+        },
+        {
+          "title": "Dns lookup time · ioriver.io",
+          "url": "https://www.ioriver.io/terms/dns-lookup-time"
+        },
+        {
+          "title": "How to fix slow dns lookup · copahost.com",
+          "url": "https://www.copahost.com/blog/how-to-fix-slow-dns-lookup/"
+        }
+      ],
+      "headline": "Finding the video's address takes under a tenth of a second",
+      "teaser": "Is a DNS lookup really that fast?"
+    },
+    {
+      "id": "claims-s1-2",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 31.01,
+          "t1": 39.47
+        }
+      ],
+      "claim": "Video requests go to a nearby CDN edge server, not a faraway data centre.",
+      "speaker": "Narrator",
+      "context": "Sources, mostly about Netflix Open Connect, say streaming video is served from nearby edge caches, often inside ISP networks, instead of a distant central data center.",
+      "source": "Open Connect Overview.pdf · openconnect.netflix.com",
+      "counter": "All sources describe Netflix's CDN; the rule is general for CDNs, but control-plane requests and cache misses can reach origin servers.",
+      "verdict": "SUPPORTED",
+      "sources": [
+        {
+          "title": "Open Connect Overview.pdf · openconnect.netflix.com",
+          "url": "https://openconnect.netflix.com/Open-Connect-Overview.pdf?"
+        },
+        {
+          "title": "Cdn netflix tech stack open connect home caching nodes · blog.blazingcdn.com",
+          "url": "https://blog.blazingcdn.com/en-us/cdn-netflix-tech-stack-open-connect-home-caching-nodes"
+        },
+        {
+          "title": "How netflix ships a third of the internet open connect · devops-daily.com",
+          "url": "https://devops-daily.com/posts/how-netflix-ships-a-third-of-the-internet-open-connect"
+        },
+        {
+          "title": "How netflix delivers video to 250 · padhle.substack.com",
+          "url": "https://padhle.substack.com/p/how-netflix-delivers-video-to-250"
+        }
+      ],
+      "headline": "Video comes from a nearby edge server, not a far data centre"
+    },
+    {
+      "id": "claims-s1-3",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 51.71,
+          "t1": 62.86
+        }
+      ],
+      "claim": "Video arrives in chunks of a few seconds, and the player switches to lower quality if the connection slows.",
+      "speaker": "Narrator",
+      "context": "Sources agree that streaming video is split into short segments, typically 2–6 seconds. The player monitors bandwidth and buffer and switches to a lower-quality rendition when the connection slows.",
+      "source": "Adaptive bitrate streaming guide · mux.com",
+      "counter": "Segment length varies by protocol and setup (some are longer, some shorter). Players also use buffer level, not only connection speed.",
+      "verdict": "SUPPORTED",
+      "sources": [
+        {
+          "title": "Adaptive bitrate streaming guide · mux.com",
+          "url": "https://www.mux.com/articles/adaptive-bitrate-streaming-guide"
+        },
+        {
+          "title": "Adaptive bitrate streaming · vidizmo.ai",
+          "url": "https://vidizmo.ai/blog/adaptive-bitrate-streaming"
+        },
+        {
+          "title": "Hls vs dash · liveapi.com",
+          "url": "https://liveapi.com/blog/hls-vs-dash/"
+        },
+        {
+          "title": "Mpeg dash hls segment length · bitmovin.com",
+          "url": "https://bitmovin.com/blog/mpeg-dash-hls-segment-length/"
+        }
+      ],
+      "headline": "Video arrives in short chunks and drops quality if slow"
+    }
+  ],
+  "funnel": {
+    "candidates": 6,
+    "kept": 5,
+    "shown": 5,
+    "byLens": {
+      "claims": {
+        "candidates": 5,
+        "kept": 4
+      },
+      "protocol": {
+        "candidates": 1,
+        "kept": 1
+      }
+    }
+  },
+  "rejected": [
+    {
+      "lens": "claims",
+      "text": "A CDN edge serves cached video directly; on a miss it fetches once from origin and keeps a copy.",
+      "reason": "budget: lower salience than the claims checked"
+    }
+  ],
+  "answers": [
+    {
+      "question": "Why does the connection need to be secure for a video?",
+      "t": 26.1,
+      "text": "The narrator says the secure connection (HTTPS) is there so nobody along the way can read or change what's sent. For video, that means people on the network can't see what you're streaming or alter it in transit. The episode hasn't gone into video-specific details yet, so I can't say more from what's been shared so far.",
+      "cites": [
+        19
+      ],
+      "sources": [],
+      "mapNode": "n3"
+    },
+    {
+      "question": "How does the player know when to lower the quality?",
+      "t": 62.9,
+      "text": "The narration only says the player keeps asking for the next chunk and picks a lower quality if your connection slows. It doesn't yet explain how the player detects that slowdown, so the episode hasn't answered that so far.",
+      "cites": [
+        51
+      ],
+      "sources": [],
+      "mapNode": "n7"
+    },
+    {
+      "question": "What is a CDN edge server and why use one?",
+      "t": 39.5,
+      "text": "A CDN (content delivery network) is a group of servers spread across many locations. An edge server is the one nearest you, and the narrator says your request goes there instead of to a faraway data centre (31.0 s). The transcript doesn't explain why yet; a nearby server usually means less distance for the data to travel, so the video can start sooner. The episode may explain this later, so I'm not going beyond what's been said.",
+      "cites": [
+        31
+      ],
+      "sources": []
+    },
+    {
+      "question": "What does DNS actually do?",
+      "t": 18.81,
+      "text": "DNS (Domain Name System) turns a name like video.example.com into an IP address, which is the numeric address the app needs to connect. The narrator says this usually takes well under a tenth of a second. The episode hasn't gone into more detail yet.",
+      "cites": [
+        5
+      ],
+      "sources": []
+    },
+    {
+      "question": "What happens if the edge server doesn't have the video?",
+      "t": 51.4,
+      "text": "If the edge server doesn't have the video cached, it fetches it once from the origin server and keeps a copy for the next viewer. If the edge already has it, it answers straight away.",
+      "cites": [
+        39
+      ],
+      "sources": []
+    }
+  ],
+  "explore": {
+    "eligible": true,
+    "reason": "A clear ordered process with connected steps from pressing play to steady playback.",
+    "category": "tech",
+    "layout": "flow",
+    "title": "What happens when you press play",
+    "summary": "Seven steps from the remote press to video chunks arriving, with claims on the key steps.",
+    "groups": [
+      {
+        "id": "g1",
+        "title": "Finding the video"
+      },
+      {
+        "id": "g2",
+        "title": "Reaching a nearby server"
+      },
+      {
+        "id": "g3",
+        "title": "Streaming"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n1",
+        "group": "g1",
+        "kind": "step",
+        "label": "Look up the video's address",
+        "detail": "The app asks a DNS server to turn a name like video.example.com into an IP address.",
+        "t": 5.73,
+        "t1": 18.81,
+        "when": null,
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "protocol-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n2",
+        "group": "g1",
+        "kind": "claim",
+        "label": "Lookup takes under a tenth of a second",
+        "detail": "DNS lookups are usually well under a tenth of a second.",
+        "t": 5.73,
+        "t1": 18.81,
+        "when": null,
+        "value": null,
+        "verdict": "NUANCED",
+        "refs": [
+          "claims-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n3",
+        "group": "g1",
+        "kind": "step",
+        "label": "Open a secure HTTPS connection",
+        "detail": "So nobody along the way can read or change what's sent.",
+        "t": 19.16,
+        "t1": 26.08,
+        "when": null,
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "protocol-s1-1",
+          "claims-s1-4"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n4",
+        "group": "g2",
+        "kind": "step",
+        "label": "Request leaves via router to provider",
+        "detail": "The request goes through your Wi-Fi router to your internet provider.",
+        "t": 26.43,
+        "t1": 30.66,
+        "when": null,
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "protocol-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n5",
+        "group": "g2",
+        "kind": "claim",
+        "label": "Nearby edge server, not a far data centre",
+        "detail": "The request goes to a nearby edge server of a content delivery network.",
+        "t": 31.01,
+        "t1": 39.47,
+        "when": null,
+        "value": null,
+        "verdict": "SUPPORTED",
+        "refs": [
+          "claims-s1-2",
+          "protocol-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n6",
+        "group": "g2",
+        "kind": "step",
+        "label": "Edge sends cached video or fetches once",
+        "detail": "If cached, it answers straight away. If not, it fetches from the origin once and keeps a copy for the next viewer.",
+        "t": 39.82,
+        "t1": 51.36,
+        "when": null,
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "protocol-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n7",
+        "group": "g3",
+        "kind": "claim",
+        "label": "Small chunks, lower quality if slow",
+        "detail": "Chunks of a few seconds each; the player picks a lower quality if your connection slows.",
+        "t": 51.71,
+        "t1": 62.86,
+        "when": null,
+        "value": null,
+        "verdict": "SUPPORTED",
+        "refs": [
+          "claims-s1-3",
+          "protocol-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n8",
+        "group": "g3",
+        "kind": "step",
+        "label": "Ask for the next chunk, repeat",
+        "detail": "The round trip every few seconds is why the picture starts fast and keeps going.",
+        "t": 63.21,
+        "t1": 68.98,
+        "when": null,
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "protocol-s1-1"
+        ],
+        "sim": null
+      }
+    ],
+    "edges": [
+      {
+        "from": "n1",
+        "to": "n3",
+        "kind": "then",
+        "label": null
+      },
+      {
+        "from": "n3",
+        "to": "n4",
+        "kind": "then",
+        "label": null
+      },
+      {
+        "from": "n4",
+        "to": "n5",
+        "kind": "then",
+        "label": null
+      },
+      {
+        "from": "n5",
+        "to": "n6",
+        "kind": "then",
+        "label": null
+      },
+      {
+        "from": "n6",
+        "to": "n7",
+        "kind": "then",
+        "label": null
+      },
+      {
+        "from": "n7",
+        "to": "n8",
+        "kind": "then",
+        "label": null
+      },
+      {
+        "from": "n2",
+        "to": "n1",
+        "kind": "supports",
+        "label": "about this step"
+      },
+      {
+        "from": "n8",
+        "to": "n7",
+        "kind": "then",
+        "label": "next chunk, again"
+      }
+    ],
+    "sims": [],
+    "questions": [
+      {
+        "nodeId": "n3",
+        "t": 26.1,
+        "question": "Why does the connection need to be secure for a video?"
+      },
+      {
+        "nodeId": "n7",
+        "t": 62.9,
+        "question": "How does the player know when to lower the quality?"
+      }
+    ]
+  },
+  "title": "From your remote to the server and back",
+  "example": true
+}

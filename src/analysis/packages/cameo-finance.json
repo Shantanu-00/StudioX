@@ -1,0 +1,577 @@
+{
+  "mediaId": "cameo-finance",
+  "provenance": "pipeline",
+  "version": 1,
+  "generatedAt": "2026-10-22T23:28:16Z",
+  "models": {
+    "segment": "us.anthropic.claude-sonnet-5-5",
+    "lenses": "orchestrator us.anthropic.claude-haiku-5-5; claims+people us.anthropic.claude-sonnet-5-5; burst+protocol+events us.anthropic.claude-haiku-5-5",
+    "stance": "us.anthropic.claude-sonnet-5-5",
+    "curate": "us.anthropic.claude-sonnet-5-5",
+    "map": "us.anthropic.claude-sonnet-5-5",
+    "answers": "us.anthropic.claude-haiku-5-5",
+    "search": "nova_grounding us.amazon.nova-2-lite-v1:0",
+    "searchPathsUsed": "nova_grounding"
+  },
+  "verdictRules": "v2",
+  "transcript": [
+    {
+      "t0": 0.0,
+      "t1": 4.62,
+      "speaker": "Priya",
+      "text": "Sam, my friends keep saying they'll start investing once they earn more."
+    },
+    {
+      "t0": 4.97,
+      "t1": 11.12,
+      "speaker": "Sam",
+      "text": "Here's why waiting is expensive. Take two people who each put away 300 dollars a month."
+    },
+    {
+      "t0": 11.47,
+      "t1": 19.93,
+      "speaker": "Sam",
+      "text": "Ana starts at 25. Ben starts at 35. Both stop at 65, and both earn an average of 7 percent a year."
+    },
+    {
+      "t0": 20.28,
+      "t1": 23.74,
+      "speaker": "Priya",
+      "text": "So Ana just has ten more years of saving."
+    },
+    {
+      "t0": 24.09,
+      "t1": 31.01,
+      "speaker": "Sam",
+      "text": "Ten more years, and only 36,000 dollars more out of her pocket: 144,000 in total against Ben's 108,000."
+    },
+    {
+      "t0": 31.36,
+      "t1": 35.98,
+      "speaker": "Sam",
+      "text": "But at 65, Ana has about 787,000 dollars. Ben has about 366,000."
+    },
+    {
+      "t0": 36.33,
+      "t1": 40.95,
+      "speaker": "Priya",
+      "text": "She ends up with more than double, from a quarter more money?"
+    },
+    {
+      "t0": 41.3,
+      "t1": 47.45,
+      "speaker": "Sam",
+      "text": "That's compounding. The returns start earning returns, and the early years have the longest to grow."
+    },
+    {
+      "t0": 47.8,
+      "t1": 55.49,
+      "speaker": "Sam",
+      "text": "So the cheapest thing you can buy is time. Start small, start now, and raise it when you earn more."
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1",
+      "start": 0.0,
+      "end": 56.09,
+      "title": "Why Waiting to Invest Is Expensive",
+      "genre": "general"
+    }
+  ],
+  "moments": [
+    {
+      "t": 11.5,
+      "caption": "Setup: Ana starts at 25, Ben at 35, both save $300 a month until 65 at 7% a year."
+    },
+    {
+      "t": 24.1,
+      "caption": "Ana pays in $144,000 total; Ben pays in $108,000."
+    },
+    {
+      "t": 31.4,
+      "caption": "At 65, Ana has about $787,000 and Ben about $366,000."
+    },
+    {
+      "t": 41.3,
+      "caption": "Compounding: returns start earning their own returns, so early years have the longest to grow."
+    },
+    {
+      "t": 47.8,
+      "caption": "Takeaway: start small, start now, and raise it when you earn more."
+    }
+  ],
+  "widgets": [
+    {
+      "id": "claims-s1-1",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 31.36,
+          "t1": 35.98
+        }
+      ],
+      "claim": "At 65, Ana has about $787,000 and Ben about $366,000, from $300 a month at 7% a year.",
+      "speaker": "Sam",
+      "context": "The excerpts don't state their rate and give different totals: about $352k at 30 years and $486k at 40 years. My own calculation at 7%, compounded monthly, gives about $787k for 40 years and $366k for 30 years, matching the claim.",
+      "source": "compoundcalculators.net",
+      "counter": "The figures hold only with monthly compounding at exactly 7% and no fees, taxes or inflation adjustment. The sources likely used a lower rate.",
+      "verdict": "NUANCED",
+      "sources": [
+        {
+          "title": "compoundcalculators.net",
+          "url": "https://compoundcalculators.net/"
+        },
+        {
+          "title": "savvydollar.com",
+          "url": "https://www.savvydollar.com/calculator/compound-interest/300/40"
+        }
+      ],
+      "headline": "Starting at 25 gives $787,000; starting at 35 gives $366,000",
+      "teaser": "Do those totals really check out?"
+    },
+    {
+      "id": "claims-s1-2",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 11.47,
+          "t1": 19.93
+        }
+      ],
+      "claim": "Investments earn an average of 7 percent a year.",
+      "speaker": "Sam",
+      "context": "Sources show the S&P 500 averaged about 10% a year nominal since the 1920s, or roughly 6.6–7% after inflation. So 7% matches the inflation-adjusted stock return, not \"investments\" in general.",
+      "source": "What average annual return sp 500 · investopedia.com",
+      "counter": "7% is a reasonable hypothetical, but it's a real stock-market figure, not a guaranteed average for all investments. Yearly returns vary widely.",
+      "verdict": "NUANCED",
+      "sources": [
+        {
+          "title": "What average annual return sp 500 · investopedia.com",
+          "url": "https://investopedia.com/ask/answers/042415/what-average-annual-return-sp-500.asp"
+        },
+        {
+          "title": "Average stock market return · wealthvieu.com",
+          "url": "https://wealthvieu.com/investing/portfolio-basics/average-stock-market-return/"
+        },
+        {
+          "title": "Sp 500 annual returns · fool.com",
+          "url": "https://www.fool.com/research/sp-500-annual-returns/?msockid=070192c876e767532d0f851477e166ff"
+        },
+        {
+          "title": "Average stock market return · moneywise.com",
+          "url": "https://moneywise.com/research/average-stock-market-return?"
+        }
+      ],
+      "headline": "The example assumes investments earn 7% a year",
+      "teaser": "Is 7% a year realistic?"
+    },
+    {
+      "id": "claims-s1-3",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 36.33,
+          "t1": 40.95
+        }
+      ],
+      "claim": "Ana ends with more than double Ben's balance from a quarter more money.",
+      "speaker": "Priya",
+      "context": "Priya reacts to the numbers. $144,000 is 33% more than $108,000, and $787k divided by $366k is about 2.15.",
+      "source": "Compounding before after age 30 retirement difference between starting now vs…",
+      "verdict": "UNVERIFIED",
+      "sources": [
+        {
+          "title": "Compounding before after age 30 retirement difference between starting now vs later · moneylion.com",
+          "url": "https://www.moneylion.com/trending/money/compounding-before-after-age-30-retirement-difference-between-starting-now-vs-later"
+        }
+      ],
+      "headline": "Ana ends with over double Ben's money for a quarter more saved",
+      "teaser": "Is it really only a quarter more?"
+    },
+    {
+      "id": "claims-s1-4",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 24.09,
+          "t1": 31.01
+        }
+      ],
+      "claim": "Ana contributes $144,000 in total against Ben's $108,000, which is $36,000 more.",
+      "speaker": "Sam",
+      "context": "Ana saves 10 more years at $300 a month. Sam gives the contribution totals before the end balances.",
+      "source": "How is 36 a gcf of 108 and 144 · math.answers.com",
+      "verdict": "UNVERIFIED",
+      "sources": [
+        {
+          "title": "How is 36 a gcf of 108 and 144 · math.answers.com",
+          "url": "https://math.answers.com/math-and-arithmetic/How_is_36_a_gcf_of_108_and_144"
+        }
+      ],
+      "headline": "Ana puts in $144,000 total, Ben $108,000: $36,000 more",
+      "teaser": "Does the $36,000 gap add up?"
+    }
+  ],
+  "funnel": {
+    "candidates": 7,
+    "kept": 4,
+    "shown": 4,
+    "byLens": {
+      "claims": {
+        "candidates": 7,
+        "kept": 4
+      }
+    }
+  },
+  "rejected": [
+    {
+      "lens": "claims",
+      "text": "Compounding means returns start earning returns",
+      "reason": "Definition and common knowledge."
+    },
+    {
+      "lens": "claims",
+      "text": "The cheapest thing you can buy is time; start small, start now",
+      "reason": "Opinion and advice, not a checkable claim."
+    },
+    {
+      "lens": "claims",
+      "text": "Friends say they'll invest once they earn more",
+      "reason": "Anecdote, not checkable."
+    }
+  ],
+  "answers": [
+    {
+      "question": "Could Ben catch up by saving more each month?",
+      "t": 31.01,
+      "text": "Yes, but Ben would need to save much more than double. Using the episode's setup (7% a year, compounded monthly, ending at 65), Ana's $300 a month from 25 grows to about $788,000. Ben would need about $646 a month from 35 to reach the same balance, roughly $346 more than his current $300. This is my own estimate, not a figure from the episode, and it ignores fees, taxes, and inflation.",
+      "cites": [
+        11,
+        24
+      ],
+      "sources": [],
+      "mapNode": "n4"
+    },
+    {
+      "question": "Why does a quarter more money give more than double?",
+      "t": 41,
+      "text": "Priya's \"quarter\" is a bit off: Ana contributes 144,000 against Ben's 108,000, roughly a third more. The end balance more than doubles because of compounding. Ana's extra ten years let her early deposits grow at 7% for longer, so she ends with about 787,000 versus Ben's 366,000. The transcript gives these numbers but doesn't walk through the mechanism in detail.",
+      "cites": [
+        24,
+        31,
+        36
+      ],
+      "sources": [],
+      "mapNode": "n7"
+    },
+    {
+      "question": "How much should I raise my monthly amount when I earn more?",
+      "t": 55.5,
+      "text": "Sam doesn't give a specific amount. He only says to start small, start now, and raise it when you earn more. The examples so far use a fixed 300 dollars a month, so no raise rule has been covered yet. If he gives one later in the episode, I'll be able to point to it then.",
+      "cites": [
+        47
+      ],
+      "sources": [],
+      "mapNode": "n9"
+    },
+    {
+      "question": "Is a 7 percent average yearly return a realistic assumption?",
+      "t": 23.74,
+      "text": "Sam's 7% is an assumption he states as a flat average (11.5 s). Search snippets describe the commonly cited long-run stock return as an inflation-adjusted figure from decades of historical data, and they stress that individual years can swing well above or below it, so no single year is guaranteed. I only saw snippets, not full sources, and the episode hasn't said whether its 7% is real or nominal, so I can't confirm it fits every situation.",
+      "cites": [
+        11
+      ],
+      "sources": [
+        {
+          "title": "Average stock market return · wealthvieu.com",
+          "url": "https://wealthvieu.com/investing/portfolio-basics/average-stock-market-return/"
+        }
+      ]
+    },
+    {
+      "question": "How do the $300 a month turn into $787,000 for Ana?",
+      "t": 36.0,
+      "text": "Ana contributes $300 a month from age 25 to 65 (40 years), about $144,000 in total, and her money earns an average 7% a year. Compounding means each deposit earns returns and those returns earn returns too, so the growth adds up to roughly $787,000. My check assumes monthly deposits compounding at 7%/12 each month; the episode hasn't shown this math yet, and 7% is an average assumption, not a guarantee.",
+      "cites": [
+        11,
+        24,
+        31
+      ],
+      "sources": []
+    },
+    {
+      "question": "What if I can only start with a small amount now?",
+      "t": 47.5,
+      "text": "The episode hasn't addressed smaller amounts directly yet. So far, Sam's example shows that starting earlier mattered more than contributing more: Ana put in only $36,000 more than Ben and ended with about $787,000 versus his $366,000. Sam credits compounding, where returns earn returns and early years have the most time to grow. How a smaller monthly amount would play out is not covered up to this point.",
+      "cites": [
+        24,
+        31,
+        41
+      ],
+      "sources": []
+    }
+  ],
+  "explore": {
+    "eligible": true,
+    "reason": "Two scenarios compared with numbers, a cause, and a takeaway.",
+    "category": "finance",
+    "layout": "compare",
+    "title": "Why waiting to invest is expensive",
+    "summary": "Ana starts saving at 25, Ben at 35. Same $300 a month, very different results at 65.",
+    "groups": [
+      {
+        "id": "g1",
+        "title": "Ana starts at 25"
+      },
+      {
+        "id": "g2",
+        "title": "Ben starts at 35"
+      },
+      {
+        "id": "g3",
+        "title": "Why it happens"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n1",
+        "group": "g1",
+        "kind": "event",
+        "label": "Ana saves $300 a month from 25",
+        "detail": "Ana starts at 25 and stops at 65. Average return is 7 percent a year.",
+        "t": 11.47,
+        "t1": 19.93,
+        "when": null,
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "claims-s1-2"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n2",
+        "group": "g2",
+        "kind": "event",
+        "label": "Ben saves $300 a month from 35",
+        "detail": "Ben starts at 35 and stops at 65. Same 7 percent a year.",
+        "t": 11.47,
+        "t1": 19.93,
+        "when": null,
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "claims-s1-2"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n3",
+        "group": "g1",
+        "kind": "claim",
+        "label": "Ana pays in $144,000",
+        "detail": "Ten more years of saving, and $36,000 more out of her pocket.",
+        "t": 24.09,
+        "t1": 31.01,
+        "when": null,
+        "value": {
+          "n": 144000,
+          "unit": "USD paid in"
+        },
+        "verdict": "UNVERIFIED",
+        "refs": [
+          "claims-s1-4"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n4",
+        "group": "g2",
+        "kind": "claim",
+        "label": "Ben pays in $108,000",
+        "detail": "$36,000 less than Ana in total.",
+        "t": 24.09,
+        "t1": 31.01,
+        "when": null,
+        "value": {
+          "n": 108000,
+          "unit": "USD paid in"
+        },
+        "verdict": "UNVERIFIED",
+        "refs": [
+          "claims-s1-4"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n5",
+        "group": "g1",
+        "kind": "claim",
+        "label": "Ana has about $787,000 at 65",
+        "detail": "From $300 a month at 7% a year.",
+        "t": 31.36,
+        "t1": 35.98,
+        "when": null,
+        "value": {
+          "n": 787000,
+          "unit": "USD at 65"
+        },
+        "verdict": "NUANCED",
+        "refs": [
+          "claims-s1-1"
+        ],
+        "sim": "growth"
+      },
+      {
+        "id": "n6",
+        "group": "g2",
+        "kind": "claim",
+        "label": "Ben has about $366,000 at 65",
+        "detail": "Same monthly amount and return, ten years later.",
+        "t": 31.36,
+        "t1": 35.98,
+        "when": null,
+        "value": {
+          "n": 366000,
+          "unit": "USD at 65"
+        },
+        "verdict": "NUANCED",
+        "refs": [
+          "claims-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n7",
+        "group": "g3",
+        "kind": "claim",
+        "label": "More than double from a quarter more",
+        "detail": "Ana ends with more than double Ben's money from a quarter more saved.",
+        "t": 36.33,
+        "t1": 40.95,
+        "when": null,
+        "value": null,
+        "verdict": "UNVERIFIED",
+        "refs": [
+          "claims-s1-3"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n8",
+        "group": "g3",
+        "kind": "idea",
+        "label": "Compounding: returns earn returns",
+        "detail": "The early years have the longest to grow.",
+        "t": 41.3,
+        "t1": 47.45,
+        "when": null,
+        "value": null,
+        "verdict": null,
+        "refs": [],
+        "sim": null
+      },
+      {
+        "id": "n9",
+        "group": "g3",
+        "kind": "step",
+        "label": "Start small, start now, raise it later",
+        "detail": "The cheapest thing you can buy is time. Raise the amount when you earn more.",
+        "t": 47.8,
+        "t1": 55.49,
+        "when": null,
+        "value": null,
+        "verdict": null,
+        "refs": [],
+        "sim": null
+      }
+    ],
+    "edges": [
+      {
+        "from": "n1",
+        "to": "n3",
+        "kind": "then",
+        "label": "puts in"
+      },
+      {
+        "from": "n3",
+        "to": "n5",
+        "kind": "then",
+        "label": "grows to"
+      },
+      {
+        "from": "n2",
+        "to": "n4",
+        "kind": "then",
+        "label": "puts in"
+      },
+      {
+        "from": "n4",
+        "to": "n6",
+        "kind": "then",
+        "label": "grows to"
+      },
+      {
+        "from": "n5",
+        "to": "n7",
+        "kind": "supports",
+        "label": null
+      },
+      {
+        "from": "n6",
+        "to": "n7",
+        "kind": "supports",
+        "label": null
+      },
+      {
+        "from": "n7",
+        "to": "n8",
+        "kind": "because",
+        "label": null
+      },
+      {
+        "from": "n8",
+        "to": "n9",
+        "kind": "supports",
+        "label": null
+      }
+    ],
+    "sims": [
+      {
+        "id": "growth",
+        "engine": "growth",
+        "title": "Start at 25 or at 35",
+        "params": {
+          "start": 0,
+          "monthly": 300,
+          "ratePct": 7,
+          "years": 40,
+          "laterYears": 10,
+          "currency": "USD",
+          "quote": "Ana starts at 25. Ben starts at 35. Both stop at 65, and both earn an average of 7 percent a year.",
+          "quoteT": 11.47
+        }
+      }
+    ],
+    "questions": [
+      {
+        "nodeId": "n4",
+        "t": 31.01,
+        "question": "Could Ben catch up by saving more each month?"
+      },
+      {
+        "nodeId": "n7",
+        "t": 41,
+        "question": "Why does a quarter more money give more than double?"
+      },
+      {
+        "nodeId": "n9",
+        "t": 55.5,
+        "question": "How much should I raise my monthly amount when I earn more?"
+      }
+    ]
+  },
+  "title": "Start at 25 or at 35?",
+  "example": true
+}

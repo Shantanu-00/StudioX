@@ -1,0 +1,709 @@
+{
+  "mediaId": "science-ep42",
+  "provenance": "pipeline",
+  "version": 1,
+  "generatedAt": "2026-10-22T23:15:35Z",
+  "models": {
+    "segment": "us.anthropic.claude-sonnet-5-5",
+    "lenses": "orchestrator us.anthropic.claude-haiku-5-5; claims+people us.anthropic.claude-sonnet-5-5; burst+protocol+events us.anthropic.claude-haiku-5-5",
+    "stance": "us.anthropic.claude-sonnet-5-5",
+    "curate": "us.anthropic.claude-sonnet-5-5",
+    "map": "us.anthropic.claude-sonnet-5-5",
+    "answers": "us.anthropic.claude-haiku-5-5",
+    "search": "nova_grounding us.amazon.nova-2-lite-v1:0",
+    "searchPathsUsed": "nova_grounding"
+  },
+  "verdictRules": "v2",
+  "transcript": [
+    {
+      "t0": 0.0,
+      "t1": 3.0,
+      "speaker": "Dr. Julian",
+      "text": "Look at how Cristiano Ronaldo optimizes his recovery."
+    },
+    {
+      "t0": 3.0,
+      "t1": 5.0,
+      "speaker": "Elena",
+      "text": "Right, the R90 polyphasic cycles?"
+    },
+    {
+      "t0": 5.0,
+      "t1": 5.41,
+      "speaker": "Dr. Julian",
+      "text": "Exactly."
+    },
+    {
+      "t0": 5.41,
+      "t1": 6.76,
+      "speaker": "Dr. Julian",
+      "text": "Five ninety-minute cycles."
+    },
+    {
+      "t0": 6.76,
+      "t1": 11.0,
+      "speaker": "Dr. Julian",
+      "text": "Harvard clinical data shows midday sleep cuts cardiovascular strain by 37 percent."
+    },
+    {
+      "t0": 11.0,
+      "t1": 13.0,
+      "speaker": "Elena",
+      "text": "And what was the compound stack?"
+    },
+    {
+      "t0": 13.0,
+      "t1": 20.72,
+      "speaker": "Dr. Julian",
+      "text": "Clinical protocols pair 145 milligrams of Magnesium L-Threonate with 50 milligrams of Apigenin."
+    },
+    {
+      "t0": 20.72,
+      "t1": 29.26,
+      "speaker": "Dr. Julian",
+      "text": "Threonate crosses the blood-brain barrier to deepen slow-wave sleep, while Apigenin quiets neuro-chatter."
+    },
+    {
+      "t0": 29.26,
+      "t1": 33.0,
+      "speaker": "Dr. Julian",
+      "text": "Kept at 18 degrees Celsius, delta waves surge."
+    },
+    {
+      "t0": 33.0,
+      "t1": 34.0,
+      "speaker": "Elena",
+      "text": "It completely stabilizes it."
+    },
+    {
+      "t0": 34.0,
+      "t1": 37.0,
+      "speaker": "Dr. Julian",
+      "text": "Within seven days, your sleep architecture completely transforms."
+    }
+  ],
+  "segments": [
+    {
+      "id": "s1",
+      "start": 0.0,
+      "end": 37.28,
+      "title": "Ronaldo's Sleep Recovery and Supplement Stack",
+      "genre": "health"
+    }
+  ],
+  "moments": [
+    {
+      "t": 0.0,
+      "caption": "Ronaldo's recovery is held up as the model"
+    },
+    {
+      "t": 5.4,
+      "caption": "The R90 plan: five 90-minute sleep cycles"
+    },
+    {
+      "t": 6.8,
+      "caption": "Claim: midday sleep cuts cardiovascular strain 37%"
+    },
+    {
+      "t": 13.0,
+      "caption": "The stack: 145 mg Magnesium L-Threonate plus 50 mg Apigenin"
+    },
+    {
+      "t": 20.7,
+      "caption": "Claimed mechanism: threonate deepens slow-wave sleep, apigenin calms the brain"
+    },
+    {
+      "t": 29.3,
+      "caption": "Room kept at 18°C to boost delta waves"
+    },
+    {
+      "t": 34.0,
+      "caption": "Bold promise: sleep transforms within seven days"
+    }
+  ],
+  "widgets": [
+    {
+      "id": "claims-s1-1",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 6.76,
+          "t1": 11.0
+        }
+      ],
+      "claim": "Harvard clinical data shows midday sleep cuts cardiovascular strain by 37 percent.",
+      "speaker": "Dr. Julian",
+      "context": "A Harvard-linked study reported regular napping was associated with 37% lower heart-disease death risk. That's observational mortality data, not a measure of cardiovascular strain or of R90 polyphasic sleep. Other reviews show mixed results that depend on nap length.",
+      "source": "Sleeping your way to heart health · news.harvard.edu",
+      "counter": "The 37% figure is heart-disease mortality for regular nappers in an observational cohort. It isn't 'strain' and doesn't cover 90-minute cycles.",
+      "verdict": "NUANCED",
+      "sources": [
+        {
+          "title": "Sleeping your way to heart health · news.harvard.edu",
+          "url": "https://news.harvard.edu/gazette/story/2007/02/sleeping-your-way-to-heart-health"
+        },
+        {
+          "title": "1902419 afternoon naps may boost heart health · newscientist.com",
+          "url": "https://www.newscientist.com/article/1902419-afternoon-naps-may-boost-heart-health/"
+        },
+        {
+          "title": "Keep midday naps to less than 30 minutes · health.harvard.edu",
+          "url": "https://www.health.harvard.edu/healthy-aging-and-longevity/keep-midday-naps-to-less-than-30-minutes"
+        },
+        {
+          "title": "pmc.ncbi.nlm.nih.gov",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4667384/"
+        }
+      ],
+      "headline": "Harvard: midday sleep cuts heart strain 37%",
+      "teaser": "Does a nap really cut heart strain 37%?"
+    },
+    {
+      "id": "claims-s1-2",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 34.0,
+          "t1": 37.0
+        }
+      ],
+      "claim": "Within seven days, your sleep architecture completely transforms.",
+      "speaker": "Dr. Julian",
+      "context": "The sources don't support a complete change in sleep architecture within seven days. They give no specific timeline for the combined routine, and one source suggests magnesium may take several weeks to noticeably alter it.",
+      "source": "pmc.ncbi.nlm.nih.gov",
+      "counter": "The sources are vague summaries, not the original trial data. The evidence neither confirms nor excludes smaller changes within a week.",
+      "verdict": "DEBUNKED",
+      "sources": [
+        {
+          "title": "pmc.ncbi.nlm.nih.gov",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3703169/"
+        },
+        {
+          "title": "pmc.ncbi.nlm.nih.gov",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10929570/"
+        },
+        {
+          "title": "pubmed.ncbi.nlm.nih.gov",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/23853635/"
+        },
+        {
+          "title": "pubmed.ncbi.nlm.nih.gov",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41701207/"
+        }
+      ],
+      "headline": "Sleep completely transforms within seven days",
+      "teaser": "Can sleep fully change in a week?"
+    },
+    {
+      "id": "protocol-s1-1",
+      "type": "protocol",
+      "evidence": [
+        {
+          "t0": 3.0,
+          "t1": 11.0
+        },
+        {
+          "t0": 13.0,
+          "t1": 20.72
+        },
+        {
+          "t0": 29.26,
+          "t1": 33.0
+        }
+      ],
+      "title": "R90 sleep, supplement and 18 C routine",
+      "steps": [
+        {
+          "label": "Use the R90 polyphasic pattern",
+          "detail": "Follow the R90 polyphasic cycle: five 90-minute sleep cycles, as Dr. Julian describes it.",
+          "evidence": {
+            "t0": 3.0,
+            "t1": 6.76
+          }
+        },
+        {
+          "label": "Include a midday sleep",
+          "detail": "Add a midday sleep component to the pattern; the episode claims it cuts cardiovascular strain by 37 percent.",
+          "evidence": {
+            "t0": 6.76,
+            "t1": 11.0
+          }
+        },
+        {
+          "label": "Take the supplement pair",
+          "detail": "Pair 145 mg Magnesium L-Threonate with 50 mg Apigenin, per the clinical protocol described.",
+          "evidence": {
+            "t0": 13.0,
+            "t1": 20.72
+          }
+        },
+        {
+          "label": "Keep the room at 18 C",
+          "detail": "Keep the sleeping environment at 18 degrees Celsius, which Dr. Julian says lets delta waves surge.",
+          "evidence": {
+            "t0": 29.26,
+            "t1": 33.0
+          }
+        }
+      ],
+      "disclaimer": "As described in the episode. Not medical advice.",
+      "headline": "Ronaldo-style routine: 90-minute cycles, supplements, 18°C"
+    },
+    {
+      "id": "claims-s1-3",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 13.0,
+          "t1": 20.72
+        }
+      ],
+      "claim": "Clinical protocols pair 145 mg of Magnesium L-Threonate with 50 mg of Apigenin for sleep.",
+      "speaker": "Dr. Julian",
+      "context": "The sources report trials of magnesium L-threonate (Magtein) alone improving some sleep and cognitive measures. None mention apigenin, a 145 mg/50 mg pairing, or clinical protocols that combine them.",
+      "source": "pmc.ncbi.nlm.nih.gov",
+      "counter": "The claim about \"clinical protocols\" is a popular supplement-stack idea. These sources don't show it is a formal clinical protocol.",
+      "verdict": "NUANCED",
+      "sources": [
+        {
+          "title": "pmc.ncbi.nlm.nih.gov",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11381753/?utm"
+        },
+        {
+          "title": "frontiersin.org",
+          "url": "https://www.frontiersin.org/journals/nutrition/articles/10.3389/fnut.2025.1729164/full"
+        },
+        {
+          "title": "pmc.ncbi.nlm.nih.gov",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12832366/"
+        },
+        {
+          "title": "pubmed.ncbi.nlm.nih.gov",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41601871/"
+        }
+      ],
+      "headline": "Sleep stack: 145 mg magnesium plus 50 mg apigenin",
+      "teaser": "Is there a real clinical protocol for this?"
+    },
+    {
+      "id": "people-s1-1",
+      "type": "dossier",
+      "evidence": [
+        {
+          "t0": 0.0,
+          "t1": 6.76
+        }
+      ],
+      "name": "Cristiano Ronaldo",
+      "role": "Portuguese footballer (born 1985)",
+      "facts": [
+        {
+          "text": "Plays as a forward for Al-Nassr and captains both the club and Portugal's national team; nicknamed CR7.",
+          "source": "Wikipedia"
+        },
+        {
+          "text": "Has won five Ballons d'Or and four European Golden Shoes, and was named FIFA's world's best player five times.",
+          "source": "Wikipedia"
+        },
+        {
+          "text": "Dr. Julian says Ronaldo optimizes recovery with R90 polyphasic sleep cycles.",
+          "evidence": {
+            "t0": 0.0,
+            "t1": 5.41
+          }
+        },
+        {
+          "text": "The R90 routine is described as five 90-minute sleep cycles.",
+          "evidence": {
+            "t0": 5.41,
+            "t1": 6.76
+          }
+        },
+        {
+          "text": "The supplements (145 mg Magnesium L-Threonate, 50 mg Apigenin) are credited to 'clinical protocols', not explicitly to Ronaldo.",
+          "evidence": {
+            "t0": 13.0,
+            "t1": 20.72
+          }
+        }
+      ],
+      "image": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/26/Cristiano_Ronaldo_Croatia_v_Portugal_2_July_2026-075_%28cropped%29.jpg/500px-Cristiano_Ronaldo_Croatia_v_Portugal_2_July_2026-075_%28cropped%29.jpg",
+        "credit": "Bryan Berlin · CC BY-SA 4.0 · Wikimedia Commons"
+      },
+      "headline": "Cristiano Ronaldo and his recovery habits"
+    },
+    {
+      "id": "claims-s1-4",
+      "type": "claim",
+      "evidence": [
+        {
+          "t0": 20.72,
+          "t1": 29.26
+        }
+      ],
+      "claim": "Magnesium L-Threonate crosses the blood-brain barrier to deepen slow-wave sleep.",
+      "speaker": "Dr. Julian",
+      "context": "Sources describe brain delivery of magnesium L-threonate as hypothesized, not shown. None shows it deepens slow-wave sleep. One reports a stack including it had no significant effect on sleep disturbance.",
+      "source": "Magnesium threonate for sleep does it actually work · nsdr.co",
+      "counter": "Claim is stated as fact; the excerpts give only hypothesized BBB transport and no slow-wave sleep data (e.g., polysomnography).",
+      "verdict": "NUANCED",
+      "sources": [
+        {
+          "title": "Magnesium threonate for sleep does it actually work · nsdr.co",
+          "url": "https://nsdr.co/post/magnesium-threonate-for-sleep-does-it-actually-work"
+        },
+        {
+          "title": "Magnesium l threonate brain health · mitohealth.com",
+          "url": "https://mitohealth.com/guide/magnesium-l-threonate-brain-health"
+        },
+        {
+          "title": "9HZ77TXBZUTBI3Z 2024 RCT 35 55 21days Sleep AIDP.pdf · evessio.s3.amazonaws.com",
+          "url": "https://evessio.s3.amazonaws.com/customer/c20a2502-f561-4756-8753-ec8079d550d8/event/1dbcf6c0-78df-4436-bbe8-6189c6adf1f0/responses/1612f10e-6a77-44ba-bbc8-9d5799cd3c6d/9HZ77TXBZUTBI3Z_2024_RCT_35-55_21days_Sleep_AIDP.pdf"
+        }
+      ],
+      "headline": "Magnesium L-Threonate deepens slow-wave sleep",
+      "teaser": "Does it really deepen slow-wave sleep?"
+    },
+    {
+      "id": "burst-s1-1",
+      "type": "entity_list",
+      "evidence": [
+        {
+          "t0": 13.0,
+          "t1": 20.72
+        }
+      ],
+      "title": "Magnesium L-Threonate + Apigenin sleep stack",
+      "kind": "compound",
+      "items": [
+        {
+          "name": "Magnesium L-Threonate",
+          "asSaid": "Clinical protocols pair 145 milligrams of Magnesium L-Threonate with 50 milligrams of Apigenin.",
+          "evidence": {
+            "t0": 13.0,
+            "t1": 20.72
+          },
+          "dose": "145 mg"
+        },
+        {
+          "name": "Apigenin",
+          "asSaid": "Clinical protocols pair 145 milligrams of Magnesium L-Threonate with 50 milligrams of Apigenin.",
+          "evidence": {
+            "t0": 13.0,
+            "t1": 20.72
+          },
+          "dose": "50 mg"
+        }
+      ],
+      "disclaimer": "As stated by the speaker. Not medical advice."
+    }
+  ],
+  "funnel": {
+    "candidates": 14,
+    "kept": 7,
+    "shown": 7,
+    "byLens": {
+      "people": {
+        "candidates": 3,
+        "kept": 1
+      },
+      "claims": {
+        "candidates": 7,
+        "kept": 4
+      },
+      "burst": {
+        "candidates": 3,
+        "kept": 1
+      },
+      "protocol": {
+        "candidates": 1,
+        "kept": 1
+      }
+    }
+  },
+  "rejected": [
+    {
+      "lens": "people",
+      "text": "Harvard (cited for the 37% cardiovascular strain claim)",
+      "reason": "An institution, not a person, and no individual researcher is named."
+    },
+    {
+      "lens": "people",
+      "text": "Dr. Julian and Elena",
+      "reason": "They are the speakers, and the episode doesn't say who they are."
+    },
+    {
+      "lens": "claims",
+      "text": "Ronaldo uses R90 polyphasic cycles of five 90-minute cycles",
+      "reason": "Reported as a fact about Ronaldo's routine; not a doubted claim in this lens and narrative context, though it could be checked elsewhere."
+    },
+    {
+      "lens": "claims",
+      "text": "Elena: It completely stabilizes it.",
+      "reason": "Vague agreement with no checkable specifics."
+    },
+    {
+      "lens": "claims",
+      "text": "Keeping the room at 18 degrees Celsius makes delta waves surge.",
+      "reason": "budget: lower salience than the claims checked"
+    },
+    {
+      "lens": "burst",
+      "text": "Harvard clinical data (6.8-11.0)",
+      "reason": "Only one vaguely named study, so it does not form a burst on its own."
+    },
+    {
+      "lens": "burst",
+      "text": "R90 polyphasic cycles (3.0-5.0)",
+      "reason": "Single named technique and not part of a three-item cluster."
+    }
+  ],
+  "answers": [
+    {
+      "question": "How long is a night of five 90-minute cycles?",
+      "t": 11,
+      "text": "Five 90-minute cycles add up to 450 minutes, which is 7.5 hours. The transcript mentions the five cycles but doesn't state a total, so the 7.5-hour figure is my arithmetic.",
+      "cites": [
+        5
+      ],
+      "sources": [],
+      "mapNode": "n1"
+    },
+    {
+      "question": "Why would a cooler room deepen sleep?",
+      "t": 34,
+      "text": "The episode hasn't explained the mechanism yet. The only related line so far is \"Kept at 18 degrees Celsius, delta waves surge\" (29.3 s), and no reason is given. Outside research suggests the link is through body temperature: a cooler environment helps the body lose heat during sleep, and studies found slow-wave (deep) sleep tracking lower core temperature at sleep onset, though the effect is about temperature, not a specific cure. Whether the episode's 18°C claim holds up is something to weigh once it's examined.",
+      "cites": [
+        29
+      ],
+      "sources": [
+        {
+          "title": "pubmed.ncbi.nlm.nih.gov",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/3368122/"
+        },
+        {
+          "title": "pubmed.ncbi.nlm.nih.gov",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/38409133/"
+        }
+      ],
+      "mapNode": "n5"
+    },
+    {
+      "question": "Is there actually a Harvard study showing a 37% drop in cardiovascular strain?",
+      "t": 13.0,
+      "text": "Partly. A Harvard-linked study did report a 37% figure, but it was about heart disease mortality, not \"cardiovascular strain.\" A Harvard Gazette article describes a study of over 23,000 people followed for six years, where regular midday nappers had a 37% lower risk of dying from heart disease than non-nappers. That is an observational association, so it doesn't prove napping causes the drop, and the episode hasn't yet said anything about how the claim was framed. I can't verify the \"cuts strain\" wording from the transcript.",
+      "cites": [
+        6
+      ],
+      "sources": [
+        {
+          "title": "Sleeping your way to heart health · news.harvard.edu",
+          "url": "https://news.harvard.edu/gazette/story/2007/02/sleeping-your-way-to-heart-health"
+        }
+      ]
+    },
+    {
+      "question": "What do Magnesium L-Threonate and Apigenin each do for sleep?",
+      "t": 33.0,
+      "text": "According to Dr. Julian, Magnesium L-Threonate crosses the blood-brain barrier to deepen slow-wave sleep, while Apigenin quiets neuro-chatter. He mentioned them as a pairing (145 mg Magnesium L-Threonate with 50 mg Apigenin) in clinical protocols. I haven't verified these claims against outside sources yet.",
+      "cites": [
+        13,
+        20
+      ],
+      "sources": []
+    },
+    {
+      "question": "Can sleep architecture really change completely in seven days?",
+      "t": 37.0,
+      "text": "Dr. Julian says at 34.0 s that \"within seven days, your sleep architecture completely transforms,\" but no evidence for that timeline has been presented yet. The episode also hasn't shown a study for the 37% midday-sleep figure (6.8 s) or the magnesium L-threonate and apigenin claims (13.0 s). From the transcript alone I can't confirm whether a complete change in seven days is realistic, so check it against the sources the episode cites.",
+      "cites": [
+        34,
+        6,
+        13
+      ],
+      "sources": []
+    }
+  ],
+  "explore": {
+    "eligible": true,
+    "reason": "A connected routine: sleep cycles, supplements, room temperature, and a promised result.",
+    "category": "health",
+    "layout": "flow",
+    "title": "Ronaldo-style sleep recovery routine",
+    "summary": "A step-by-step sleep routine with the claims attached to each step and the seven-day promise at the end.",
+    "groups": [
+      {
+        "id": "g1",
+        "title": "Sleep pattern"
+      },
+      {
+        "id": "g2",
+        "title": "Supplements"
+      },
+      {
+        "id": "g3",
+        "title": "Room and result"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "n1",
+        "group": "g1",
+        "kind": "step",
+        "label": "Sleep in five 90-minute cycles",
+        "detail": "The R90 polyphasic pattern: five ninety-minute cycles, as Ronaldo does it.",
+        "t": 3,
+        "t1": 6.76,
+        "when": null,
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "protocol-s1-1",
+          "people-s1-1"
+        ],
+        "sim": "night"
+      },
+      {
+        "id": "n2",
+        "group": "g1",
+        "kind": "claim",
+        "label": "Midday sleep cuts heart strain 37%",
+        "detail": "Harvard clinical data is said to show midday sleep cuts cardiovascular strain by 37 percent.",
+        "t": 6.76,
+        "t1": 11,
+        "when": null,
+        "value": null,
+        "verdict": "NUANCED",
+        "refs": [
+          "claims-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n3",
+        "group": "g2",
+        "kind": "step",
+        "label": "Take magnesium plus apigenin",
+        "detail": "145 mg Magnesium L-Threonate with 50 mg Apigenin.",
+        "t": 13,
+        "t1": 20.72,
+        "when": null,
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "protocol-s1-1",
+          "burst-s1-1",
+          "claims-s1-3"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n4",
+        "group": "g2",
+        "kind": "claim",
+        "label": "Threonate deepens slow-wave sleep",
+        "detail": "Threonate crosses the blood-brain barrier to deepen slow-wave sleep, while Apigenin quiets neuro-chatter.",
+        "t": 20.72,
+        "t1": 29.26,
+        "when": null,
+        "value": null,
+        "verdict": "NUANCED",
+        "refs": [
+          "claims-s1-4"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n5",
+        "group": "g3",
+        "kind": "step",
+        "label": "Keep the room at 18°C",
+        "detail": "At 18 degrees Celsius, delta waves surge.",
+        "t": 29.26,
+        "t1": 33,
+        "when": null,
+        "value": null,
+        "verdict": null,
+        "refs": [
+          "protocol-s1-1"
+        ],
+        "sim": null
+      },
+      {
+        "id": "n6",
+        "group": "g3",
+        "kind": "claim",
+        "label": "Results in 7 days?",
+        "detail": "Within seven days, sleep architecture is said to completely transform.",
+        "t": 34,
+        "t1": 37,
+        "when": null,
+        "value": null,
+        "verdict": "DEBUNKED",
+        "refs": [
+          "claims-s1-2"
+        ],
+        "sim": null
+      }
+    ],
+    "edges": [
+      {
+        "from": "n1",
+        "to": "n3",
+        "kind": "then",
+        "label": null
+      },
+      {
+        "from": "n3",
+        "to": "n5",
+        "kind": "then",
+        "label": null
+      },
+      {
+        "from": "n5",
+        "to": "n6",
+        "kind": "then",
+        "label": "promised result"
+      },
+      {
+        "from": "n2",
+        "to": "n1",
+        "kind": "supports",
+        "label": "midday sleep benefit"
+      },
+      {
+        "from": "n4",
+        "to": "n3",
+        "kind": "supports",
+        "label": "claimed mechanism"
+      }
+    ],
+    "sims": [
+      {
+        "id": "night",
+        "engine": "night",
+        "title": "Plan your night",
+        "params": {
+          "cycleMinutes": 90,
+          "cycles": 5,
+          "bedtime": 1380,
+          "quote": "Five ninety-minute cycles.",
+          "quoteT": 5.41
+        }
+      }
+    ],
+    "questions": [
+      {
+        "nodeId": "n1",
+        "t": 11,
+        "question": "How long is a night of five 90-minute cycles?"
+      },
+      {
+        "nodeId": "n5",
+        "t": 34,
+        "question": "Why would a cooler room deepen sleep?"
+      }
+    ]
+  }
+}
