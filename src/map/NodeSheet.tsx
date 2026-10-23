@@ -1,22 +1,27 @@
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {TVFocusGuideView} from '@amazon-devices/react-native-kepler';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from '@amazon-devices/react-native-reanimated';
+import Svg, {Path} from '@amazon-devices/react-native-svg';
 import {formatTime} from '../analysis/composer';
 import {Answer, ExploreNode, ExploreSim, Source} from '../analysis/schema';
 import {FocusFrame} from '../components/FocusFrame';
 import {colors, numeric, space, type} from '../theme';
 import {SourceLines, VerdictWord} from '../widgets/parts';
 import {useFocusOnMount} from './focus';
+import {imageSource} from './images';
+import {creditText, isNumber, showsVerdict, valueText} from './scene/measure';
 import {MapAnswer, SendStatus, sendLabel} from './useMapActions';
 
 export const SHEET_W = 360;
 const SLIDE_MS = 250;
+const INNER_W = SHEET_W - 2 * space.l;
 
 interface Props {
   node: ExploreNode;
@@ -32,6 +37,8 @@ interface Props {
   answer: MapAnswer | null;
   // Which action row to focus when the sheet (re)opens.
   focusAction: string | null;
+  // The on-screen Back (and LEFT, via MapScreen): one step of the BACK chain.
+  onBack: () => void;
   onPlay: () => void;
   onTry: () => void;
   onAsk: (question: string, prepared: Answer | null, key: string) => void;
@@ -43,8 +50,10 @@ interface Props {
 export const LIVE_QUESTION = 'What should I know about this?';
 
 // A node opened: a solid sheet on the right 360 dp, the map still visible
-// (dimmed) on its left. Focus is trapped inside; BACK closes the answer,
-// then the sheet (MapScreen owns the chain).
+// (dimmed) on its left. Focus is trapped inside; its first item is an
+// on-screen Back, and LEFT or BACK close the answer, then the sheet
+// (MapScreen owns the chain and restores focus to the node). Everything
+// wraps in full; the sheet scrolls with D-pad focus when it is long.
 export const NodeSheet = (props: Props) => {
   const x = useSharedValue(SHEET_W);
   useEffect(() => {
@@ -52,6 +61,7 @@ export const NodeSheet = (props: Props) => {
       duration: SLIDE_MS,
       easing: Easing.out(Easing.cubic),
     });
+    return () => cancelAnimation(x);
   }, [x]);
   const slide = useAnimatedStyle(() => ({
     transform: [{translateX: Math.round(x.value)}],
@@ -64,15 +74,49 @@ export const NodeSheet = (props: Props) => {
         trapFocusLeft
         trapFocusRight
         style={styles.inner}>
-        {props.answer ? (
-          <AnswerBody answer={props.answer} onBack={props.onCloseAnswer} />
-        ) : props.locked ? (
-          <LockedBody onKeepWatching={props.onKeepWatching} hasVideo={props.hasVideo} />
-        ) : (
-          <NodeBody {...props} />
-        )}
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}>
+          {props.answer ? (
+            <AnswerBody answer={props.answer} onBack={props.onBack} onCloseAnswer={props.onCloseAnswer} />
+          ) : props.locked ? (
+            <LockedBody
+              onBack={props.onBack}
+              onKeepWatching={props.onKeepWatching}
+              hasVideo={props.hasVideo}
+            />
+          ) : (
+            <NodeBody {...props} />
+          )}
+        </ScrollView>
       </TVFocusGuideView>
     </Animated.View>
+  );
+};
+
+// The sheet's first item: ◀ Back.
+const BackRow = ({preferred, onPress}: {preferred: boolean; onPress: () => void}) => {
+  const ref = useFocusOnMount<View>(preferred);
+  return (
+    <FocusFrame
+      ref={ref}
+      testID="sheet-back"
+      accessibilityLabel="Back to the map"
+      variant="row"
+      hasTVPreferredFocus={preferred}
+      style={styles.backRow}
+      contentStyle={styles.backInner}
+      onPress={onPress}>
+      {(focused) => (
+        <>
+          <Svg width={12} height={12} viewBox="0 0 12 12">
+            <Path d="M9 1 L2.5 6 L9 11 Z" fill={focused ? colors.onFocus : colors.text} />
+          </Svg>
+          <Text style={[styles.backText, focused && styles.onFocus]}>Back</Text>
+        </>
+      )}
+    </FocusFrame>
   );
 };
 
@@ -85,11 +129,13 @@ const NodeBody = ({
   paired,
   sendStatus,
   focusAction,
+  onBack,
   onPlay,
   onTry,
   onAsk,
   onSend,
 }: Props) => {
+  const number = isNumber(node) && node.value;
   const when = [
     node.when,
     hasVideo && node.t !== null ? `Said at ${formatTime(node.t)}` : null,
@@ -97,6 +143,7 @@ const NodeBody = ({
     .filter(Boolean)
     .join(' · ');
   const rows: Array<{key: string; label: string; a11y: string; onPress: () => void}> = [];
+  // A moment to play only when the node has one.
   if (hasVideo && node.t !== null) {
     rows.push({
       key: 'play',
@@ -122,30 +169,40 @@ const NodeBody = ({
       onPress: () => onAsk(LIVE_QUESTION, null, 'ask-live'),
     });
   }
-  const first = focusAction ?? rows[0]?.key ?? asks[0]?.key ?? (paired ? 'send' : null);
+  const first = focusAction ?? rows[0]?.key ?? asks[0]?.key ?? (paired ? 'send' : 'back');
   return (
     <View style={styles.body}>
-      <View style={styles.metaRow}>
-        {when ? (
-          <Text style={styles.meta} numberOfLines={1}>
-            {when}
-          </Text>
-        ) : null}
-        {node.verdict ? (
-          <>
-            {when ? <Text style={styles.meta}>{'  ·  '}</Text> : null}
-            <VerdictWord verdict={node.verdict} />
-          </>
-        ) : null}
-      </View>
-      <Text style={styles.headline} numberOfLines={2}>
-        {node.label}
-      </Text>
-      {node.detail ? (
-        <Text style={styles.detail} numberOfLines={4}>
-          {node.detail}
+      <BackRow preferred={first === 'back'} onPress={onBack} />
+      {node.image ? (
+        <View style={styles.imageBox}>
+          <Image
+            source={imageSource(node.image.url)}
+            style={styles.image}
+            resizeMode="cover"
+            accessibilityIgnoresInvertColors
+            testID="sheet-image"
+          />
+          <Text style={styles.credit}>{creditText(node.image.credit)}</Text>
+        </View>
+      ) : null}
+      {when || showsVerdict(node) ? (
+        <View style={styles.metaRow}>
+          {when ? <Text style={styles.meta}>{when}</Text> : null}
+          {showsVerdict(node) ? (
+            <>
+              {when ? <Text style={styles.meta}>{'  ·  '}</Text> : null}
+              <VerdictWord verdict={node.verdict ?? undefined} />
+            </>
+          ) : null}
+        </View>
+      ) : null}
+      {number && node.value ? (
+        <Text style={styles.value} testID="sheet-value">
+          {valueText(node.value)}
         </Text>
       ) : null}
+      <Text style={number ? styles.labelUnderValue : styles.headline}>{node.label}</Text>
+      {node.detail ? <Text style={styles.detail}>{node.detail}</Text> : null}
       <View style={styles.actions}>
         {rows.map((r) => (
           <ActionRow
@@ -157,11 +214,7 @@ const NodeBody = ({
             onPress={r.onPress}
           />
         ))}
-        {asks.length ? (
-          <Text style={styles.section} numberOfLines={1}>
-            Ask about this
-          </Text>
-        ) : null}
+        {asks.length ? <Text style={styles.section}>Ask about this</Text> : null}
         {asks.map((r) => (
           <ActionRow
             key={r.key}
@@ -169,15 +222,12 @@ const NodeBody = ({
             label={r.label}
             accessibilityLabel={r.a11y}
             preferred={first === r.key}
-            lines={2}
             quiet
             onPress={r.onPress}
           />
         ))}
         {paired && asks.length ? (
-          <Text style={styles.hint} numberOfLines={1}>
-            Or ask by voice on your phone
-          </Text>
+          <Text style={styles.hint}>Or ask by voice on your phone</Text>
         ) : null}
         {paired ? (
           <ActionRow
@@ -194,18 +244,19 @@ const NodeBody = ({
 };
 
 const LockedBody = ({
+  onBack,
   onKeepWatching,
   hasVideo,
 }: {
+  onBack: () => void;
   onKeepWatching: () => void;
   hasVideo: boolean;
 }) => (
   <View style={styles.body}>
+    <BackRow preferred={!hasVideo} onPress={onBack} />
     <Text style={styles.meta}>Later in the episode</Text>
-    <Text style={styles.headline} numberOfLines={2}>
-      Keep watching
-    </Text>
-    <Text style={styles.detail} numberOfLines={3}>
+    <Text style={styles.headline}>Keep watching</Text>
+    <Text style={styles.detail}>
       This piece unlocks when the episode gets there. StudioX has seen it, and
       won’t spoil it.
     </Text>
@@ -223,31 +274,32 @@ const LockedBody = ({
   </View>
 );
 
-const AnswerBody = ({answer, onBack}: {answer: MapAnswer; onBack: () => void}) => {
+const AnswerBody = ({
+  answer,
+  onBack,
+  onCloseAnswer,
+}: {
+  answer: MapAnswer;
+  onBack: () => void;
+  onCloseAnswer: () => void;
+}) => {
   const [showSources, setShowSources] = useState(false);
   const loading = answer.status === 'loading';
   const sources: Source[] = answer.sources.slice(0, 3);
   return (
     <View style={styles.body} testID="map-answer">
-      <Text style={styles.meta} numberOfLines={1}>
+      <BackRow preferred={false} onPress={onBack} />
+      <Text style={styles.meta}>
         {`${answer.live ? 'Live answer' : 'Prepared answer'} · AI, not the hosts`}
       </Text>
-      <Text style={styles.headline} numberOfLines={2}>
-        {answer.question}
-      </Text>
+      <Text style={styles.headline}>{answer.question}</Text>
       <View accessibilityLiveRegion="polite" style={styles.answerBox}>
         {loading ? (
           <Text style={styles.detailQuiet}>Asking the co-viewer…</Text>
         ) : (
-          <Text style={styles.detail} numberOfLines={showSources ? 3 : 5}>
-            {answer.text}
-          </Text>
+          <Text style={styles.detail}>{answer.text}</Text>
         )}
-        {answer.note ? (
-          <Text style={styles.hint} numberOfLines={2}>
-            {answer.note}
-          </Text>
-        ) : null}
+        {answer.note ? <Text style={styles.hint}>{answer.note}</Text> : null}
         {showSources ? <SourceLines sources={sources} label={false} /> : null}
       </View>
       <View style={styles.actions}>
@@ -265,7 +317,7 @@ const AnswerBody = ({answer, onBack}: {answer: MapAnswer; onBack: () => void}) =
           label="Back to this piece"
           accessibilityLabel="Back to this piece of the map"
           preferred={!sources.length || loading}
-          onPress={onBack}
+          onPress={onCloseAnswer}
         />
       </View>
     </View>
@@ -278,7 +330,6 @@ const ActionRow = ({
   accessibilityLabel,
   preferred,
   onPress,
-  lines = 1,
   quiet = false,
 }: {
   testID: string;
@@ -286,7 +337,6 @@ const ActionRow = ({
   accessibilityLabel: string;
   preferred: boolean;
   onPress?: () => void;
-  lines?: number;
   quiet?: boolean;
 }) => {
   const ref = useFocusOnMount<View>(preferred);
@@ -305,8 +355,7 @@ const ActionRow = ({
           style={[
             quiet ? styles.rowQuiet : styles.rowText,
             focused && styles.onFocus,
-          ]}
-          numberOfLines={lines}>
+          ]}>
           {label}
         </Text>
       )}
@@ -323,11 +372,26 @@ const styles = StyleSheet.create({
     width: SHEET_W,
     backgroundColor: colors.panel,
   },
-  inner: {flex: 1, padding: space.l},
+  inner: {flex: 1},
+  scroll: {flex: 1},
+  scrollContent: {padding: space.l, paddingTop: space.m},
   body: {flex: 1},
-  metaRow: {flexDirection: 'row', alignItems: 'center'},
+  backRow: {alignSelf: 'flex-start', marginLeft: -space.s, marginBottom: space.xs},
+  backInner: {
+    minHeight: 36,
+    paddingHorizontal: space.s,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backText: {...type.bodyStrong, color: colors.text, marginLeft: space.xs},
+  imageBox: {marginBottom: space.s},
+  image: {width: INNER_W, height: 156, borderRadius: 8, backgroundColor: colors.card},
+  credit: {...type.caption, color: colors.textSecondary, marginTop: 4},
+  metaRow: {flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center'},
   meta: {...type.caption, ...numeric, color: colors.textSecondary},
+  value: {...type.title, ...numeric, color: colors.text, marginTop: 4},
   headline: {...type.headline, color: colors.text, marginTop: 4},
+  labelUnderValue: {...type.bodyStrong, color: colors.text, marginTop: 2},
   detail: {...type.body, color: colors.text, marginTop: space.xs},
   detailQuiet: {...type.body, color: colors.textSecondary, marginTop: space.xs},
   answerBox: {marginTop: 0},

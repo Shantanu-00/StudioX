@@ -5,12 +5,16 @@ import {useTVEventHandler} from '@amazon-devices/react-native-kepler';
 
 import {Answer, validateExplore, Explore} from '../../src/analysis/schema';
 import {MapScreen, MapScreenProps} from '../../src/map/MapScreen';
+import {BUNDLED} from '../../src/analysis/packages';
 import {
+  clone,
   crimeAnswers,
   crimeExplore,
   financeCameo,
+  historyCameo,
   sleepAnswers,
   sleepExplore,
+  techCameo,
 } from '../fixtures/explore';
 
 const sleep = validateExplore(sleepExplore) as Explore;
@@ -81,7 +85,9 @@ describe('MapScreen', () => {
     expect(screen.getByText('Alibi: at the diner all evening')).toBeTruthy();
     expect(screen.getByText('His phone pings at Pier 9')).toBeTruthy();
     expect(screen.queryByText('A burner phone hits the pavement')).toBeNull();
-    expect(screen.getAllByText('Keep watching')).toHaveLength(3);
+    // The case board: what is still to come is face down, taped "Not yet".
+    expect(screen.getAllByText('Not yet')).toHaveLength(3);
+    expect(screen.getByTestId('map-backdrop-caseboard')).toBeTruthy();
     // The contradiction is between two unlocked events, so it is labelled.
     expect(screen.getByText('contradicts')).toBeTruthy();
   });
@@ -141,15 +147,17 @@ describe('MapScreen', () => {
     fireEvent.press(screen.getByTestId('sheet-try'));
     expect(screen.getByTestId('night-sim')).toBeTruthy();
     expect(screen.getByTestId('night-headline').props.children).toBe(
-      'Lights out 23:00 → wake 06:30',
+      'Lights out 23:00 → wake 06:30: 5 full cycles, 7 h 30 m',
     );
     press('right'); // bedtime +15 min
     expect(screen.getByTestId('night-headline').props.children).toBe(
-      'Lights out 23:15 → wake 06:45',
+      'Lights out 23:15 → wake 06:45: 5 full cycles, 7 h 30 m',
     );
-    press('down'); // one cycle fewer
+    // UP/DOWN move between the controls; LEFT on Cycles is one fewer.
+    fireEvent(screen.getByTestId('night-cycles'), 'focus');
+    press('left');
     expect(screen.getByTestId('night-headline').props.children).toBe(
-      'Lights out 23:15 → wake 05:15',
+      'Lights out 23:15 → wake 05:15: 4 full cycles, 6 h',
     );
     expect(screen.getByText('A coaching rule, not medical advice')).toBeTruthy();
     back(); // sim → the node's sheet
@@ -207,5 +215,193 @@ describe('MapScreen', () => {
     expect(body).toMatchObject({kind: 'share', card: {type: 'list', title: 'Keep the room cool'}});
     fetchMock.mockReset();
     fetchMock.mockImplementation(() => Promise.reject(new Error('network disabled in tests')));
+  });
+
+  it('draws the genre scene for each category', () => {
+    const scenes: Array<[unknown, string | null]> = [
+      [sleepExplore, 'nightsky'],
+      [crimeExplore, 'caseboard'],
+      [financeCameo.explore, 'ledger'],
+      [techCameo.explore, 'signal'],
+      [historyCameo.explore, 'archive'],
+      [{...clone(sleepExplore), category: 'other'}, null],
+    ];
+    scenes.forEach(([raw, motif]) => {
+      const {screen} = setup({explore: validateExplore(raw) as Explore, playhead: null});
+      if (motif) {
+        expect(screen.getByTestId(`map-backdrop-${motif}`)).toBeTruthy();
+      } else {
+        expect(screen.queryByTestId(/^map-backdrop-/)).toBeNull();
+      }
+      screen.unmount();
+    });
+  });
+
+  it('health never locks, even at the start of the episode', () => {
+    const {screen} = setup({playhead: 0});
+    expect(screen.queryByText('Keep watching')).toBeNull();
+    expect(screen.getByText('Results in 7 days?')).toBeTruthy();
+  });
+
+  it('starts on Play; the story never runs by itself', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const {screen} = setup();
+    act(() => {
+      jest.advanceTimersByTime(5000);
+    });
+    expect(warn).toHaveBeenCalledWith('[map] restore map-play ok');
+    expect(screen.queryByTestId('map-story-caption')).toBeNull();
+    expect(screen.queryByTestId('map-pulse')).toBeNull();
+    expect(screen.getByTestId('map-title')).toBeTruthy();
+    warn.mockRestore();
+  });
+
+  it('plays the story node by node, any key pauses, Play resumes', () => {
+    const {screen} = setup();
+    const label = () => screen.getByTestId('map-story-label').props.children;
+    const meta = () => screen.getByTestId('map-story-meta').props.children as string;
+    fireEvent.press(screen.getByTestId('map-play'));
+    expect(label()).toBe('Sleep in 90-minute blocks');
+    expect(meta()).toBe('1 of 4');
+    act(() => {
+      jest.advanceTimersByTime(1600);
+    });
+    expect(label()).toBe('Two supplements before bed');
+    expect(screen.getByTestId('map-pulse')).toBeTruthy();
+    expect(screen.getByText('Any key pauses the story')).toBeTruthy();
+    press('down'); // any key
+    expect(meta()).toBe('2 of 4 · Paused');
+    act(() => {
+      jest.advanceTimersByTime(5000);
+    });
+    expect(label()).toBe('Two supplements before bed');
+    expect(screen.getByText('Resume')).toBeTruthy();
+    act(() => {
+      jest.advanceTimersByTime(400);
+    });
+    fireEvent.press(screen.getByTestId('map-play'));
+    act(() => {
+      jest.advanceTimersByTime(1600);
+    });
+    expect(label()).toBe('Keep the room cool');
+    expect(meta()).toBe('3 of 4');
+    act(() => {
+      jest.advanceTimersByTime(1600);
+    });
+    expect(meta()).toBe('4 of 4 · promised result');
+    act(() => {
+      jest.advanceTimersByTime(1600);
+    });
+    expect(meta()).toBe('4 of 4 · promised result · The end');
+    expect(screen.getByText('Play again')).toBeTruthy();
+    press('up'); // a key after the end puts the header back
+    expect(screen.queryByTestId('map-story-caption')).toBeNull();
+    expect(screen.getByTestId('map-title')).toBeTruthy();
+  });
+
+  it('the story pauses when a sheet opens, and BACK pauses before it leaves', () => {
+    const {screen, props, back} = setup();
+    fireEvent.press(screen.getByTestId('map-play'));
+    fireEvent.press(screen.getByTestId('map-node-n1'));
+    act(() => {
+      jest.advanceTimersByTime(5000);
+    });
+    back(); // the sheet
+    expect(screen.getByTestId('map-story-meta').props.children).toBe('1 of 4 · Paused');
+    act(() => {
+      jest.advanceTimersByTime(400);
+    });
+    fireEvent.press(screen.getByTestId('map-play'));
+    back(); // pauses the story, does not leave
+    expect(props.onClose).not.toHaveBeenCalled();
+    expect(screen.getByTestId('map-story-meta').props.children).toBe('1 of 4 · Paused');
+    back();
+    expect(props.onClose).toHaveBeenCalled();
+  });
+
+  it('stops its timer when the map unmounts mid-story', () => {
+    const {screen} = setup();
+    fireEvent.press(screen.getByTestId('map-play'));
+    screen.unmount();
+    expect(() =>
+      act(() => {
+        jest.advanceTimersByTime(10000);
+      }),
+    ).not.toThrow();
+  });
+
+  it('a sheet: Back first, LEFT closes it, rapid LEFT is safe, focus returns to the node', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const {screen, props} = setup();
+    fireEvent.press(screen.getByTestId('map-node-n3'));
+    expect(screen.getByTestId('sheet-back')).toBeTruthy();
+    press('left');
+    press('left');
+    expect(screen.queryByTestId('map-sheet')).toBeNull();
+    expect(props.onClose).not.toHaveBeenCalled();
+    act(() => {
+      jest.advanceTimersByTime(10);
+    });
+    expect(warn).toHaveBeenCalledWith('[map] restore n3 ok');
+    fireEvent.press(screen.getByTestId('map-node-n2'));
+    fireEvent.press(screen.getByTestId('sheet-back'));
+    expect(screen.queryByTestId('map-sheet')).toBeNull();
+    warn.mockRestore();
+  });
+
+  it('a node without a moment offers none to play', () => {
+    const e = clone(sleepExplore);
+    const n3 = e.nodes[2] as {t: number | null; t1: number | null};
+    n3.t = null;
+    n3.t1 = null;
+    const {screen} = setup({explore: validateExplore(e) as Explore});
+    fireEvent.press(screen.getByTestId('map-node-n3'));
+    expect(screen.queryByTestId('sheet-play')).toBeNull();
+    expect(screen.queryByText(/Jump to/)).toBeNull();
+  });
+
+  it('a figure shows its value large and never a verdict', () => {
+    const explore = validateExplore(
+      (BUNDLED['cameo-finance'] as {explore: unknown}).explore,
+    ) as Explore;
+    const {screen} = setup({explore, playhead: null, frame: false, answers: []});
+    expect(screen.getByText('144,000 USD')).toBeTruthy();
+    // Only the claim without a figure keeps its verdict.
+    expect(screen.getAllByTestId('verdict-UNVERIFIED')).toHaveLength(1);
+    expect(screen.queryAllByTestId('verdict-NUANCED')).toHaveLength(0);
+    fireEvent.press(screen.getByTestId('map-node-n3'));
+    expect(screen.getByTestId('sheet-value').props.children).toBe('144,000 USD');
+    expect(screen.getAllByTestId('verdict-UNVERIFIED')).toHaveLength(1); // the map's n7
+  });
+
+  it('a photo shows with its credit: on the archive card, the sheet and the step card', () => {
+    const e = clone(historyCameo.explore) as typeof historyCameo.explore & {
+      nodes: Array<Record<string, unknown>>;
+    };
+    e.nodes[1].image = {
+      url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Gagarin.jpg/320px-Gagarin.jpg',
+      credit: 'Public domain',
+    };
+    const explore = validateExplore(e) as Explore;
+    const {screen, back} = setup({explore, playhead: null, frame: false});
+    expect(screen.getByTestId('map-node-image-h2')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('map-node-h2'));
+    expect(screen.getByTestId('sheet-image')).toBeTruthy();
+    expect(screen.getAllByText('Photo: Public domain').length).toBeGreaterThan(0);
+    back();
+    // Step-through starts on the piece focused last.
+    fireEvent.press(screen.getByTestId('map-step-toggle'));
+    expect(screen.getByTestId('map-step-progress').props.children).toBe('2 of 3');
+    expect(screen.getByTestId('map-step-image')).toBeTruthy();
+    expect(screen.getByText('Photo: Public domain')).toBeTruthy();
+  });
+
+  it('tech steps through with the large glyph', () => {
+    const explore = validateExplore(techCameo.explore) as Explore;
+    const {screen} = setup({explore, playhead: null, frame: false});
+    expect(screen.getByTestId('map-backdrop-signal')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('map-step-toggle'));
+    expect(screen.getAllByTestId('glyph-globe')).toHaveLength(1);
+    expect(screen.getByText('Relations need joins')).toBeTruthy();
   });
 });

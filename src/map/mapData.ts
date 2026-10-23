@@ -7,7 +7,6 @@ import {
   Source,
   Widget,
 } from '../analysis/schema';
-import {formatTime} from '../analysis/composer';
 import {PhoneCard} from '../services/api';
 import {clock, hoursAndMinutes, nextOccurrence, NightPlan} from './sims';
 import {LOOKAHEAD_S} from './layout';
@@ -25,39 +24,8 @@ export const CATEGORY_WORD: Record<ExploreCategory, string> = {
   other: 'Ideas',
 };
 
-const KIND_WORD: Record<ExploreNode['kind'], string> = {
-  idea: 'Idea',
-  step: 'Step',
-  claim: 'Claim',
-  event: 'Event',
-  person: 'Person',
-  number: 'Number',
-};
-
-// The small line above a node's label: its `when`, else when it was said.
-export function nodeMeta(node: ExploreNode, withTime: boolean): string {
-  if (node.when) {
-    return node.when;
-  }
-  if (withTime && node.t !== null) {
-    return `${KIND_WORD[node.kind]} · ${formatTime(node.t)}`;
-  }
-  return KIND_WORD[node.kind];
-}
-
-// "1,200 %", "37%", "$5,000": a compare value as one short string.
-export function valueText(v: {n: number; unit: string}): string {
-  const n = Math.abs(v.n) >= 1000 ? Math.round(v.n) : Math.round(v.n * 100) / 100;
-  const digits = String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  const unit = v.unit.trim();
-  if (!unit) {
-    return digits;
-  }
-  if (/^[$£€₹¥]$/.test(unit)) {
-    return `${unit}${digits}`;
-  }
-  return unit === '%' ? `${digits}%` : `${digits} ${unit}`;
-}
+// The words on a node are measured with the layout (scene/measure.ts).
+export {KIND_WORD, nodeMeta, valueText} from './scene/measure';
 
 // Sources behind a node: those of the cards it was built from.
 export function nodeSources(node: ExploreNode, widgets: Widget[]): Source[] {

@@ -1,12 +1,23 @@
 import {Explore, validateExplore} from '../../src/analysis/schema';
+import {BUNDLED} from '../../src/analysis/packages';
 import {
   firstFocus,
   isLocked,
   layoutMap,
   neighbourMap,
+  PLAY_ID,
   stepOrder,
+  storyOrder,
+  storyPath,
   TOGGLE_ID,
 } from '../../src/map/layout';
+import {
+  fitCaption,
+  fitHeader,
+  nodeHeight,
+  wrapLines,
+} from '../../src/map/scene/measure';
+import {Motif, themeFor} from '../../src/map/themes';
 import {
   clone,
   crimeExplore,
@@ -156,13 +167,26 @@ describe('the D-pad neighbour map', () => {
 describe('spoiler lock and order', () => {
   it('locks a node said after the playhead plus 4 s; a cameo locks nothing', () => {
     const [c1, c2, c3, c4] = crime.nodes;
-    expect(isLocked(c1, 12)).toBe(false);
-    expect(isLocked(c2, 12)).toBe(false);
-    expect(isLocked(c3, 11)).toBe(true); // 15.34 > 15
-    expect(isLocked(c3, 12)).toBe(false); // 15.34 ≤ 16
-    expect(isLocked(c4, 12)).toBe(true);
-    expect(isLocked(c4, null)).toBe(false);
-    expect(isLocked({...c4, t: null}, 0)).toBe(false);
+    expect(crime.suspense).toBe(true);
+    expect(isLocked(c1, 12, true)).toBe(false);
+    expect(isLocked(c2, 12, true)).toBe(false);
+    expect(isLocked(c3, 11, true)).toBe(true); // 15.34 > 15
+    expect(isLocked(c3, 12, true)).toBe(false); // 15.34 ≤ 16
+    expect(isLocked(c4, 12, true)).toBe(true);
+    expect(isLocked(c4, null, true)).toBe(false);
+    expect(isLocked({...c4, t: null}, 0, true)).toBe(false);
+  });
+
+  it('only a suspense story locks: health, finance, tech and history never do', () => {
+    expect(sleep.suspense).toBe(false);
+    sleep.nodes.forEach((n) => expect(isLocked(n, 0, sleep.suspense)).toBe(false));
+    const [, , , c4] = crime.nodes;
+    expect(isLocked(c4, 12, false)).toBe(false);
+    for (const id of ['science-ep42', 'cameo-finance', 'cameo-tech', 'cameo-history']) {
+      const e = validateExplore((BUNDLED[id] as {explore: unknown}).explore)!;
+      expect(e.suspense).toBe(false);
+      e.nodes.forEach((n) => expect(isLocked(n, 0, e.suspense)).toBe(false));
+    }
   });
 
   it('first focus is the first unlocked node', () => {
@@ -177,5 +201,153 @@ describe('spoiler lock and order', () => {
     const order = stepOrder(validateExplore(e)!).map((n) => n.id);
     expect(order).toEqual(['n1', 'n2', 'n3', 'n4']);
     expect(stepOrder(crime).map((n) => n.id)).toEqual(['c1', 'c2', 'c3', 'c4', 'c5']);
+  });
+});
+
+describe('no text is cut off', () => {
+  it('estimates wrapped lines at 0.55 × font size per character', () => {
+    expect(wrapLines('', 100, 15)).toBe(0);
+    expect(wrapLines('Short', 100, 15)).toBe(1);
+    // 8.25 dp per character: "Keep the room" (13) fits 120, the rest wraps.
+    expect(wrapLines('Keep the room cool', 120, 15)).toBe(2);
+    // A word longer than the line breaks across lines.
+    expect(wrapLines('x'.repeat(30), 100, 15)).toBe(3);
+  });
+
+  const MOTIFS: Motif[] = ['caseboard', 'nightsky', 'signal', 'ledger', 'archive', 'plain'];
+  const packaged = Object.keys(BUNDLED)
+    .map((id) => validateExplore((BUNDLED[id] as {explore?: unknown}).explore))
+    .filter((e): e is Explore => !!e);
+
+  it('every bundled map, in every scene, sizes each node for its words inside the box', () => {
+    expect(packaged.length).toBeGreaterThanOrEqual(5);
+    for (const e of packaged) {
+      for (const motif of MOTIFS) {
+        const l = layoutMap(e, BOX, motif);
+        const byId = new Map(e.nodes.map((n) => [n.id, n]));
+        l.nodes.forEach((p) => {
+          expect(isInt(p)).toBe(true);
+          expect(inBox(p)).toBe(true);
+          expect(p.h).toBeGreaterThanOrEqual(nodeHeight(byId.get(p.id)!, p.w, p.face));
+        });
+        // Nodes never overlap one another.
+        l.nodes.forEach((a, i) =>
+          l.nodes.slice(i + 1).forEach((b) => {
+            const apart =
+              a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
+            expect(apart).toBe(true);
+          }),
+        );
+      }
+    }
+  });
+
+  it('finance: "144,000 USD" is a figure with room for it, and no verdict', () => {
+    const fin = validateExplore((BUNDLED['cameo-finance'] as {explore: unknown}).explore)!;
+    const l = layoutMap(fin, BOX, themeFor(fin.category).motif);
+    const n3 = l.nodes.find((p) => p.id === 'n3')!;
+    expect(n3.face.value).toBe(true);
+    expect(n3.face.meta).toBe(false); // no "Claim · Unverified" on a figure
+    expect(n3.face.bar).toBeCloseTo(144000 / 787000, 3);
+    // value (30) + label "Paid in, start at 25" (21) + bar (6), gaps, padding.
+    expect(n3.h).toBeGreaterThanOrEqual(30 + 21 + 6 + 2 * 4 + 2 * n3.face.pad);
+    expect(l.headings.map((h) => h.title)).toEqual([
+      'Ana starts at 25',
+      'Ben starts at 35',
+      'Why it happens',
+    ]);
+    // Rows line up across the columns.
+    const rowOf = (id: string) => l.nodes.find((p) => p.id === id)!.y;
+    expect(rowOf('n3')).toBe(rowOf('n4'));
+    expect(rowOf('n5')).toBe(rowOf('n6'));
+  });
+
+  it('history: photo cards keep their photo and credit on the timeline', () => {
+    const e = validateExplore((BUNDLED['cameo-history'] as {explore: unknown}).explore)!;
+    const l = layoutMap(e, BOX, 'archive');
+    const withPhoto = l.nodes.filter((p) => p.face.image).map((p) => p.id);
+    expect(withPhoto).toEqual(e.nodes.filter((n) => n.image).map((n) => n.id));
+    // And the dates stay on the cards.
+    expect(l.nodes.every((p) => p.face.meta)).toBe(true);
+  });
+
+  it('a timeline label is a tag sized for its lines, centred on the axis', () => {
+    const e = validateExplore((BUNDLED['crime-case104'] as {explore: unknown}).explore)!;
+    const l = layoutMap(e, BOX, 'caseboard');
+    const tag = l.edges.find((x) => x.label === 'phone was at the pier')!.labelBox!;
+    expect(tag.h).toBeGreaterThanOrEqual(wrapLines('phone was at the pier', tag.w - 16, 13) * 18);
+    expect(Math.abs(tag.y + tag.h / 2 - l.axis!.y)).toBeLessThanOrEqual(1);
+    expect(l.chain).toHaveLength(4); // a string from each card to the next
+  });
+
+  it('the header and the story caption step down to fit their room', () => {
+    expect(fitHeader(552, 88, 'Money · Example', 'Short title', 'A summary')).toEqual({
+      title: 'title',
+      summary: 'body',
+    });
+    const long = 'x '.repeat(100);
+    expect(fitHeader(552, 88, 'Money', 'A title of forty-eight characters, long enough!!', long).summary).toBe(
+      'caption',
+    );
+    const detail = 'First sentence here. ' + 'And a long second sentence that goes on. '.repeat(5);
+    const f = fitCaption(300, 88, 'A label', detail);
+    expect(f.text).toBe('First sentence here.');
+    expect(fitCaption(552, 88, 'A label', 'Short detail.').text).toBe('Short detail.');
+  });
+});
+
+describe('the story', () => {
+  it('walks the unlocked pieces in reading order, never a locked one', () => {
+    const l = layoutMap(crime, BOX, 'caseboard');
+    expect(storyOrder(l, crime, 12)).toEqual(['c1', 'c2', 'c3']);
+    expect(storyOrder(l, crime, null)).toEqual(['c1', 'c2', 'c3', 'c4', 'c5']);
+    expect(storyOrder(layoutMap(sleep, BOX), sleep, 0)).toEqual(['n1', 'n2', 'n3', 'n4']);
+  });
+
+  it('travels pin to pin on the case board, along the axis elsewhere', () => {
+    const board = layoutMap(crime, BOX, 'caseboard');
+    expect(storyPath(board, 'c1', 'c2', 'caseboard')).toHaveLength(4);
+    const plain = layoutMap(crime, BOX, 'plain');
+    const p = storyPath(plain, 'c1', 'c2', 'plain');
+    expect(p).toHaveLength(8);
+    expect(p[3]).toBe(plain.axis!.y);
+    expect(p[5]).toBe(plain.axis!.y);
+  });
+
+  it('flow: from the right edge of one piece to the left edge of the next', () => {
+    const l = layoutMap(sleep, BOX, 'nightsky');
+    const [a, b] = l.nodes;
+    const p = storyPath(l, a.id, b.id, 'nightsky');
+    expect(p[0]).toBe(a.x + a.w + 4);
+    expect(p[p.length - 2]).toBe(b.x - 4);
+    expect(storyPath(l, a.id, 'missing', 'nightsky')).toEqual([]);
+  });
+
+  it('Play sits above the toggle: UP from the toggle, DOWN back to it', () => {
+    const PLAY = {x: 760, y: 27, w: 152, h: 40};
+    const nb = neighbourMap(layoutMap(sleep, BOX), {...TOGGLE, y: 75}, PLAY);
+    expect(nb[TOGGLE_ID]).toEqual({down: 'n4', up: PLAY_ID});
+    expect(nb[PLAY_ID]).toEqual({down: TOGGLE_ID});
+    expect(nb.n1.up).toBe(TOGGLE_ID);
+  });
+});
+
+describe('timeline tags', () => {
+  it('never overlap one another, and stay inside the box', () => {
+    for (const id of ['cameo-history', 'crime-case104']) {
+      const e = validateExplore((BUNDLED[id] as {explore: unknown}).explore)!;
+      const tags = layoutMap(e, BOX, themeFor(e.category).motif)
+        .edges.map((x) => x.labelBox)
+        .filter((b): b is NonNullable<typeof b> => !!b)
+        .sort((a, b) => a.x - b.x);
+      expect(tags.length).toBeGreaterThan(0);
+      tags.forEach((t, i) => {
+        expect(t.x).toBeGreaterThanOrEqual(BOX.x);
+        expect(t.x + t.w).toBeLessThanOrEqual(BOX.x + BOX.w);
+        if (i > 0) {
+          expect(t.x).toBeGreaterThanOrEqual(tags[i - 1].x + tags[i - 1].w);
+        }
+      });
+    }
   });
 });

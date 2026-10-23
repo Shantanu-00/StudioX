@@ -523,6 +523,21 @@ export type NodeKind = (typeof NODE_KINDS)[number];
 export const EDGE_KINDS = ['then', 'because', 'supports', 'contradicts'] as const;
 export type EdgeKind = (typeof EDGE_KINDS)[number];
 
+// Built-in glyphs the TV draws for a node (CONTRACTS §10); unknown names drop.
+export const NODE_ICONS = [
+  'tv', 'phone', 'wifi', 'router', 'server', 'cloud', 'database', 'chip',
+  'lock', 'globe', 'moon', 'sun', 'pill', 'thermometer', 'clock', 'money',
+  'chart', 'person', 'document', 'rocket', 'flag', 'camera', 'footprint',
+] as const;
+export type NodeIcon = (typeof NODE_ICONS)[number];
+export const NODE_PHASES = ['day', 'evening', 'night', 'morning'] as const;
+export type NodePhase = (typeof NODE_PHASES)[number];
+
+export interface NodeImage {
+  url: string; // https only
+  credit: string; // always shown with the image
+}
+
 export interface ExploreGroup {
   id: string;
   title: string;
@@ -541,6 +556,9 @@ export interface ExploreNode {
   verdict: Verdict | null;
   refs: string[];
   sim: string | null;
+  icon: NodeIcon | null;
+  image: NodeImage | null;
+  phase: NodePhase | null;
 }
 
 export interface ExploreEdge {
@@ -556,6 +574,13 @@ export interface NightParams {
   bedtime: number; // minutes after midnight; past midnight is 1440 + m
   quote: string | null;
   quoteT: number | null;
+  steps: NightStep[]; // evening steps before bedtime, at most 4
+}
+
+export interface NightStep {
+  label: string; // <= 32
+  offsetMin: number; // minutes relative to bedtime, -240..0
+  icon: NodeIcon | null;
 }
 
 export interface GrowthParams {
@@ -567,6 +592,8 @@ export interface GrowthParams {
   currency: string | null;
   quote: string | null;
   quoteT: number | null;
+  labels: [string, string] | null; // e.g. "Start at 25", "Start at 35"
+  startAges: [number, number] | null;
 }
 
 export type ExploreSim =
@@ -583,6 +610,8 @@ export interface Explore {
   eligible: true;
   reason: string;
   category: ExploreCategory;
+  // Spoiler locks are drawn only for crime or a suspense story (§10).
+  suspense: boolean;
   layout: ExploreLayout;
   title: string;
   summary: string;
@@ -682,7 +711,43 @@ function validateNode(raw: unknown, groups: Set<string>): ExploreNode | null {
       ? n.refs.filter((r): r is string => isStr(r, 64)).slice(0, 8)
       : [],
     sim: isId(n.sim) ? n.sim : null,
+    icon: oneOf(NODE_ICONS, n.icon) ? n.icon : null,
+    image: validImage(n.image),
+    phase: oneOf(NODE_PHASES, n.phase) ? n.phase : null,
   };
+}
+
+// An https image with a credit, or nothing: never an image without its credit.
+function validImage(raw: unknown): NodeImage | null {
+  const im = raw as {url?: unknown; credit?: unknown} | null | undefined;
+  if (!im || typeof im !== 'object') {
+    return null;
+  }
+  if (!isStr(im.url, 400) || !/^https:\/\/[^\s]+$/.test(im.url)) {
+    return null;
+  }
+  if (!isStr(im.credit, 120) || !im.credit.trim()) {
+    return null;
+  }
+  return {url: im.url, credit: im.credit};
+}
+
+function nightSteps(raw: unknown): NightStep[] {
+  const out: NightStep[] = [];
+  for (const x of Array.isArray(raw) ? raw.slice(0, 8) : []) {
+    const st = x as Record<string, unknown>;
+    if (st && isStr(st.label, 32) && isNum(st.offsetMin)) {
+      out.push({
+        label: st.label,
+        offsetMin: Math.round(clamp(st.offsetMin, -240, 0)),
+        icon: oneOf(NODE_ICONS, st.icon) ? st.icon : null,
+      });
+    }
+    if (out.length === 4) {
+      break;
+    }
+  }
+  return out.sort((a, b) => a.offsetMin - b.offsetMin);
 }
 
 function validateSim(raw: unknown): ExploreSim | null {
@@ -712,6 +777,7 @@ function validateSim(raw: unknown): ExploreSim | null {
           bedtime: Math.round(bounded(bed, 1200, 1560, 1380)),
           quote,
           quoteT,
+          steps: nightSteps(p.steps),
         },
       };
     }
@@ -732,6 +798,18 @@ function validateSim(raw: unknown): ExploreSim | null {
               : null,
           quote,
           quoteT,
+          labels:
+            Array.isArray(p.labels) &&
+            p.labels.length === 2 &&
+            p.labels.every((l) => isStr(l, 20))
+              ? [p.labels[0] as string, p.labels[1] as string]
+              : null,
+          startAges:
+            Array.isArray(p.startAges) &&
+            p.startAges.length === 2 &&
+            p.startAges.every((a) => isNum(a) && a >= 0 && a <= 100)
+              ? [p.startAges[0] as number, p.startAges[1] as number]
+              : null,
         },
       };
     default:
@@ -863,10 +941,16 @@ export function validateExplore(raw: unknown): Explore | null {
   if (layout === 'timeline' && timedNodes(cleanNodes) < 3) {
     return null;
   }
+  const category = oneOf(EXPLORE_CATEGORIES, e.category) ? e.category : 'other';
   return {
     eligible: true,
     reason: reason ?? '',
-    category: oneOf(EXPLORE_CATEGORIES, e.category) ? e.category : 'other',
+    category,
+    // Code decides: crime always locks; other genres only if flagged suspense,
+    // and never the explainer genres.
+    suspense:
+      category === 'crime' ||
+      (e.suspense === true && (category === 'scifi' || category === 'other')),
     layout,
     title: e.title,
     summary: summary ?? '',

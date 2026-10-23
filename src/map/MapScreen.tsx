@@ -1,7 +1,11 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {StyleSheet, Text, useWindowDimensions, View} from 'react-native';
-import {useTVEventHandler} from '@amazon-devices/react-native-kepler';
+import {
+  useKeplerAppStateManager,
+  useTVEventHandler,
+} from '@amazon-devices/react-native-kepler';
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -14,38 +18,46 @@ import {Icon} from '../components/Icon';
 import {Confirm} from '../hooks/useSystemToast';
 import {APP_MODE} from '../config';
 import {Link} from '../services/api';
-import {colors, motion, numeric, radius, space, type} from '../theme';
-import {VerdictWord} from '../widgets/parts';
-import {focusSoon, useFocusOnMount} from './focus';
+import {colors, motion, numeric, space, type} from '../theme';
+import {focusSoon} from './focus';
 import {GrowthSim} from './GrowthSim';
 import {
   firstFocus,
   isLocked,
   layoutMap,
   neighbourMap,
+  PLAY_ID,
   stepOrder,
+  storyOrder,
+  storyPath,
   TOGGLE_ID,
 } from './layout';
 import {MapCanvas} from './MapCanvas';
 import {
   CATEGORY_WORD,
-  nodeMeta,
   nodeQuestions,
   nodeShareCard,
   nodeSources,
-  valueText,
 } from './mapData';
 import {NightSim} from './NightSim';
 import {NodeSheet, SHEET_W} from './NodeSheet';
+import {Backdrop} from './scene/Backdrop';
+import {fitCaption, fitHeader, SizeName} from './scene/measure';
+import {StepCard} from './scene/StepCard';
+import {StoryStatus, useStory} from './scene/story';
+import {MapTheme, themeFor} from './themes';
 import {useMapAsk, useMapShare} from './useMapActions';
 
 // Where the Player puts the paused video while the Map is open: a small
 // frame in the top-left corner, so the episode is still there, nothing is
-// drawn over it, and the decoder keeps its paused picture.
+// drawn over it (the scene leaves a hole), and the decoder keeps its paused
+// picture.
 export const FRAME = {x: space.safeX, y: space.safeY, w: 128, h: 72} as const;
-const TOGGLE_W = 152;
+const BTN_W = 152;
+const BTN_H = 40;
 const BOX_TOP = FRAME.y + FRAME.h + space.l; // 123
 const FOOTER = space.safeY + 18 + space.m; // hint line and its margin
+const HEADER_H = BOX_TOP - space.safeY - space.xs; // 88: room for the header
 
 export interface MapScreenProps {
   explore: Explore;
@@ -66,7 +78,7 @@ export interface MapScreenProps {
   // Back to the episode, playing from where it paused.
   onKeepWatching?: () => void;
   onClose: () => void;
-  // The Map claims BACK: sim → answer → sheet → step mode → leave.
+  // The Map claims BACK: sim → answer → sheet → step mode → story → leave.
   registerBack: (handler: (() => boolean) | null) => void;
 }
 
@@ -95,6 +107,8 @@ export const MapScreen = ({
   const W = Math.round(win.width);
   const H = Math.round(win.height);
   const hasVideo = playhead !== null;
+  const theme = useMemo(() => themeFor(explore.category), [explore.category]);
+  const hole = useMemo(() => (frame ? {...FRAME} : null), [frame]);
 
   const box = useMemo(
     () => ({
@@ -105,14 +119,31 @@ export const MapScreen = ({
     }),
     [W, H],
   );
-  const layout = useMemo(() => layoutMap(explore, box), [explore, box]);
-  const toggleRect = useMemo(
-    () => ({x: W - space.safeX - TOGGLE_W, y: space.safeY, w: TOGGLE_W, h: 40}),
+  const layout = useMemo(
+    () => layoutMap(explore, box, theme.motif),
+    [explore, box, theme.motif],
+  );
+  const storyIds = useMemo(
+    () => storyOrder(layout, explore, playhead),
+    [layout, explore, playhead],
+  );
+  const hasPlay = storyIds.length >= 2;
+  const playRect = useMemo(
+    () => ({x: W - space.safeX - BTN_W, y: space.safeY, w: BTN_W, h: BTN_H}),
     [W],
   );
+  const toggleRect = useMemo(
+    () => ({
+      x: W - space.safeX - BTN_W,
+      y: hasPlay ? space.safeY + BTN_H + space.xs : space.safeY,
+      w: BTN_W,
+      h: BTN_H,
+    }),
+    [W, hasPlay],
+  );
   const neighbours = useMemo(
-    () => neighbourMap(layout, toggleRect),
-    [layout, toggleRect],
+    () => neighbourMap(layout, toggleRect, hasPlay ? playRect : null),
+    [layout, toggleRect, hasPlay, playRect],
   );
   const byId = useMemo(
     () => new Map(explore.nodes.map((n) => [n.id, n])),
@@ -125,13 +156,34 @@ export const MapScreen = ({
   const [sheet, setSheet] = useState<SheetState | null>(null);
   const [simId, setSimId] = useState<string | null>(null);
   // The piece focused last, and the one to focus when the map mounts again.
+  // A fresh map starts on Play (or the first piece when there is no story).
   const lastFocus = useRef<string | null>(null);
   const [mountFocus, setMountFocus] = useState<string | null>(() =>
-    firstFocus(layout, explore, playhead),
+    hasPlay ? PLAY_ID : firstFocus(layout, explore, playhead),
   );
 
   const {answer, ask, close: closeAnswer} = useMapAsk(sessionId, mediaId, playhead);
   const share = useMapShare(link, mediaId, playhead ?? 0, confirm);
+
+  // The story pauses whenever the map is not what the viewer is looking at.
+  const appState = useKeplerAppStateManager();
+  const [appActive, setAppActive] = useState(true);
+  useEffect(() => {
+    const sub = appState.addAppStateListener('change', (next) =>
+      setAppActive(next === 'active'),
+    );
+    return () => sub.remove();
+  }, [appState]);
+  const storyActive = !sheet && !simId && mode === 'map' && appActive;
+  const {state: st, play, pause, stop, onKey} = useStory(storyIds.length, storyActive);
+  const litId = st.index >= 0 ? storyIds[st.index] ?? null : null;
+  const pulsePath = useMemo(
+    () =>
+      st.index > 0 && storyIds[st.index - 1] && storyIds[st.index]
+        ? storyPath(layout, storyIds[st.index - 1], storyIds[st.index], theme.motif)
+        : [],
+    [st.index, storyIds, layout, theme.motif],
+  );
 
   // Mounted host instances, for the explicit D-pad neighbours. One render
   // after each mount passes them to the nodes.
@@ -152,9 +204,10 @@ export const MapScreen = ({
   useEffect(() => {
     const t = setTimeout(() => setTick((x) => x + 1), 0);
     return () => clearTimeout(t);
-  }, [layout, mode, sheetOpen, simId]);
+  }, [layout, mode, sheetOpen, simId, hasPlay]);
 
-  // Pull focus into the map when it opens (off the Player's trapped seek bar).
+  // Pull focus into the map when it opens (off the Player's trapped seek
+  // bar), and back onto the piece that opened a sheet when it closes.
   useEffect(() => {
     if (sheetOpen || mode !== 'map') {
       return; // the sheet and the step card focus their own first action
@@ -178,11 +231,12 @@ export const MapScreen = ({
     setMountFocus(lastFocus.current);
   }, [closeAnswer]);
   const enterStep = useCallback(() => {
+    stop();
     const at = order.findIndex((n) => n.id === lastFocus.current);
     setStep(at >= 0 ? at : 0);
     setMode('step');
     console.warn('[map] step through');
-  }, [order]);
+  }, [order, stop]);
   const leaveStep = useCallback(() => {
     const n = order[step];
     if (n) {
@@ -201,46 +255,52 @@ export const MapScreen = ({
     setMountFocus(lastFocus.current);
   }, []);
 
+  // BACK, and LEFT on the sheet: sim → answer → sheet → step mode → a
+  // playing story → leave the map.
+  const back = useCallback(() => {
+    if (simId) {
+      closeSim();
+    } else if (answer && sheet) {
+      const key = sheet.focusAction;
+      closeAnswer();
+      setSheet({...sheet, focusAction: key});
+    } else if (sheet) {
+      closeSheet();
+    } else if (mode === 'step') {
+      leaveStep();
+    } else if (st.status === 'playing') {
+      pause();
+    } else {
+      onClose();
+    }
+    return true;
+  }, [simId, closeSim, answer, sheet, closeAnswer, closeSheet, mode, leaveStep, st.status, pause, onClose]);
   useEffect(() => {
-    registerBack(() => {
-      if (simId) {
-        closeSim();
-      } else if (answer && sheet) {
-        const key = sheet.focusAction;
-        closeAnswer();
-        setSheet({...sheet, focusAction: key});
-      } else if (sheet) {
-        closeSheet();
-      } else if (mode === 'step') {
-        leaveStep();
-      } else {
-        onClose();
-      }
-      return true;
-    });
+    registerBack(back);
     return () => registerBack(null);
-  }, [
-    registerBack,
-    simId,
-    closeSim,
-    answer,
-    sheet,
-    closeAnswer,
-    closeSheet,
-    mode,
-    leaveStep,
-    onClose,
-  ]);
+  }, [registerBack, back]);
 
   useTVEventHandler((evt) => {
-    if (evt.eventKeyAction === 1 || simId || sheet || mode !== 'step') {
+    if (evt.eventKeyAction === 1 || simId || evt.eventType === 'back') {
+      return; // key-up, a sim's own keys, or BACK (the back chain has it)
+    }
+    if (sheet) {
+      // Every sheet control is in one column, so LEFT is always on its
+      // leftmost control: it closes the sheet like BACK.
+      if (evt.eventType === 'left') {
+        back();
+      }
       return;
     }
-    if (evt.eventType === 'left') {
-      setStep((s) => Math.max(0, s - 1));
-    } else if (evt.eventType === 'right') {
-      setStep((s) => Math.min(order.length - 1, s + 1));
+    if (mode === 'step') {
+      if (evt.eventType === 'left') {
+        setStep((s) => Math.max(0, s - 1));
+      } else if (evt.eventType === 'right') {
+        setStep((s) => Math.min(order.length - 1, s + 1));
+      }
+      return;
     }
+    onKey(); // any key pauses the story
   });
 
   const sim = simId ? explore.sims.find((s) => s.id === simId) : undefined;
@@ -260,6 +320,7 @@ export const MapScreen = ({
         sendStatus={share.statusOf(`night-${sim.id}`)}
         onSend={(card) => share.send(`night-${sim.id}`, card)}
         onDone={closeSim}
+        theme={theme}
       />
     ) : (
       <GrowthSim
@@ -268,37 +329,70 @@ export const MapScreen = ({
         source={sourceTitle}
         hasVideo={hasVideo}
         onDone={closeSim}
+        theme={theme}
       />
     );
   }
 
   const category = CATEGORY_WORD[explore.category];
   const headerLeft = frame ? FRAME.x + FRAME.w + space.m : space.safeX;
+  const headerW = W - space.safeX - BTN_W - space.m - headerLeft;
   const context = hasVideo
     ? `${category} · ${sourceTitle}, paused at ${formatTime(playhead)}`
     : `${category} · ${sourceTitle}`;
+  const litNode = litId ? byId.get(litId) : undefined;
+  const prevId = st.index > 0 ? storyIds[st.index - 1] : null;
+  const via = prevId
+    ? explore.edges.find(
+        (e) =>
+          !!e.label &&
+          ((e.from === prevId && e.to === litId) || (e.from === litId && e.to === prevId)),
+      )?.label ?? null
+    : null;
 
   return (
     <View style={styles.root} testID="map-screen">
-      <View style={[styles.header, {left: headerLeft, right: space.safeX + TOGGLE_W + space.m}]}>
-        <Text style={styles.context} numberOfLines={1}>
-          {context}
-        </Text>
-        <Text style={styles.title} numberOfLines={1} testID="map-title">
-          {explore.title}
-        </Text>
-        {explore.summary ? (
-          <Text style={styles.summary} numberOfLines={1}>
-            {explore.summary}
-          </Text>
-        ) : null}
-      </View>
+      <Backdrop theme={theme} width={W} height={H} hole={hole} />
+
+      {litNode && st.status !== 'idle' ? (
+        <StoryCaption
+          node={litNode}
+          index={st.index}
+          count={storyIds.length}
+          via={via}
+          status={st.status}
+          theme={theme}
+          left={headerLeft}
+          width={headerW}
+        />
+      ) : (
+        <Header
+          context={context}
+          title={explore.title}
+          summary={explore.summary}
+          left={headerLeft}
+          width={headerW}
+        />
+      )}
+
+      {hasPlay && mode === 'map' ? (
+        <PlayControl
+          rect={playRect}
+          status={st.status}
+          focusable={!sheet}
+          preferred={!sheet && mountFocus === PLAY_ID}
+          register={register}
+          down={resolve(TOGGLE_ID)}
+          onPress={play}
+        />
+      ) : null}
 
       <StepToggle
         rect={toggleRect}
         stepping={mode === 'step'}
         focusable={!sheet}
         register={register}
+        up={mode === 'map' && hasPlay ? resolve(PLAY_ID) : undefined}
         down={resolve(
           mode === 'step' ? 'step-more' : neighbours[TOGGLE_ID]?.down,
         )}
@@ -309,6 +403,7 @@ export const MapScreen = ({
         <MapCanvas
           explore={explore}
           layout={layout}
+          theme={theme}
           width={W}
           height={H}
           playhead={playhead}
@@ -323,13 +418,20 @@ export const MapScreen = ({
             console.warn(`[map] focus ${id}`);
           }}
           onSim={openSim}
+          story={{
+            lit: litId,
+            step: st.index,
+            path: pulsePath,
+            running: st.status === 'playing',
+          }}
         />
       ) : (
-        <StepView
+        <StepCard
           node={order[step]}
           index={step}
           count={order.length}
           explore={explore}
+          theme={theme}
           playhead={playhead}
           box={box}
           focusable={!sheet}
@@ -341,14 +443,16 @@ export const MapScreen = ({
 
       <View style={[styles.footer, {top: H - space.safeY - 18}]} pointerEvents="none">
         <Icon name="back" size={16} color={colors.textSecondary} />
-        <Text style={styles.footerText} numberOfLines={1}>
+        <Text style={styles.footerText}>
           {hasVideo ? 'Back to the episode' : 'Back to Home'}
         </Text>
       </View>
-      <Text
-        style={[styles.footerRight, {top: H - space.safeY - 18}]}
-        numberOfLines={1}>
-        {mode === 'step' ? '◀ ▶ Previous and next' : 'Select a piece to open it'}
+      <Text style={[styles.footerRight, {top: H - space.safeY - 18}]}>
+        {mode === 'step'
+          ? '◀ ▶ Previous and next'
+          : st.status === 'playing'
+          ? 'Any key pauses the story'
+          : 'Select a piece to open it'}
       </Text>
 
       {sheet && sheetNode ? (
@@ -357,7 +461,7 @@ export const MapScreen = ({
           <NodeSheet
             key={sheetNode.id}
             node={sheetNode}
-            locked={isLocked(sheetNode, playhead)}
+            locked={isLocked(sheetNode, playhead, explore.suspense)}
             sim={sheetSim}
             hasVideo={hasVideo && !!onPlayMoment}
             questions={nodeQuestions(sheetNode, answers, playhead)}
@@ -366,6 +470,7 @@ export const MapScreen = ({
             sendStatus={share.statusOf(`node-${sheetNode.id}`)}
             answer={answer && answer.nodeId === sheetNode.id ? answer : null}
             focusAction={sheet.focusAction}
+            onBack={back}
             onPlay={() => sheetNode.t !== null && onPlayMoment?.(sheetNode.t)}
             onTry={() => sheetSim && openSim(sheetSim.id)}
             onAsk={(q, prepared, key) => {
@@ -390,11 +495,181 @@ export const MapScreen = ({
   );
 };
 
+const TITLE_STYLE: Record<'title' | 'headline', object> = {
+  title: type.title,
+  headline: type.headline,
+};
+const TEXT_STYLE: Partial<Record<SizeName, object>> = {
+  body: type.body,
+  caption: type.caption,
+};
+
+// Context, title and summary, all wrapping: the sizes step down until they
+// fit the room above the map.
+const Header = ({
+  context,
+  title,
+  summary,
+  left,
+  width,
+}: {
+  context: string;
+  title: string;
+  summary: string;
+  left: number;
+  width: number;
+}) => {
+  const fit = fitHeader(width, HEADER_H, context, title, summary);
+  return (
+    <View style={[styles.header, {left, width}]}>
+      <Text style={styles.context}>{context}</Text>
+      <Text style={[TITLE_STYLE[fit.title], styles.ink]} testID="map-title">
+        {title}
+      </Text>
+      {summary ? (
+        <Text style={[TEXT_STYLE[fit.summary], styles.soft]}>{summary}</Text>
+      ) : null}
+    </View>
+  );
+};
+
+// While the story plays, the header becomes its caption band: the lit
+// piece's label and short detail beside a bar in the scene's accent.
+const StoryCaption = ({
+  node,
+  index,
+  count,
+  via,
+  status,
+  theme,
+  left,
+  width,
+}: {
+  node: ExploreNode;
+  index: number;
+  count: number;
+  via: string | null;
+  status: StoryStatus;
+  theme: MapTheme;
+  left: number;
+  width: number;
+}) => {
+  const textW = width - BAR_W - space.s;
+  const fit = fitCaption(textW, HEADER_H, node.label, node.detail);
+  const fade = useSharedValue(0);
+  useEffect(() => {
+    fade.value = 0;
+    fade.value = withTiming(1, {duration: motion.fadeMs, easing: Easing.out(Easing.cubic)});
+    return () => cancelAnimation(fade);
+  }, [index, fade]);
+  const style = useAnimatedStyle(() => ({opacity: fade.value}));
+  const meta = [
+    `${index + 1} of ${count}`,
+    node.when,
+    via,
+    status === 'paused' ? 'Paused' : status === 'done' ? 'The end' : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  return (
+    <Animated.View
+      style={[styles.header, styles.caption, {left, width}, style]}
+      testID="map-story-caption"
+      accessibilityLiveRegion="polite">
+      <View style={[styles.captionBar, {backgroundColor: theme.motif === 'plain' ? colors.text : theme.accent}]} />
+      <View style={styles.captionText}>
+        <Text style={styles.context} testID="map-story-meta">
+          {meta}
+        </Text>
+        <Text
+          style={[fit.label === 'headline' ? type.headline : type.bodyStrong, styles.ink]}
+          testID="map-story-label">
+          {node.label}
+        </Text>
+        {fit.text ? (
+          <Text style={[TEXT_STYLE[fit.detail], styles.soft, styles.captionDetail]}>
+            {fit.text}
+          </Text>
+        ) : null}
+      </View>
+    </Animated.View>
+  );
+};
+const BAR_W = 3;
+
+const PLAY_LABEL: Record<StoryStatus, string> = {
+  idle: 'Play story',
+  playing: 'Pause',
+  paused: 'Resume',
+  done: 'Play again',
+};
+
+const PlayControl = ({
+  rect,
+  status,
+  focusable,
+  preferred,
+  register,
+  down,
+  onPress,
+}: {
+  rect: {x: number; y: number; w: number; h: number};
+  status: StoryStatus;
+  focusable: boolean;
+  preferred: boolean;
+  register: (id: string, v: View | null) => void;
+  down: View | undefined;
+  onPress: () => void;
+}) => {
+  const self = useRef<View | null>(null);
+  return (
+    <FocusFrame
+      ref={(v) => {
+        self.current = v;
+        register(PLAY_ID, v);
+      }}
+      testID="map-play"
+      accessibilityLabel={
+        status === 'playing'
+          ? 'Pause the story'
+          : status === 'paused'
+          ? 'Resume the story'
+          : 'Play the story: a pulse walks the map piece by piece'
+      }
+      variant="button"
+      focusable={focusable}
+      hasTVPreferredFocus={preferred}
+      nextFocus={{
+        up: self.current ?? undefined,
+        left: self.current ?? undefined,
+        right: self.current ?? undefined,
+        down: down ?? self.current ?? undefined,
+      }}
+      style={[styles.toggle, {left: rect.x, top: rect.y, width: rect.w}]}
+      contentStyle={styles.playInner}
+      onPress={onPress}>
+      {(focused) => (
+        <>
+          <Icon
+            name={status === 'playing' ? 'pause' : 'play'}
+            size={16}
+            color={focused ? colors.onFocus : colors.text}
+          />
+          <Text style={[styles.toggleText, styles.playText, focused && styles.onFocus]}>
+            {PLAY_LABEL[status]}
+          </Text>
+        </>
+      )}
+    </FocusFrame>
+  );
+};
+
 const StepToggle = ({
   rect,
   stepping,
   focusable,
   register,
+  up,
   down,
   onPress,
 }: {
@@ -402,6 +677,7 @@ const StepToggle = ({
   stepping: boolean;
   focusable: boolean;
   register: (id: string, v: View | null) => void;
+  up: View | undefined;
   down: View | undefined;
   onPress: () => void;
 }) => {
@@ -419,7 +695,7 @@ const StepToggle = ({
       variant="button"
       focusable={focusable}
       nextFocus={{
-        up: self.current ?? undefined,
+        up: up ?? self.current ?? undefined,
         left: self.current ?? undefined,
         right: self.current ?? undefined,
         down: down ?? self.current ?? undefined,
@@ -428,9 +704,7 @@ const StepToggle = ({
       contentStyle={styles.toggleInner}
       onPress={onPress}>
       {(focused) => (
-        <Text
-          style={[styles.toggleText, focused && styles.onFocus]}
-          numberOfLines={1}>
+        <Text style={[styles.toggleText, focused && styles.onFocus]}>
           {stepping ? 'Show the map' : 'Step through'}
         </Text>
       )}
@@ -438,163 +712,27 @@ const StepToggle = ({
   );
 };
 
-// One piece at a time, large: LEFT/RIGHT move through the pieces in order,
-// SELECT opens it, BACK returns to the whole map.
-const StepView = ({
-  node,
-  index,
-  count,
-  explore,
-  playhead,
-  box,
-  focusable,
-  register,
-  resolve,
-  onOpen,
-}: {
-  node: ExploreNode | undefined;
-  index: number;
-  count: number;
-  explore: Explore;
-  playhead: number | null;
-  box: {x: number; y: number; w: number; h: number};
-  focusable: boolean;
-  register: (id: string, v: View | null) => void;
-  resolve: (id: string | undefined) => View | undefined;
-  onOpen: () => void;
-}) => {
-  const opacity = useSharedValue(1);
-  const dx = useSharedValue(0);
-  const prev = useRef(index);
-  useEffect(() => {
-    const dir = index >= prev.current ? 1 : -1;
-    prev.current = index;
-    opacity.value = 0;
-    dx.value = 16 * dir;
-    const cfg = {duration: motion.fadeMs, easing: Easing.out(Easing.cubic)};
-    opacity.value = withTiming(1, cfg);
-    dx.value = withTiming(0, cfg);
-  }, [index, opacity, dx]);
-  const enter = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{translateX: Math.round(dx.value)}],
-  }));
-  const moreRef = useFocusOnMount<View>(focusable);
-  if (!node) {
-    return null;
-  }
-  const locked = isLocked(node, playhead);
-  const group = explore.groups.find((g) => g.id === node.group);
-  const cardW = Math.min(640, box.w);
-  const left = Math.round(box.x + (box.w - cardW) / 2);
-  const value =
-    explore.layout === 'compare' && node.value ? valueText(node.value) : null;
-  const self = resolve('step-more');
-  return (
-    <>
-      <Animated.View
-        style={[styles.stepCard, {left, top: box.y, width: cardW}, enter]}
-        testID="map-step-card"
-        accessibilityLiveRegion="polite">
-        {locked ? (
-          <>
-            <View style={styles.stepMetaRow}>
-              <Icon name="lock" size={16} color={colors.textSecondary} />
-              <Text style={[styles.stepMeta, styles.stepMetaLock]} numberOfLines={1}>
-                Later in the episode
-              </Text>
-            </View>
-            <Text style={styles.stepTitle} numberOfLines={2}>
-              Keep watching
-            </Text>
-            <Text style={styles.stepBody} numberOfLines={2}>
-              This piece unlocks when the episode gets there.
-            </Text>
-          </>
-        ) : (
-          <>
-            <View style={styles.stepMetaRow}>
-              <Text style={styles.stepMeta} numberOfLines={1}>
-                {[group?.title, nodeMeta(node, playhead !== null)]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </Text>
-              {node.verdict ? (
-                <>
-                  <Text style={styles.stepMeta}>{'  ·  '}</Text>
-                  <VerdictWord verdict={node.verdict} />
-                </>
-              ) : null}
-            </View>
-            {value ? (
-              <Text style={styles.stepTitle} numberOfLines={1}>
-                {value}
-              </Text>
-            ) : null}
-            <Text style={styles.stepTitle} numberOfLines={2}>
-              {node.label}
-            </Text>
-            {node.detail ? (
-              <Text style={styles.stepBody} numberOfLines={4}>
-                {node.detail}
-              </Text>
-            ) : null}
-          </>
-        )}
-      </Animated.View>
-      <View style={[styles.progress, {left, width: cardW, top: box.y + 252}]}>
-        <Text style={styles.progressText} testID="map-step-progress">
-          {`${index + 1} of ${count}`}
-        </Text>
-        <View style={styles.progressTrack}>
-          <View
-            style={[
-              styles.progressFill,
-              {width: `${Math.round(((index + 1) / count) * 100)}%`},
-            ]}
-          />
-        </View>
-        <FocusFrame
-          ref={(v) => {
-            (moreRef as React.MutableRefObject<View | null>).current = v;
-            register('step-more', v);
-          }}
-          testID="map-step-more"
-          accessibilityLabel={
-            locked ? 'Locked piece' : `More on this: ${node.label}`
-          }
-          variant="button"
-          focusable={focusable}
-          hasTVPreferredFocus={focusable}
-          nextFocus={{
-            up: resolve(TOGGLE_ID) ?? self,
-            down: self,
-            left: self,
-            right: self,
-          }}
-          style={styles.more}
-          contentStyle={styles.moreInner}
-          onPress={onOpen}>
-          {(focused) => (
-            <Text style={[styles.moreText, focused && styles.onFocus]} numberOfLines={1}>
-              More on this
-            </Text>
-          )}
-        </FocusFrame>
-      </View>
-    </>
-  );
-};
-
 const styles = StyleSheet.create({
   root: {...StyleSheet.absoluteFillObject},
   header: {position: 'absolute', top: space.safeY},
   context: {...type.caption, ...numeric, color: colors.textSecondary},
-  title: {...type.title, color: colors.text},
-  summary: {...type.body, color: colors.textSecondary},
+  ink: {color: colors.text},
+  soft: {color: colors.textSecondary},
+  caption: {flexDirection: 'row'},
+  captionBar: {width: BAR_W, borderRadius: 2, marginRight: space.s},
+  captionText: {flex: 1},
+  captionDetail: {marginTop: 4},
   toggle: {position: 'absolute'},
-  toggleInner: {height: 40, paddingHorizontal: space.m, justifyContent: 'center'},
+  toggleInner: {height: BTN_H, paddingHorizontal: space.m, justifyContent: 'center'},
+  playInner: {
+    height: BTN_H,
+    paddingHorizontal: space.m,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   toggleText: {...type.bodyStrong, color: colors.text, textAlign: 'center'},
+  playText: {marginLeft: space.xs},
   onFocus: {color: colors.onFocus},
   footer: {
     position: 'absolute',
@@ -616,33 +754,4 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: colors.scrim,
   },
-  stepCard: {
-    position: 'absolute',
-    height: 232,
-    padding: space.l,
-    borderRadius: radius.banner,
-    backgroundColor: colors.card,
-  },
-  stepMetaRow: {flexDirection: 'row', alignItems: 'center'},
-  stepMeta: {...type.caption, ...numeric, color: colors.textSecondary, flexShrink: 1},
-  stepMetaLock: {marginLeft: space.xs},
-  stepTitle: {...type.title, color: colors.text, marginTop: space.xs},
-  stepBody: {...type.body, color: colors.text, marginTop: space.s},
-  progress: {
-    position: 'absolute',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  progressText: {...type.caption, ...numeric, color: colors.textSecondary, width: 64},
-  progressTrack: {
-    flex: 1,
-    height: 2,
-    backgroundColor: colors.track,
-    borderRadius: 1,
-    marginRight: space.m,
-  },
-  progressFill: {height: 2, backgroundColor: colors.text, borderRadius: 1},
-  more: {},
-  moreInner: {height: 40, paddingHorizontal: space.m, justifyContent: 'center'},
-  moreText: {...type.bodyStrong, color: colors.text},
 });
