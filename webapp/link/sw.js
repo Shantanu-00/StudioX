@@ -18,7 +18,9 @@ const SHELL_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(SHELL_ASSETS);
+      // Bypass the browser's HTTP cache: S3 sends no Cache-Control, so a
+      // heuristically fresh old copy could otherwise be cached as the new shell.
+      return cache.addAll(SHELL_ASSETS.map((u) => new Request(u, { cache: 'reload' })));
     }).then(() => self.skipWaiting())
   );
 });

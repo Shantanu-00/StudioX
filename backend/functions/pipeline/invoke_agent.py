@@ -5,6 +5,10 @@ Input:
   payload      the request body (CONTRACTS section 4)
   payloadRefs  optional {field: s3Key or 's3Key#member'}; that JSON is inserted as payload[field]
                (keeps Step Functions payloads small)
+  pick         optional {from: object, keys: [names]}; each key present in `from` is copied into the
+               payload. A Step Functions path to a missing field is a States.Runtime error that no Catch
+               can handle, so optional fields of an earlier result (for example the curator's `labels`,
+               absent from runtimes deployed before 23 Oct) are passed this way
   run          optional {mediaId, execution, name}; the response is stored at runs/<mediaId>/<execution>/<name>.json
   inline       when true the response is also returned (small responses only)
   meta         optional; echoed back unchanged so Map results stay attributable
@@ -42,9 +46,15 @@ def run_key(run):
     return f"runs/{parts[0]}/{parts[1]}/{parts[2]}.json"
 
 
-def build_payload(payload, refs, loader):
-    """Insert S3 JSON into the payload. A ref is 's3key' or 's3key#field' (take one field of the document)."""
+def build_payload(payload, refs, loader, pick=None):
+    """Insert S3 JSON into the payload. A ref is 's3key' or 's3key#field' (take one field of the document).
+    `pick` copies the listed keys that exist in pick['from'] (missing keys are left out)."""
     body = dict(payload)
+    if pick:
+        source = pick.get("from") if isinstance(pick.get("from"), dict) else {}
+        for name in pick.get("keys") or []:
+            if name in source and name not in body:
+                body[name] = source[name]
     for field, ref in (refs or {}).items():
         key, _, sub = ref.partition("#")
         doc = loader(key)
@@ -90,7 +100,7 @@ def handler(event, context):
     if status:
         common.update_media(event["payload"]["mediaId"], status["state"], status.get("progress"), status.get("text"))
     arn = runtime_arn(event["agent"])
-    body = build_payload(event["payload"], event.get("payloadRefs"), common.read_json)
+    body = build_payload(event["payload"], event.get("payloadRefs"), common.read_json, event.get("pick"))
     result = invoke(arn, body)
     out = {}
     if event.get("run"):

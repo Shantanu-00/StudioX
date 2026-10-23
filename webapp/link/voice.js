@@ -21,6 +21,13 @@ export function getRecognitionCtor(win = (typeof window !== 'undefined' ? window
   return win.SpeechRecognition || win.webkitSpeechRecognition || null;
 }
 
+// Why there is no mic, as one quiet line for the composer ('' when voice works).
+export function voiceUnavailableHint(win = (typeof window !== 'undefined' ? window : {})) {
+  if (getRecognitionCtor(win)) return '';
+  if (win.isSecureContext === false) return 'Voice needs a secure (https) page. Type your question instead.';
+  return "Voice isn't available in this browser. Type your question, or open this page in Chrome or Safari.";
+}
+
 export function pickLang(nav = (typeof navigator !== 'undefined' ? navigator : {})) {
   return (nav && nav.language) || 'en-US';
 }

@@ -1,6 +1,6 @@
 // Run: node webapp/link/voice.test.mjs
 import assert from 'node:assert/strict';
-import { createVoice, VOICE, speakableText, speakAnswer, getRecognitionCtor } from './voice.js';
+import { createVoice, VOICE, speakableText, speakAnswer, getRecognitionCtor, voiceUnavailableHint } from './voice.js';
 
 class FakeRec {
   static last = null;
@@ -54,6 +54,9 @@ for (const [code, reason] of [['not-allowed', 'denied'], ['no-speech', 'nospeech
 assert.equal(getRecognitionCtor({ isSecureContext: false, SpeechRecognition: FakeRec }), null);
 assert.equal(getRecognitionCtor({ isSecureContext: true, webkitSpeechRecognition: FakeRec }), FakeRec);
 assert.equal(getRecognitionCtor({ isSecureContext: true }), null);
+assert.equal(voiceUnavailableHint({ isSecureContext: true, webkitSpeechRecognition: FakeRec }), '');
+assert.match(voiceUnavailableHint({ isSecureContext: false, SpeechRecognition: FakeRec }), /https/);
+assert.match(voiceUnavailableHint({ isSecureContext: true }), /Type your question/);
 assert.equal(speakableText('He said [12:30] see https://x.co/a now **ok**'), 'He said see now ok');
 {
   const spoken = []; let cancels = 0;

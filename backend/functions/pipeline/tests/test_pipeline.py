@@ -101,6 +101,37 @@ def test_invoke_agent_helpers():
         invoke_agent.parse_response('{"error": "boom"}')
 
 
+def test_invoke_agent_pick_copies_only_present_fields():
+    # Draw the map: an older curator returns no `labels`; the payload simply lacks it (no States.Runtime)
+    old_curate = {"moments": [{"t": 1}], "widgetIds": ["w1"], "questions": [{"t": 2, "question": "Q?"}]}
+    pick = {"from": old_curate, "keys": ["widgetIds", "labels", "moments", "questions"]}
+    body = invoke_agent.build_payload({"mode": "map", "mediaId": "m"}, None, {}.get, pick)
+    assert body == {"mode": "map", "mediaId": "m", "widgetIds": ["w1"], "moments": [{"t": 1}],
+                    "questions": [{"t": 2, "question": "Q?"}]}
+    new_curate = dict(old_curate, labels={"w1": {"headline": "H", "teaser": None}})
+    body = invoke_agent.build_payload({"mode": "map"}, None, {}.get, dict(pick, **{"from": new_curate}))
+    assert body["labels"] == {"w1": {"headline": "H", "teaser": None}}
+    # explicit payload fields win; a missing or malformed source adds nothing
+    assert invoke_agent.build_payload({"widgetIds": []}, None, {}.get, pick)["widgetIds"] == []
+    assert invoke_agent.build_payload({"a": 1}, None, {}.get, {"from": None, "keys": ["a", "b"]}) == {"a": 1}
+
+
+def test_normalise_reads_transcribe_output_of_this_execution(monkeypatch):
+    # Upload path: Normalise reads runs/<mediaId>/<execution>/transcribe.json, the OutputKey that
+    # `Transcribe speech` sets, and writes transcripts/<mediaId>.json with source "transcribe"
+    reads, writes, updates = [], {}, []
+    monkeypatch.setattr(common, "read_json", lambda key: reads.append(key) or RAW)
+    monkeypatch.setattr(common, "write_json", lambda key, value, **kw: writes.__setitem__(key, value))
+    monkeypatch.setattr(common, "update_media", lambda *a, **kw: updates.append((a, kw)))
+    monkeypatch.setattr(normalise, "eligibility", lambda tr: {"durationSec": tr["durationSec"], "fit": True})
+    out = normalise.handler({"mediaId": "01ABC", "execution": "e-1",
+                             "input": {"mediaId": "01ABC", "mediaKey": "uploads/01ABC/talk.mp4", "title": "talk"}}, None)
+    assert reads == ["runs/01ABC/e-1/transcribe.json"]
+    assert out["transcriptKey"] == "transcripts/01ABC.json" and out["options"]["title"] == "talk"
+    assert writes["transcripts/01ABC.json"]["source"] == "transcribe"
+    assert updates[0][0][:2] == ("01ABC", "ANALYSING")
+
+
 def test_verify_helpers():
     claim = {"id": "c1", "type": "claim", "claim": "37% drop", "speaker": "A", "context": "said early", "source": "NIH", "evidence": []}
     # Only what the card says the episode said is grounded; the fact check's web context is not.

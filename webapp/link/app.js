@@ -3,7 +3,7 @@
 import { api, isMockMode, ApiError } from './api.js';
 import { renderCard } from './cards.js';
 import { UploadManager, formatBytes } from './upload.js';
-import { createVoice, getRecognitionCtor, pickLang, VOICE, getSpeakAnswers, setSpeakAnswers, speakAnswer } from './voice.js';
+import { createVoice, getRecognitionCtor, pickLang, VOICE, getSpeakAnswers, setSpeakAnswers, speakAnswer, voiceUnavailableHint } from './voice.js';
 
 // --- State ---
 const state = {
@@ -1095,7 +1095,9 @@ function syncVoiceUI() {
   const listening = state.voice.state === VOICE.LISTENING;
   const status = document.getElementById('voice-status');
   if (status) {
-    status.textContent = state.voice.message || '';
+    // No mic in this browser: say so once in ASK mode, so typing is the obvious path.
+    const fallback = state.composerMode === 'ASK' && !voiceAvailable() ? voiceUnavailableHint() : '';
+    status.textContent = state.voice.message || fallback;
     status.classList.toggle('is-error', state.voice.state === VOICE.ERROR);
     status.classList.toggle('is-listening', listening);
   }

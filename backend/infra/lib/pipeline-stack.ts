@@ -287,12 +287,12 @@ export class StudioXPipelineStack extends cdk.Stack {
         mediaId: JsonPath.stringAt('$.mediaId'),
         transcriptKey: JsonPath.stringAt('$.norm.transcriptKey'),
         segments: JsonPath.listAt('$.seg.result.segments'),
-        widgetIds: JsonPath.listAt('$.curate.result.widgetIds'),
-        labels: JsonPath.objectAt('$.curate.result.labels'),
-        moments: JsonPath.listAt('$.curate.result.moments'),
-        questions: JsonPath.listAt('$.curate.result.questions'),
         pinned: JsonPath.listAt('$.norm.options.pinnedQuestions'),
       },
+      // The curator's fields are copied by the Lambda, not by JSONPath: a path to a missing field (`labels`
+      // from a curator runtime older than 23 Oct) is a States.Runtime error that no Catch handles, so the
+      // whole execution would fail without reaching `Map skipped` or `Mark failed`.
+      pick: { from: JsonPath.objectAt('$.curate.result'), keys: ['widgetIds', 'labels', 'moments', 'questions'] },
       payloadRefs: { candidates: JsonPath.format('{}#candidates', JsonPath.stringAt('$.verified.key')) },
       run: { mediaId: JsonPath.stringAt('$.mediaId'), execution: exec, name: 'map' },
       inline: true,
@@ -396,6 +396,7 @@ export class StudioXPipelineStack extends cdk.Stack {
         iamResources: jobArn,
         resultPath: JsonPath.DISCARD,
       }));
+      transcribe.addRetry({ errors: ['Transcribe.LimitExceededException'], interval: cdk.Duration.seconds(30), maxAttempts: 5, backoffRate: 2 });
       const wait = new sfn.Wait(this, 'Wait', { stateName: 'Wait', time: sfn.WaitTime.duration(cdk.Duration.seconds(20)) });
       const check = g(new tasks.CallAwsService(this, 'Check transcription', {
         stateName: 'Check transcription',
@@ -406,6 +407,10 @@ export class StudioXPipelineStack extends cdk.Stack {
         resultSelector: { 'status.$': '$.TranscriptionJob.TranscriptionJobStatus' },
         resultPath: '$.job',
       }));
+      check.addRetry({
+        errors: ['Transcribe.LimitExceededException', 'Transcribe.InternalFailureException'],
+        interval: cdk.Duration.seconds(10), maxAttempts: 4, backoffRate: 2,
+      });
       const normaliseUpload = inBranch
         ? lambdaTask('Normalise upload transcript', normalise, {
           mediaId: JsonPath.stringAt('$.mediaId'),
@@ -467,7 +472,11 @@ export class StudioXPipelineStack extends cdk.Stack {
     });
     // Transcribe reads the upload and writes its output with the state machine's own permissions.
     machine.addToRolePolicy(new iam.PolicyStatement({ actions: ['s3:GetObject'], resources: [objects('uploads/*')] }));
-    machine.addToRolePolicy(new iam.PolicyStatement({ actions: ['s3:PutObject'], resources: [objects('runs/*')] }));
+    // Transcribe also writes a `.write_access_check_file.temp` probe before the job. Its key is not documented
+    // in the API reference; runs/* covers it under the output prefix and the root key is allowed as well.
+    machine.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['s3:PutObject'], resources: [objects('runs/*'), objects('.write_access_check_file.temp')],
+    }));
 
     // ---- Start on upload -------------------------------------------------------------------------------
     start.addEnvironment('STATE_MACHINE_ARN', machine.stateMachineArn);
