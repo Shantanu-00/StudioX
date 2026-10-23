@@ -1,4 +1,4 @@
-"""The Map (`explore` block of the episode package): validation and bounds, CONTRACTS section 9.
+"""The Map (`explore` block of the episode package): validation and bounds, CONTRACTS sections 9 and 10.
 
 The Map author agent proposes; this code has the final say. `validate_map` cleans what it can
 (clips text, clamps sim params, drops bad nodes, edges, sims and questions) and then applies the
@@ -24,8 +24,15 @@ CATEGORIES = ("health", "crime", "finance", "history", "tech", "motivation", "sc
 LAYOUTS = ("flow", "timeline", "compare", "cluster")
 KINDS = ("idea", "step", "claim", "event", "person", "number")
 EDGE_KINDS = ("then", "because", "supports", "contradicts")
+ICONS = ("tv", "phone", "wifi", "router", "server", "cloud", "database", "chip", "lock", "globe", "moon", "sun",
+         "pill", "thermometer", "clock", "money", "chart", "person", "document", "rocket", "flag", "camera",
+         "footprint")
+PHASES = ("day", "evening", "night", "morning")
+IMAGE_HOST = "upload.wikimedia.org"  # section 10: Commons thumbnails only
 LIMITS = {"label": 44, "detail": 200, "when": 16, "title": 48, "summary": 120, "reason": 120,
-          "group": 32, "edge": 24, "id": 32, "question": 100, "quote": 120, "unit": 12}
+          "group": 32, "edge": 24, "id": 32, "question": 100, "quote": 120, "unit": 12, "sim_label": 20,
+          "step": 32, "image_url": 400, "credit": 120}
+MAX_NIGHT_STEPS = 4
 COUNTS = {"groups": (1, 5), "nodes": (3, 12), "edges": 16, "sims": 2, "questions": 4}
 MIN_EDGES = 2         # flow and cluster
 MIN_TIMED = 3         # timeline: nodes with `when` or a distinct `t`
@@ -39,6 +46,7 @@ SIM_ENGINES: dict[str, dict[str, tuple[float, float, float | None]]] = {
 }
 SIM_INTS = {"cycles", "cycleMinutes", "bedtime", "years", "laterYears"}
 _CURRENCY = re.compile(r"^[A-Z]{3}$")
+_IMAGE_URL = re.compile(r"^https://upload\.wikimedia\.org/[^\s]+$")
 _ID = re.compile(r"^[A-Za-z0-9_.:-]{1,32}$")  # the TV's id rule (src/analysis/schema.ts)
 
 
@@ -103,6 +111,54 @@ def _snap_t(t: float, spans: list[tuple[float, float]]) -> float:
     return min(spans, key=lambda s: min(abs(s[0] - t), abs(s[1] - t)))[0]
 
 
+def _clean_image(raw: Any) -> dict | None:
+    """An https Commons image with a credit, or nothing: never an image without its credit."""
+    if not isinstance(raw, dict):
+        return None
+    url, credit = raw.get("url"), clip(raw.get("credit"), LIMITS["credit"])
+    if not isinstance(url, str) or len(url) > LIMITS["image_url"] or not _IMAGE_URL.match(url) or not credit:
+        return None
+    return {"url": url, "credit": credit}
+
+
+def _night_steps(raw: Any, sid: str, problems: list[str]) -> list[dict]:
+    out: list[dict] = []
+    for st in raw if isinstance(raw, list) else []:
+        label = clip(st.get("label"), LIMITS["step"]) if isinstance(st, dict) else None
+        off = _num(st.get("offsetMin")) if isinstance(st, dict) else None
+        if not label or off is None:
+            problems.append(f"sim {sid}: step dropped")
+            continue
+        if len(out) >= MAX_NIGHT_STEPS:
+            problems.append(f"sim {sid}: step dropped: more than {MAX_NIGHT_STEPS}")
+            continue
+        c = min(max(round(off), -240), 0)
+        if c != off:
+            problems.append(f"sim {sid}: step offset {off!r} clamped to {c}")
+        step = {"label": label, "offsetMin": c}
+        if st.get("icon") in ICONS:
+            step["icon"] = st["icon"]
+        out.append(step)
+    return sorted(out, key=lambda x: x["offsetMin"])
+
+
+_PCT = re.compile(r"(\d[\d,]*(?:\.\d+)?)\s*(?:%|percent)", re.I)
+_MONTH = re.compile(r"\$?(\d[\d,]*(?:\.\d+)?)\s*(?:dollars?\s*|usd\s*)?(?:a|per|each|/)\s*month", re.I)
+_YEARS = re.compile(r"(\d[\d,]*(?:\.\d+)?)\s*(?:-\s*)?years?\b", re.I)
+
+
+def _quote_contradicts(quote: str, params: dict) -> str | None:
+    """Section 10: when the quoted words state a number in a form we can read (N%, N a month, N years),
+    the param must match it. Returns the offending param name, else None. Spelled-out numbers are not checked."""
+    for pat, key in ((_PCT, "ratePct"), (_MONTH, "monthly"), (_YEARS, "years")):
+        found = [float(m.replace(",", "")) for m in pat.findall(quote)]
+        if found and all(abs(f - params[key]) > 1e-6 for f in found):
+            if key == "years" and params.get("laterYears") and any(abs(f - params["laterYears"]) < 1e-6 for f in found):
+                continue
+            return key
+    return None
+
+
 def _clean_sim(raw: Any, duration: float, problems: list[str]) -> dict | None:
     if not isinstance(raw, dict):
         return None
@@ -149,6 +205,20 @@ def _clean_sim(raw: Any, duration: float, problems: list[str]) -> dict | None:
         elif cur != src.get("currency"):
             problems.append(f"sim {sid}: currency upper-cased")
         params["currency"] = cur
+        labels = src.get("labels")
+        if isinstance(labels, list) and len(labels) == 2:
+            lab = [clip(x, LIMITS["sim_label"]) for x in labels]
+            if all(lab):
+                params["labels"] = lab
+                if lab != labels:
+                    problems.append(f"sim {sid}: labels clipped")
+        ages = src.get("startAges")
+        if isinstance(ages, list) and len(ages) == 2 and all(_num(a) is not None and 0 <= a <= 100 for a in ages):
+            params["startAges"] = [_r(float(a)) for a in ages]
+    if engine == "night":
+        steps = _night_steps(src.get("steps"), sid, problems)
+        if steps:
+            params["steps"] = steps
     quote = clip(src.get("quote"), LIMITS["quote"])
     qt = _num(src.get("quoteT"))
     if quote:
@@ -159,6 +229,11 @@ def _clean_sim(raw: Any, duration: float, problems: list[str]) -> dict | None:
             params["quoteT"] = _r(qt)
         elif "quoteT" in src:
             problems.append(f"sim {sid}: quoteT outside the episode, dropped")
+    if engine == "growth" and isinstance(params.get("quote"), str):
+        bad = _quote_contradicts(params["quote"], params)
+        if bad:
+            problems.append(f"sim {sid} dropped: {bad} contradicts the quoted words")
+            return None
     return {"id": sid, "engine": engine, "title": title, "params": params}
 
 
@@ -283,7 +358,7 @@ def validate_map(explore: Any, duration: float, widgets: list[dict] | None) -> t
             problems.append(f"node {nid}: when clipped")
         value = None
         v = n.get("value")
-        if isinstance(v, dict) and layout == "compare":
+        if isinstance(v, dict) and (layout == "compare" or kind == "number"):
             num, unit = _num(v.get("n")), clip(v.get("unit"), LIMITS["unit"])
             if num is not None and unit:
                 value = {"n": num if num != int(num) else int(num), "unit": unit}
@@ -291,7 +366,7 @@ def validate_map(explore: Any, duration: float, widgets: list[dict] | None) -> t
             problems.append(f"node {nid}: value dropped")
         # verdict: copied from a referenced claim, never the agent's own
         verdict = None
-        if kind == "claim" or n.get("verdict") is not None:
+        if kind != "number" and (kind == "claim" or n.get("verdict") is not None):
             for r in refs:
                 w = by_id[r]
                 if w.get("type") == "claim" and w.get("verdict") in VERDICTS:
@@ -299,6 +374,17 @@ def validate_map(explore: Any, duration: float, widgets: list[dict] | None) -> t
                     break
         if n.get("verdict") is not None and n.get("verdict") != verdict:
             problems.append(f"node {nid}: verdict {n.get('verdict')!r} -> {verdict!r} (from its claim card)")
+        icon = n.get("icon")
+        if icon is not None and icon not in ICONS:
+            problems.append(f"node {nid}: icon {icon!r} dropped")
+            icon = None
+        phase = n.get("phase")
+        if phase is not None and phase not in PHASES:
+            problems.append(f"node {nid}: phase {phase!r} dropped")
+            phase = None
+        image = _clean_image(n.get("image"))
+        if n.get("image") is not None and image is None:
+            problems.append(f"node {nid}: image dropped (https {IMAGE_HOST} and a credit are required)")
         sim = n.get("sim")
         if sim is not None and sim not in sim_ids:
             problems.append(f"node {nid}: sim {sim!r} dropped")
@@ -306,6 +392,9 @@ def validate_map(explore: Any, duration: float, widgets: list[dict] | None) -> t
         nodes.append({"id": nid, "group": group, "kind": kind, "label": label, "detail": detail, "t": _r(t),
                       "t1": _r(t1) if t1 is not None else None, "when": when, "value": value, "verdict": verdict,
                       "refs": refs, "sim": sim})
+        for key, val in (("icon", icon), ("image", image), ("phase", phase)):
+            if val is not None:  # additive fields (section 10) appear only when set
+                nodes[-1][key] = val
         nids.add(nid)
 
     # a sim no node opens is unreachable on the TV
@@ -370,9 +459,16 @@ def validate_map(explore: Any, duration: float, widgets: list[dict] | None) -> t
         if max(timed, distinct_t) < MIN_TIMED:
             return _ineligible("Too few timed events for a timeline"), problems + ["ineligible: timeline"]
 
-    return {"eligible": True, "reason": reason, "category": category, "layout": layout, "title": title,
-            "summary": summary, "groups": groups, "nodes": nodes, "edges": edges, "sims": sims,
-            "questions": questions}, problems
+    out = {"eligible": True, "reason": reason, "category": category, "layout": layout, "title": title,
+           "summary": summary, "groups": groups, "nodes": nodes, "edges": edges, "sims": sims,
+           "questions": questions}
+    # Code decides (section 10): crime always locks; scifi and other only when flagged; never the explainer genres.
+    suspense = category == "crime" or (explore.get("suspense") is True and category in ("scifi", "other"))
+    if explore.get("suspense") is not None and bool(explore.get("suspense")) != suspense:
+        problems.append(f"suspense {explore.get('suspense')!r} -> {suspense} for category {category}")
+    if suspense:
+        out["suspense"] = True
+    return out, problems
 
 
 def keep_answered(explore: dict | None, answers: list[dict]) -> dict | None:

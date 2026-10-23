@@ -205,3 +205,29 @@ parameters, never code. **The maths runs on the TV in code.**
 **Spoiler rule on the TV:** nodes with `t` after the playhead plus 4 s are drawn **locked**
 (label hidden, "Keep watching") until playback passes them. Edges into locked nodes are drawn
 dimmed.
+
+## 10. Map v2: genre scenes (added 23 Oct, 11:00). Additive to §9
+
+**New optional fields.** The TV ignores unknown values and validates bounds.
+
+| Where | Field | Meaning |
+| --- | --- | --- |
+| `explore` | `suspense: boolean` | Spoiler locks are drawn **only** when `category == "crime"` or `suspense == true`. The mapper sets it for crime, thriller and mystery. Code forces it to false for health, finance, tech, history and motivation |
+| node | `icon` | One of `tv, phone, wifi, router, server, cloud, database, chip, lock, globe, moon, sun, pill, thermometer, clock, money, chart, person, document, rocket, flag, camera, footprint`. The TV draws these as built-in SVG glyphs |
+| node | `image: {url, credit}` | **https** only, licence-checked Wikimedia Commons (CC0 / PD / CC BY / CC BY-SA), mainly history and person nodes. Use `upload.wikimedia.org` thumbnail URLs at a standard width (e.g. 330px; non-standard widths return 400). The demo packages bundle theirs on the TV (`src/map/images.ts`). The credit is shown whenever the image is |
+| node | `phase` | For health or routine flows: `day`, `evening`, `night`, `morning`. The night scene places steps along the sky by phase |
+| node | `kind: "number"` | Figures the episode itself states or works out (examples, sums). **No verdict.** `value = {n, unit}` with a short unit ("USD", "%", "years") and an optional `label` |
+| sim `growth` | `labels: [string, string]` | e.g. `["Start at 25", "Start at 35"]`, each ≤ 20 characters |
+| sim `growth` | `startAges: [number, number]` | Optional, shown on the axis |
+| sim `night` | `steps: [{label, offsetMin, icon}]` | Evening steps relative to bedtime (e.g. supplements at −30, room cooled at −60). At most 4 |
+
+**Rules for the analyst `map` mode and code:**
+- Never put a verdict on arithmetic or examples the speaker works through.
+- `growth` params must match the stated numbers (for example monthly 300, 7%, 40 years, 10-year delay).
+- Code checks each sim's numbers against the transcript text where it can, and drops the sim if
+  they contradict it.
+
+**Themes are drawn by the TV, by category** (`src/map/themes.ts`): crime = case board (black and
+red), health = night sky (ink, moonlight, dawn gold), tech = signal (black, cyan, grid), finance =
+ledger (black, green, gold), history = archive (warm charcoal, amber, photos), other and motivation
+= neutral.

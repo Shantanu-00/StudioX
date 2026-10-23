@@ -13,7 +13,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 from studiox_core import transcript as T
-from studiox_core.map import CATEGORIES, EDGE_KINDS, KINDS, LAYOUTS, validate_map
+from studiox_core.map import CATEGORIES, EDGE_KINDS, ICONS, KINDS, LAYOUTS, PHASES, validate_map
 from studiox_core.package import shown_widgets
 
 from .lenses import snap
@@ -32,6 +32,17 @@ class MapValue(BaseModel):
     unit: str = Field(description="<= 12 characters, e.g. 'USD a month', '%', 'years'")
 
 
+class MapImage(BaseModel):
+    url: str = Field(description="Copied EXACTLY from a card's `image` in the CARDS list; never invented")
+    credit: str = Field(description="Copied exactly from the same card's credit")
+
+
+class MapStep(BaseModel):
+    label: str = Field(description="<= 32 characters, an evening step as said, e.g. 'Supplements'")
+    offset_min: int = Field(description="Minutes relative to bedtime, -240..0; only if the episode says when")
+    icon: Optional[Literal[ICONS]] = None  # type: ignore[valid-type]
+
+
 class MapNode(BaseModel):
     id: str = Field(description="n1, n2, ... in reading order")
     group: str = Field(description="A group id")
@@ -44,6 +55,9 @@ class MapNode(BaseModel):
     value: Optional[MapValue] = Field(default=None, description="Compare only, and only when the episode states it")
     refs: list[str] = Field(default_factory=list, description="Ids of the cards this node comes from")
     sim: Optional[Literal["night", "growth"]] = Field(default=None, description="The simulation this node opens")
+    icon: Optional[Literal[ICONS]] = Field(default=None, description="Tech flows: a glyph for the node")  # type: ignore[valid-type]
+    image: Optional[MapImage] = Field(default=None, description="Only a verified URL from a card; else null")
+    phase: Optional[Literal[PHASES]] = Field(default=None, description="Routines: when in the day, only if said")  # type: ignore[valid-type]
 
 
 class MapEdge(BaseModel):
@@ -59,6 +73,7 @@ class NightParams(BaseModel):
     bedtime: str = Field(default="23:00", description="HH:MM 24-hour; as said, else 23:00")
     quote: str = Field(description="The exact words that prescribe the cycles, <= 120 characters")
     quote_t: float = Field(description="Start second of the quoted line")
+    steps: list[MapStep] = Field(default_factory=list, description="Evening steps before bed, at most 4, only if said")
 
 
 class GrowthParams(BaseModel):
@@ -68,6 +83,8 @@ class GrowthParams(BaseModel):
     years: int = Field(description="Years of growth, as said")
     later_years: Optional[int] = Field(default=None, description="If the episode compares starting later: the delay in years")
     currency: str = Field(default="USD", description="3-letter currency code")
+    labels: Optional[list[str]] = Field(default=None, description="Exactly two, <= 20 characters: the two curves, e.g. ['Start at 25', 'Start at 35']")
+    start_ages: Optional[list[int]] = Field(default=None, description="Exactly two ages, if the episode gives them")
     quote: str = Field(description="The exact words with the numbers, <= 120 characters")
     quote_t: float = Field(description="Start second of the quoted line")
 
@@ -90,6 +107,7 @@ class MapOut(BaseModel):
     reason: str = Field(description="<= 120 characters: why this episode does or does not get a map")
     category: Literal[CATEGORIES]  # type: ignore[valid-type]
     layout: Literal[LAYOUTS]  # type: ignore[valid-type]
+    suspense: bool = Field(default=False, description="True for crime, thriller and mystery: spoiler locks apply")
     title: str = Field(description="<= 48 characters")
     summary: str = Field(description="<= 120 characters: what the picture shows")
     groups: list[MapGroup] = Field(default_factory=list)
@@ -125,7 +143,9 @@ the transcript.
      ("Results in 7 days?").
    - detail: one or two short sentences of what the episode said, numbers as said.
    - kind: step (something to do), claim (a checkable statement; reference its claim card),
-     event (something that happened), person, number (a stated figure), idea.
+     event (something that happened), person, number (a figure the speaker states or works out:
+     an example, a sum, a total; give it `value` {n, unit} with a short unit such as "USD", "%" or
+     "years" and NO claim ref, because arithmetic gets no verdict), idea.
    - t: the start second of the line where it is first said, taken from the cards' evidence or the
      transcript timestamps; t1: the end of that stretch. Never guess a time.
    - refs: the ids of the cards it comes from. A claim node must reference its claim card (its
@@ -135,6 +155,16 @@ the transcript.
    - when (timeline only): the story time as said, at most 16 characters ("10:14 PM", "Midnight",
      "July 20, 1969"), else null. value (compare only): {n, unit} only when the episode states the
      number.
+   - icon (optional): for tech flows and how-things-work explainers, one glyph per node from: tv,
+     phone, wifi, router, server, cloud, database, chip, lock, globe, moon, sun, pill, thermometer,
+     clock, money, chart, person, document, rocket, flag, camera, footprint. Pick the thing the step
+     is about; leave it null when none fits.
+   - image (optional): only if a card in the CARDS list shows an `image` url for this person or
+     place, copy that url and credit exactly. NEVER write a url yourself or guess one; with no
+     verified url the image is null.
+   - phase (optional, health and routines): day, evening, night or morning, only when the episode
+     says or clearly implies when the step happens (midday sleep = day; what you do in bed = night).
+     Otherwise null.
    Labels say only what the episode says. Merge what belongs together (one node for a pair of
    supplements taken together, not one per pill); leave out what does not connect to anything.
 5. Edges, at most 16: `then` (sequence), `because` (cause), `supports`, `contradicts` (a record
@@ -148,7 +178,15 @@ the transcript.
      quote_t = that line's start.
    - `growth` on the node about money growing, only when the episode states the numbers: start
      and/or monthly amount, yearly rate, years, and later_years if it compares starting later.
+   - The numbers must be the ones SAID, with the quote carrying them: if the quote says 300 dollars
+     a month, 7 percent and 40 years, monthly is 300, rate_pct 7 and years 40 (code checks them
+     against your quote). For a start-now-or-later comparison set `labels` to two short names
+     ("Start at 25", "Start at 35", at most 20 characters) and `start_ages` to the two ages.
+   - For `night`, `steps` are evening actions the episode places before bed, as {label, offset_min
+     from -240 to 0, icon}: only when the episode gives the order or timing; never invent timing.
    Set the node's `sim` to the engine. Otherwise no sims at all.
+   Set `suspense` true for crime, thriller and mystery (where a node could spoil the ending); false
+   for health, finance, tech, history and motivation (code forces that too).
 7. Questions, 0 to 3: curiosity questions a viewer would ask at a node, each at most 100
    characters, at a time t after that node was said. They must not reveal anything said after t.
 8. title at most 48 characters, summary at most 120 (what the picture shows), reason at most 120.
@@ -170,6 +208,9 @@ def card_rows(widgets: list[dict]) -> str:
             line += f" | verdict {w.get('verdict', 'UNVERIFIED')} | said: {w.get('claim')}"
         elif w["type"] == "dossier":
             line += f" | {w.get('name')}: {w.get('role')}"
+            img = w.get("image")
+            if isinstance(img, dict) and img.get("url"):
+                line += f" | image {img['url']} | credit {img.get('credit', '')}"
         parts = []
         for st in w.get("steps") or []:
             parts.append(f"step '{st.get('label')}' ({st.get('detail', '')}) at {_ev(st.get('evidence'))}")
@@ -209,27 +250,41 @@ def to_explore(out: MapOut, tr: dict) -> dict:
         t, t1 = (ev["t0"], ev["t1"]) if ev else (n.t, n.t1)
         nodes.append({"id": n.id, "group": n.group, "kind": n.kind, "label": n.label, "detail": n.detail,
                       "t": t, "t1": t1, "when": n.when, "value": n.value.model_dump() if n.value else None,
-                      "verdict": None, "refs": n.refs, "sim": n.sim})
+                      "verdict": None, "refs": n.refs, "sim": n.sim, "icon": n.icon,
+                      "image": n.image.model_dump() if n.image else None, "phase": n.phase})
     sims = []
     for s in out.sims:
         if s.engine == "night" and s.night:
             p = s.night
             params = {"cycleMinutes": p.cycle_minutes, "cycles": p.cycles, "bedtime": _bedtime(p.bedtime),
-                      "quote": p.quote, "quoteT": _quote_t(tr, p.quote, p.quote_t)}
+                      "quote": p.quote, "quoteT": _quote_t(tr, p.quote, p.quote_t),
+                      "steps": [{"label": st.label, "offsetMin": st.offset_min, "icon": st.icon} for st in p.steps]}
         elif s.engine == "growth" and s.growth:
             p = s.growth
             params = {"start": p.start, "monthly": p.monthly, "ratePct": p.rate_pct, "years": p.years,
                       "laterYears": p.later_years or 0, "currency": p.currency, "quote": p.quote,
-                      "quoteT": _quote_t(tr, p.quote, p.quote_t)}
+                      "quoteT": _quote_t(tr, p.quote, p.quote_t), "labels": p.labels, "startAges": p.start_ages}
         else:
             continue
         sims.append({"id": s.engine, "engine": s.engine, "title": s.title, "params": params})
     return {"eligible": out.eligible, "reason": out.reason, "category": out.category, "layout": out.layout,
-            "title": out.title, "summary": out.summary,
+            "suspense": out.suspense, "title": out.title, "summary": out.summary,
             "groups": [g.model_dump() for g in out.groups], "nodes": nodes,
             "edges": [{"from": e.source, "to": e.target, "kind": e.kind, "label": e.label} for e in out.edges],
             "sims": sims,
             "questions": [{"nodeId": q.node_id, "t": askable_at(tr, q.t), "question": q.question} for q in out.questions]}
+
+
+def verified_images(explore: dict, widgets: list[dict]) -> dict:
+    """A node image survives only if the cards carry that exact url (the agent cannot browse Commons);
+    its credit is then the card's, not the agent's."""
+    known = {w["image"]["url"]: w["image"].get("credit") for w in widgets
+             if isinstance(w.get("image"), dict) and w["image"].get("url") and w["image"].get("credit")}
+    for n in explore.get("nodes") or []:
+        im = n.get("image")
+        if im is not None:
+            n["image"] = {"url": im["url"], "credit": known[im["url"]]} if im.get("url") in known else None
+    return explore
 
 
 def askable_at(tr: dict, t: float) -> float:
@@ -287,7 +342,7 @@ def author_map(tr: dict, segments: list[dict], widgets: list[dict], moments: lis
               f"KEY MOMENTS (from the curator):\n{mom_txt}\n\n"
               f"QUESTIONS ALREADY SUGGESTED (do not repeat or rephrase these):\n{asked_txt}\n\nDraw the map.")
     out = structured("map", system_blocks(shared, MAP), prompt, MapOut, max_tokens=4000)
-    explore = pin_questions(to_explore(out, tr), tr, pinned or [])
+    explore = pin_questions(verified_images(to_explore(out, tr), widgets), tr, pinned or [])
     return validate_map(explore, tr["durationSec"], widgets)
 
 

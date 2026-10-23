@@ -177,3 +177,87 @@ def test_map_questions_need_their_answer():
     kept = keep_answered(out, [{"question": "Does a cool room help?", "mapNode": "n3", "text": "x"}])
     assert kept["questions"] == out["questions"]
     assert keep_answered({"eligible": False, "reason": "r"}, []) == {"eligible": False, "reason": "r"}
+
+
+# ---- section 10 -----------------------------------------------------------------------------------
+
+COMMONS = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Neil_Armstrong_pose.jpg/330px-Neil_Armstrong_pose.jpg"
+
+
+def test_suspense_is_decided_by_code():
+    for cat, flag, want in [("crime", None, True), ("crime", False, True), ("health", True, False),
+                            ("finance", True, False), ("tech", True, False), ("history", True, False),
+                            ("motivation", True, False), ("scifi", True, True), ("other", True, True),
+                            ("other", None, False), ("scifi", False, False)]:
+        out, _ = validate_map(flow(category=cat, **({} if flag is None else {"suspense": flag})), 37.28, WIDGETS)
+        assert out.get("suspense", False) is want, (cat, flag)
+    out, problems = validate_map(flow(category="health", suspense=True), 37.28, WIDGETS)
+    assert "suspense" not in out and any("suspense" in p for p in problems)
+
+
+def test_icon_phase_image_are_checked():
+    m = flow()
+    m["nodes"][0].update(icon="moon", phase="night", image={"url": COMMONS, "credit": "NASA · Public domain · Wikimedia Commons"})
+    m["nodes"][1].update(icon="banana", phase="dusk", image={"url": COMMONS, "credit": " "})
+    m["nodes"][2].update(image={"url": "http://upload.wikimedia.org/x.jpg", "credit": "c"})
+    m["nodes"][3].update(image={"url": "https://example.com/x.jpg", "credit": "c"})
+    out, problems = validate_map(m, 37.28, WIDGETS)
+    n = out["nodes"]
+    assert (n[0]["icon"], n[0]["phase"], n[0]["image"]["url"]) == ("moon", "night", COMMONS)
+    for i in (1, 2, 3):
+        assert not {"icon", "phase", "image"} & set(n[i])
+    assert sum("dropped" in p for p in problems) >= 5
+    again, p2 = validate_map(copy.deepcopy(out), 37.28, WIDGETS)
+    assert again == out and p2 == []
+
+
+def test_number_nodes_never_carry_a_verdict():
+    m = flow(layout="compare", category="finance")
+    m["nodes"][3].update(kind="number", verdict="SUPPORTED", refs=["claims-s1-1"], value={"n": 144000, "unit": "USD"})
+    out, _ = validate_map(m, 37.28, WIDGETS)
+    assert out["nodes"][3]["verdict"] is None and out["nodes"][3]["value"] == {"n": 144000, "unit": "USD"}
+    m = flow()  # a number node keeps its value outside compare layouts too
+    m["nodes"][1].update(kind="number", value={"n": 90, "unit": "min"})
+    out, _ = validate_map(m, 37.28, WIDGETS)
+    assert out["nodes"][1]["value"] == {"n": 90, "unit": "min"}
+
+
+def test_night_steps():
+    m = flow()
+    m["sims"][0]["params"]["steps"] = [
+        {"label": "Room cooled", "offsetMin": -60, "icon": "thermometer"}, {"label": "Supplements", "offsetMin": -999, "icon": "x"},
+        {"label": "", "offsetMin": -5}, {"label": "Lights out", "offsetMin": 0}, {"label": "A", "offsetMin": -10},
+        {"label": "B", "offsetMin": -20}, {"label": "Too many", "offsetMin": -30}]
+    out, problems = validate_map(m, 37.28, WIDGETS)
+    steps = out["sims"][0]["params"]["steps"]
+    assert [s["offsetMin"] for s in steps] == [-240, -60, -10, 0]  # first 4 valid, sorted
+    assert steps[1] == {"label": "Room cooled", "offsetMin": -60, "icon": "thermometer"}
+    assert "icon" not in steps[0] and any("clamped" in p for p in problems)
+
+
+def test_growth_labels_start_ages_and_quote_check():
+    m = flow(layout="compare", category="finance")
+    m["nodes"][0]["sim"] = "growth"
+    quote = "Ana starts at 25. Both earn an average of 7 percent a year. 300 dollars a month."
+    params = {"start": 0, "monthly": 300, "ratePct": 7, "years": 40, "laterYears": 10, "currency": "USD",
+              "labels": ["Start at 25", "Start at 35"], "startAges": [25, 35], "quote": quote, "quoteT": 5}
+    m["sims"] = [{"id": "growth", "engine": "growth", "title": "Start at 25 or 35", "params": dict(params)}]
+    out, problems = validate_map(copy.deepcopy(m), 37.28, WIDGETS)
+    p = out["sims"][0]["params"]
+    assert p["labels"] == ["Start at 25", "Start at 35"] and p["startAges"] == [25, 35] and problems == []
+    # bad labels / ages are dropped, long labels are clipped
+    m["sims"][0]["params"].update(labels=["Start at 25", "x" * 40], startAges=[25, 500])
+    out, _ = validate_map(copy.deepcopy(m), 37.28, WIDGETS)
+    p = out["sims"][0]["params"]
+    assert len(p["labels"][1]) <= 20 and "startAges" not in p
+    m["sims"][0]["params"]["labels"] = ["only one"]
+    out, _ = validate_map(copy.deepcopy(m), 37.28, WIDGETS)
+    assert "labels" not in out["sims"][0]["params"]
+    # the quoted words say 300 a month: 80 contradicts them and the sim is dropped
+    m["sims"][0]["params"]["monthly"] = 80
+    out, problems = validate_map(copy.deepcopy(m), 37.28, WIDGETS)
+    assert out["sims"] == [] and any("contradicts" in p for p in problems)
+    # a quote without a readable number is not checked
+    m["sims"][0]["params"].update(monthly=80, quote="Three hundred a month.")
+    out, _ = validate_map(copy.deepcopy(m), 37.28, WIDGETS)
+    assert len(out["sims"]) == 1

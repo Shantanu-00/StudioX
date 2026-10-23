@@ -409,3 +409,33 @@ def test_ineligible_map_and_pinned_parsing(monkeypatch):
     with pytest.raises(ValueError):
         mapper.parse_pinned(["no separator"])
     assert "verdict UNVERIFIED" in mapper.card_rows(CRIME_CARDS) and "event [9:30 PM] Diner" in mapper.card_rows(CRIME_CARDS)
+
+
+def test_map_v2_fields_flow_through_and_images_must_be_on_a_card(monkeypatch):
+    tr = tr_science()
+    N = mapper.MapNode
+    url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Buzz_Aldrin.jpg/330px-Buzz_Aldrin.jpg"
+    card = {"id": "people-s1-1", "type": "dossier", "name": "Buzz Aldrin", "role": "Astronaut", "facts": [],
+            "evidence": [{"t0": 0.0, "t1": 30.0}], "image": {"url": url, "credit": "NASA · Public domain · Wikimedia Commons"}}
+    out = mapper.MapOut(
+        eligible=True, reason="A routine", category="health", layout="flow", title="Sleep", summary="s", suspense=True,
+        groups=[mapper.MapGroup(id="g1", title="Night")],
+        nodes=[N(id="n1", group="g1", kind="step", label="Sleep in 90-minute blocks", t=5.5, sim="night", phase="night",
+                 icon="moon", image=mapper.MapImage(url=url, credit="made up")),
+               N(id="n2", group="g1", kind="number", label="Seven and a half hours", t=13,
+                 value=mapper.MapValue(n=7.5, unit="h"),
+                 image=mapper.MapImage(url="https://upload.wikimedia.org/invented.jpg", credit="x")),
+               N(id="n3", group="g1", kind="step", label="Keep the room cool", t=30, icon="thermometer")],
+        edges=[mapper.MapEdge(source="n1", target="n2", kind="then"), mapper.MapEdge(source="n2", target="n3", kind="then")],
+        sims=[mapper.MapSim(engine="night", title="Plan your night", night=mapper.NightParams(
+            cycle_minutes=90, cycles=5, quote="Five ninety-minute cycles.", quote_t=5.5,
+            steps=[mapper.MapStep(label="Room cooled", offset_min=-60, icon="thermometer")]))])
+    monkeypatch.setattr(mapper, "structured", lambda *a, **k: out)
+    ex, _ = mapper.author_map(tr, [], [card], [])
+    n = ex["nodes"]
+    assert (n[0]["phase"], n[0]["icon"]) == ("night", "moon")
+    assert n[0]["image"] == {"url": url, "credit": "NASA · Public domain · Wikimedia Commons"}  # credit from the card
+    assert "image" not in n[1] and n[1]["kind"] == "number" and n[1]["verdict"] is None
+    assert ex["sims"][0]["params"]["steps"] == [{"label": "Room cooled", "offsetMin": -60, "icon": "thermometer"}]
+    assert "suspense" not in ex  # health never locks, whatever the agent says
+    assert f"image {url}" in mapper.card_rows([card])
