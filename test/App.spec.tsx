@@ -5,8 +5,8 @@ import * as React from 'react';
 import {App} from '../src/App';
 
 describe('App', () => {
-  it('renders the root screen', () => {
+  it('opens on the intro sting', () => {
     const screen = render(<App />);
-    expect(screen.getByText('StudioX Playground')).toBeTruthy();
+    expect(screen.getByText('Press OK to skip')).toBeTruthy();
   });
 });
