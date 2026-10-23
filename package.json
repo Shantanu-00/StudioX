@@ -21,10 +21,18 @@
     "vvd:start": "vega virtual-device start",
     "vvd:stop": "vega virtual-device stop",
     "run:vvd": "vega run-app build/x86_64-debug/studiox_x86_64.vpkg com.studiox.app.main -d VirtualDevice",
+    "run:vvd:release": "vega run-app build/x86_64-release/studiox_x86_64.vpkg com.studiox.app.main -d VirtualDevice",
     "rebuild": "bash scripts/rebuild-and-run.sh"
   },
   "dependencies": {
+    "@amazon-devices/kepler-media-controls": "~1.0.25",
+    "@amazon-devices/kepler-ui-components": "~3.2.0",
     "@amazon-devices/react-native-kepler": "~4.0.0",
+    "@amazon-devices/react-native-reanimated": "~4.0.0",
+    "@amazon-devices/react-native-svg": "~3.0.0",
+    "@amazon-devices/react-native-w3cmedia": "~2.3.2",
+    "@amazon-devices/react-native-worklets": "~1.0.0",
+    "qrcode-generator": "^2.0.4",
     "react": "19.2.0",
     "react-native": "0.83.0"
   },
@@ -32,8 +40,8 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "@amazon-devices/kepler-cli-platform": "^0",
     "@amazon-devices/eslint-plugin-kepler": "^0.1.4",
+    "@amazon-devices/kepler-cli-platform": "^0",
     "@react-native-community/cli": "20.0.0",
     "@react-native/babel-preset": "0.83.0",
     "@react-native/eslint-config": "0.83.0",
@@ -62,6 +70,6 @@
       "tv"
     ]
   },
-  "description": "StudioX: AI-enhanced viewing and practice app for Fire TV on Vega OS.",
+  "description": "StudioX: AI podcast co-viewing app for Fire TV on Vega OS.",
   "license": "MIT"
 }

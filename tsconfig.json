@@ -3,4 +3,6 @@
     "compilerOptions": {
         "types": ["jest", "@amazon-devices/react-native-kepler"], // Override "jest", "react-native" from @react-native/typescript-config
     },
+    // The CDK app (backend/infra) has its own tsconfig; the web apps are plain JS.
+    "exclude": ["node_modules", "backend", "webapp", "companion", "build"],
 }
