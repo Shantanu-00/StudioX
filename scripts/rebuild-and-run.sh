@@ -27,6 +27,7 @@ echo "[3/4] starting emulator"
 vega virtual-device start --timeout 300
 
 echo "[4/4] installing and launching"
-vega run-app "$VPKG" "$APP_ID" -d VirtualDevice
+# "Virtual device ready" can come before run-app can see the device: retry once.
+vega run-app "$VPKG" "$APP_ID" -d VirtualDevice || { sleep 20; vega run-app "$VPKG" "$APP_ID" -d VirtualDevice; }
 free -h | sed -n 2p
 echo "Done."

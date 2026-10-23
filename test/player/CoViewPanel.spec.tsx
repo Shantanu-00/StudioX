@@ -10,6 +10,8 @@ import {
   WINDOW_AFTER,
 } from '../../src/analysis/composer';
 import {localPackage} from '../../src/analysis/packageLoader';
+import {Widget} from '../../src/analysis/schema';
+import {simForWidget} from '../../src/map/sims';
 import {
   AnswerState,
   CoViewPanel,
@@ -124,6 +126,32 @@ describe('CoViewPanel details', () => {
     ).screen;
     fireEvent.press(paired.getByTestId('share-protocol-s1-1'));
     expect(send).toHaveBeenCalledWith('protocol-s1-1');
+  });
+
+  it('offers “Try it” first on the sleep routine when the Map has its sim', () => {
+    const view = {kind: 'card', id: 'protocol-s1-1'};
+    const onTry = jest.fn();
+    const explore = science.explore!;
+    const {screen} = setup(
+      {view, onTry, onBack: jest.fn(), simFor: (w: Widget) => simForWidget(explore, w)},
+      science,
+      12,
+    );
+    const tryIt = screen.getByTestId('try-protocol-s1-1');
+    expect(screen.getByText('Try it: Plan your night')).toBeTruthy();
+    expect(tryIt.props.hasTVPreferredFocus).toBe(true);
+    expect(screen.getByTestId('detail-back').props.hasTVPreferredFocus).toBeFalsy();
+    fireEvent.press(tryIt);
+    expect(onTry).toHaveBeenCalledWith('night');
+    // A card no sim belongs to has no Try it.
+    const claim = setup(
+      {view: {kind: 'card', id: 'claims-s1-1'}, onTry, simFor: (w: Widget) => simForWidget(explore, w)},
+      science,
+      12,
+    ).screen;
+    expect(claim.queryByTestId('try-claims-s1-1')).toBeNull();
+    // Without the Map wiring there is no Try it either.
+    expect(setup({view}, science, 12).screen.queryByTestId('try-protocol-s1-1')).toBeNull();
   });
 
   it('shows an answer with a Jump action and sources folded away', () => {

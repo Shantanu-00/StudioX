@@ -33,7 +33,7 @@ import {
   provenanceLine,
   usePackage,
 } from '../analysis/packageLoader';
-import {ClaimWidget, EpisodeAnalysis} from '../analysis/schema';
+import {ClaimWidget, EpisodeAnalysis, Widget} from '../analysis/schema';
 import {FocusFrame} from '../components/FocusFrame';
 import {Episode} from '../data/episodes';
 import {useLink} from '../hooks/useLink';
@@ -57,6 +57,7 @@ import {
 } from '../player/useCoViewer';
 import {resumePosition, useVideoPlayer} from '../player/useVideoPlayer';
 import {FRAME, MapScreen} from '../map/MapScreen';
+import {simForWidget} from '../map/sims';
 import {AccentDot, alarming} from '../widgets/parts';
 import {colors, motion, numeric, radius, space, type} from '../theme';
 
@@ -157,6 +158,10 @@ export const Player = ({episode, startWithMap, onExit, registerBack}: Props) => 
   mapOpenRef.current = mapOpen;
   const mapBack = useRef<(() => boolean) | null>(null);
   const panelBeforeMap = useRef(false);
+  // A sim opened from a panel card ("Try it"): the Map opens straight into
+  // it, and leaving it reopens the panel on that card's detail.
+  const [mapSim, setMapSim] = useState<string | null>(null);
+  const panelReturn = useRef<{view: PanelView; focusKey: string | null} | null>(null);
   const seekRef = useRef<SeekBarHandle>(null);
   const leaving = useRef(false);
   const pauseForExit = pl.pauseForExit;
@@ -310,27 +315,39 @@ export const Player = ({episode, startWithMap, onExit, registerBack}: Props) => 
     pl.status === 'ready' && !paused && !panelOpen && !mapOpen,
   );
 
-  // Map: pause first if playing, then open it at the paused playhead.
-  const openMap = useCallback(() => {
+  // Map: pause first if playing, then open it at the paused playhead;
+  // with `sim`, straight into that simulation.
+  const openMap = useCallback((sim?: string) => {
     panelBeforeMap.current = panelOpen;
+    panelReturn.current = sim && panelOpen ? {view, focusKey} : null;
+    setMapSim(sim ?? null);
     setPanelOpen(false);
     closeAnswer();
     if (!pl.store.get().paused) {
       pl.pause();
     }
     const t = pl.store.get().t;
-    console.warn(`[map] open at ${t}`);
+    console.warn(`[map] open at ${t}${sim ? ` in sim ${sim}` : ''}`);
     setMapT(t);
-  }, [pl, panelOpen, closeAnswer]);
-  // BACK out of the Map: the same paused position, with what was there.
+  }, [pl, panelOpen, view, focusKey, closeAnswer]);
+  // BACK out of the Map: the same paused position, with what was there. Out
+  // of a sim opened from a card: that card's detail, its Try it focused.
   const closeMap = useCallback(() => {
     setMapT(null);
-    if (panelBeforeMap.current) {
+    const ret = panelReturn.current;
+    panelReturn.current = null;
+    if (ret) {
+      setPanelT(pl.store.get().t);
+      setView(ret.view);
+      setFocusKey(ret.focusKey);
+      setPanelOpen(true);
+      console.warn(`[panel] back from sim to ${ret.view.kind}`);
+    } else if (panelBeforeMap.current) {
       openPanel();
     } else {
       setTimeout(() => seekRef.current?.requestTVFocus(), 0);
     }
-  }, [openPanel]);
+  }, [openPanel, pl.store]);
   const playFrom = useCallback(
     (t: number | null) => {
       setMapT(null);
@@ -453,6 +470,8 @@ export const Player = ({episode, startWithMap, onExit, registerBack}: Props) => 
     ? {left: 0, top: videoTop, width: videoW, height: videoH}
     : {left: 0, top: 0, width: win.width, height: win.height};
   const explore = analysis.explore;
+  // A panel card's Map simulation, for its "Try it" action.
+  const simFor = useCallback((w: Widget) => simForWidget(explore, w), [explore]);
   const sideRight = panelOpen ? PANEL_W + space.l : space.safeX;
 
   return (
@@ -530,7 +549,9 @@ export const Player = ({episode, startWithMap, onExit, registerBack}: Props) => 
         view={view}
         onView={onView}
         focusKey={focusKey}
-        onMap={explore ? openMap : undefined}
+        onMap={explore ? () => openMap() : undefined}
+        simFor={explore ? simFor : undefined}
+        onTry={explore ? openMap : undefined}
         asks={asks}
         onAsk={onAsk}
         answer={answer}
@@ -554,6 +575,7 @@ export const Player = ({episode, startWithMap, onExit, registerBack}: Props) => 
           onKeepWatching={() => playFrom(null)}
           onClose={closeMap}
           registerBack={registerMapBack}
+          initialSim={mapSim}
         />
       ) : null}
 

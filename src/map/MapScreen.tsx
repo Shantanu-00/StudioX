@@ -40,6 +40,7 @@ import {
   nodeSources,
 } from './mapData';
 import {NightSim} from './NightSim';
+import {quoteSpeaker} from './sims';
 import {NodeSheet, SHEET_W} from './NodeSheet';
 import {Backdrop} from './scene/Backdrop';
 import {fitCaption, fitHeader, SizeName} from './scene/measure';
@@ -80,6 +81,9 @@ export interface MapScreenProps {
   onClose: () => void;
   // The Map claims BACK: sim → answer → sheet → step mode → story → leave.
   registerBack: (handler: (() => boolean) | null) => void;
+  // Open straight into this sim (the player panel's "Try it"). Done or BACK
+  // from it leaves the Map (`onClose`) instead of showing the map.
+  initialSim?: string | null;
 }
 
 interface SheetState {
@@ -102,6 +106,7 @@ export const MapScreen = ({
   onKeepWatching,
   onClose,
   registerBack,
+  initialSim = null,
 }: MapScreenProps) => {
   const win = useWindowDimensions();
   const W = Math.round(win.width);
@@ -154,7 +159,12 @@ export const MapScreen = ({
   const [mode, setMode] = useState<'map' | 'step'>('map');
   const [step, setStep] = useState(0);
   const [sheet, setSheet] = useState<SheetState | null>(null);
-  const [simId, setSimId] = useState<string | null>(null);
+  // Opened straight into a sim: leaving it leaves the Map.
+  const [openedSim] = useState(() =>
+    initialSim && explore.sims.some((s) => s.id === initialSim) ? initialSim : null,
+  );
+  const simOnly = openedSim !== null;
+  const [simId, setSimId] = useState<string | null>(openedSim);
   // The piece focused last, and the one to focus when the map mounts again.
   // A fresh map starts on Play (or the first piece when there is no story).
   const lastFocus = useRef<string | null>(null);
@@ -250,10 +260,14 @@ export const MapScreen = ({
     setSimId(id);
   }, []);
   const closeSim = useCallback(() => {
+    if (simOnly) {
+      onClose();
+      return;
+    }
     setSimId(null);
     setSheet((s) => (s ? {...s, focusAction: 'try'} : s));
     setMountFocus(lastFocus.current);
-  }, []);
+  }, [simOnly, onClose]);
 
   // BACK, and LEFT on the sheet: sim → answer → sheet → step mode → a
   // playing story → leave the map.
@@ -316,10 +330,12 @@ export const MapScreen = ({
         params={sim.params}
         source={sourceTitle}
         hasVideo={hasVideo}
+        speaker={quoteSpeaker(widgets, sim.params.quoteT)}
         paired={share.paired}
         sendStatus={share.statusOf(`night-${sim.id}`)}
         onSend={(card) => share.send(`night-${sim.id}`, card)}
         onDone={closeSim}
+        backTo={simOnly ? 'episode' : 'map'}
         theme={theme}
       />
     ) : (
@@ -330,6 +346,7 @@ export const MapScreen = ({
         hasVideo={hasVideo}
         onDone={closeSim}
         theme={theme}
+        backTo={simOnly ? 'episode' : 'map'}
       />
     );
   }

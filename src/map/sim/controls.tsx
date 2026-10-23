@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {StyleProp, StyleSheet, Text, View, ViewStyle} from 'react-native';
+import {Pressable, StyleProp, StyleSheet, Text, View, ViewStyle} from 'react-native';
 import {useKeplerAppStateManager} from '@amazon-devices/react-native-kepler';
 import Animated, {
   Easing,
@@ -189,6 +189,104 @@ export const ValueControl = React.forwardRef<View, ValueProps>(
   },
 );
 
+interface TileProps {
+  testID: string;
+  label: string;
+  value: string;
+  // A smaller value, for a secondary tile.
+  small?: boolean;
+  accessibilityLabel: string;
+  theme: MapTheme;
+  changedSeq: number | null;
+  nextFocus: NextFocus;
+  hasTVPreferredFocus?: boolean;
+  onFocus: () => void;
+  style?: StyleProp<ViewStyle>;
+}
+
+// Vega's Pressable implements nextFocus*, its types omit them.
+const focusProps = (n: NextFocus): object => ({
+  nextFocusUp: n.up,
+  nextFocusDown: n.down,
+  nextFocusLeft: n.left,
+  nextFocusRight: n.right,
+});
+
+// A value tile on a scene: label and value on the scene's surface. Focused:
+// a 2 dp white ring and ◀ ▶ beside the label (the text keeps its colours, so
+// the scene stays dark). Changed: an accent edge and a short accent flash.
+export const ValueTile = React.forwardRef<View, TileProps>(
+  (
+    {
+      testID,
+      label,
+      value,
+      small,
+      accessibilityLabel,
+      theme,
+      changedSeq,
+      nextFocus,
+      hasTVPreferredFocus,
+      onFocus,
+      style,
+    },
+    ref,
+  ) => {
+    const [focused, setFocused] = useState(false);
+    const flash = useSharedValue(0);
+    useEffect(() => {
+      if (changedSeq !== null) {
+        flash.value = 0.55;
+        flash.value = withTiming(0, {duration: FLASH_MS, easing: Easing.out(Easing.quad)});
+      }
+    }, [changedSeq, flash]);
+    const flashStyle = useAnimatedStyle(() => ({opacity: flash.value}));
+    const changed = changedSeq !== null;
+    return (
+      <Pressable
+        ref={ref}
+        testID={testID}
+        accessibilityRole="adjustable"
+        accessibilityLabel={accessibilityLabel}
+        hasTVPreferredFocus={hasTVPreferredFocus}
+        {...focusProps(nextFocus)}
+        style={style}
+        onFocus={() => {
+          setFocused(true);
+          onFocus();
+        }}
+        onBlur={() => setFocused(false)}>
+        <View
+          style={[
+            styles.vtile,
+            {
+              backgroundColor: changed ? theme.accentSoft : theme.surface,
+              borderColor: focused ? theme.ring : changed ? theme.accent : theme.line,
+            },
+          ]}>
+          <Animated.View
+            pointerEvents="none"
+            style={[styles.flash, {backgroundColor: theme.accent}, flashStyle]}
+          />
+          <View style={styles.vtileHead}>
+            <Text style={[styles.tileLabel, styles.vtileLabel, {color: theme.inkSoft}]}>
+              {label}
+            </Text>
+            <Text
+              style={[styles.vtileKeys, {color: theme.ink}, focused ? styles.shown : styles.hidden]}
+              testID={`${testID}-keys`}>
+              ◀ ▶
+            </Text>
+          </View>
+          <Text style={[small ? styles.vtileSmall : styles.vtileValue, {color: theme.ink}]}>
+            {value}
+          </Text>
+        </View>
+      </Pressable>
+    );
+  },
+);
+
 interface ButtonProps {
   testID: string;
   label: string;
@@ -255,6 +353,20 @@ const styles = StyleSheet.create({
   arrow: {...type.caption, marginHorizontal: 6},
   note: {...type.caption},
   noteStrong: {...type.captionStrong},
+  vtile: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.row,
+    borderWidth: 2,
+    overflow: 'hidden',
+  },
+  vtileHead: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'},
+  vtileLabel: {flexShrink: 1, marginRight: 6},
+  vtileKeys: {...type.caption},
+  shown: {opacity: 1},
+  hidden: {opacity: 0},
+  vtileValue: {...type.title, ...numeric},
+  vtileSmall: {...type.headline, ...numeric, marginTop: 3, marginBottom: 2},
   button: {
     height: 36,
     paddingHorizontal: space.m,

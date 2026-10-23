@@ -16,6 +16,8 @@ import {
   growthStep,
   growthTop,
   hoursAndMinutes,
+  hypnogram,
+  hypnogramY,
   money,
   moneyArrow,
   moneyChange,
@@ -28,12 +30,17 @@ import {
   nightLayout,
   nightPlan,
   nightSentence,
+  nightStages,
   nightStep,
   offsetText,
   percent,
+  quoteSpeaker,
   shortDuration,
   signedDuration,
+  simForWidget,
   stackLabels,
+  stageAt,
+  stageReadout,
   stepMarkers,
   valueTicks,
   waveDepth,
@@ -42,7 +49,7 @@ import {
 import {nightReminderCard, nodeShareCard, valueText} from '../../src/map/mapData';
 import {NightSim} from '../../src/map/NightSim';
 import {GrowthSim} from '../../src/map/GrowthSim';
-import {GrowthParams, NightParams} from '../../src/analysis/schema';
+import {Explore, ExploreSim, GrowthParams, NightParams, Widget} from '../../src/analysis/schema';
 
 describe('night', () => {
   it('wakes at the end of the last whole cycle', () => {
@@ -155,6 +162,115 @@ describe('night', () => {
     const d = crescentPath(16, 16, 14);
     expect(d.match(/A/g)).toHaveLength(2);
     expect(d.endsWith('Z')).toBe(true);
+  });
+});
+
+describe('night stages', () => {
+  it('fills each cycle exactly: deep sleep early, REM late', () => {
+    const spans = nightStages(5, 90);
+    expect(spans[0]).toEqual({stage: 'light', start: 0, end: spans[0].end, cycle: 0});
+    for (let i = 1; i < spans.length; i++) {
+      expect(spans[i].start).toBe(spans[i - 1].end); // contiguous
+    }
+    expect(spans[spans.length - 1].end).toBe(450);
+    const of = (stage: string, c: number) =>
+      spans
+        .filter((s) => s.stage === stage && s.cycle === c)
+        .reduce((n, s) => n + s.end - s.start, 0);
+    for (let c = 0; c < 5; c++) {
+      expect(spans.filter((s) => s.cycle === c).reduce((n, s) => n + s.end - s.start, 0)).toBe(90);
+    }
+    expect(of('deep', 0)).toBeGreaterThan(of('deep', 3));
+    expect(of('rem', 4)).toBeGreaterThan(of('rem', 0));
+    expect(of('deep', 4)).toBe(0);
+    // Shorter cycles scale the stages and still fill exactly.
+    const short = nightStages(3, 60);
+    expect(short[short.length - 1].end).toBe(180);
+    expect(short.every((s) => s.end > s.start)).toBe(true);
+  });
+
+  it('knows the stage at a minute and says it in one line', () => {
+    const spans = nightStages(5, 90);
+    const plan = nightPlan(1380, 5, 90);
+    expect(stageAt(spans, 0)).toEqual({stage: 'light', cycle: 0});
+    const rem = spans.find((s) => s.stage === 'rem' && s.cycle === 2)!;
+    expect(stageAt(spans, rem.start)).toEqual({stage: 'rem', cycle: 2});
+    expect(stageReadout(spans, rem.start, plan)).toBe('REM · dreaming · cycle 3 of 5');
+    expect(stageAt(spans, 450)).toEqual({stage: 'awake', cycle: 4});
+    expect(stageReadout(spans, 450, plan)).toBe('Awake at 06:30 · 5 full cycles');
+    expect(stageAt([], 10)).toEqual({stage: 'awake', cycle: 0});
+  });
+
+  it('draws the hypnogram from awake to awake, and follows it', () => {
+    const spans = nightStages(5, 90);
+    const g = hypnogram(spans, 800, 24);
+    expect(g.path.startsWith('M0 0 L0 48')).toBe(true); // awake, then light
+    expect(g.path.endsWith('L800 0')).toBe(true);
+    expect(g.xs[0]).toBe(0);
+    expect(g.xs[g.xs.length - 1]).toBe(1);
+    expect(g.xs).toHaveLength(g.ys.length);
+    const deep = spans.find((s) => s.stage === 'deep')!;
+    const mid = (deep.start + deep.end) / 2 / 450;
+    expect(hypnogramY(g.xs, g.ys, mid)).toBe(72);
+    expect(hypnogramY(g.xs, g.ys, 1)).toBe(0);
+    expect(hypnogramY(g.xs, g.ys, -1)).toBe(0);
+  });
+});
+
+describe('sims from the player panel', () => {
+  const night: ExploreSim = {
+    id: 'night',
+    engine: 'night',
+    title: 'Plan your night',
+    params: {cycleMinutes: 90, cycles: 5, bedtime: 1380, quote: null, quoteT: null, steps: []},
+  };
+  const growth: ExploreSim = {
+    id: 'growth',
+    engine: 'growth',
+    title: 'See it grow',
+    params: {
+      start: 0,
+      monthly: 300,
+      ratePct: 7,
+      years: 40,
+      laterYears: 10,
+      currency: 'USD',
+      quote: null,
+      quoteT: null,
+      labels: null,
+      startAges: null,
+    },
+  };
+  const node = (id: string, sim: string | null, refs: string[]) =>
+    ({id, sim, refs} as unknown as Explore['nodes'][number]);
+  const protocol = (id: string, title: string) =>
+    ({id, type: 'protocol', title, steps: [], evidence: []} as unknown as Widget);
+  const claim = (id: string, text: string, speaker = 'Dr. Julian', t0 = 0, t1 = 5) =>
+    ({id, type: 'claim', claim: text, speaker, context: '', evidence: [{t0, t1}]} as unknown as Widget);
+
+  it('links a card to the sim of a Map node that cites it', () => {
+    const explore = {sims: [night], nodes: [node('n1', 'night', ['protocol-1'])]};
+    expect(simForWidget(explore, protocol('protocol-1', 'A routine'))?.id).toBe('night');
+    // A night sim is only for a protocol; nothing for other cards.
+    expect(simForWidget(explore, claim('protocol-1', 'Sleep more'))).toBeNull();
+    expect(simForWidget(null, protocol('protocol-1', 'A routine'))).toBeNull();
+  });
+
+  it('falls back to a single sim whose card reads like its topic', () => {
+    const explore = {sims: [night, growth], nodes: []};
+    expect(simForWidget(explore, protocol('p', 'R90 sleep routine'))?.id).toBe('night');
+    expect(simForWidget(explore, claim('c', 'Saving early beats investing late'))?.id).toBe(
+      'growth',
+    );
+    expect(simForWidget(explore, protocol('p', 'Cold showers'))).toBeNull();
+  });
+
+  it('names the quote’s speaker', () => {
+    const widgets = [claim('a', 'x', 'Dr. Julian', 6, 11), claim('b', 'y', 'Host', 1, 4)];
+    expect(quoteSpeaker(widgets, 2)).toBe('Host');
+    expect(quoteSpeaker(widgets, 30)).toBeNull(); // two speakers, none at that moment
+    expect(quoteSpeaker([claim('a', 'x')], 30)).toBe('Dr. Julian');
+    expect(quoteSpeaker([], null)).toBeNull();
   });
 });
 
@@ -315,40 +431,79 @@ describe('sim screens', () => {
         params: night,
         source: 'Elite Recovery Protocols',
         hasVideo: true,
+        speaker: 'Dr. Julian',
         paired: false,
         sendStatus: 'idle',
         onSend: jest.fn(),
         onDone,
       }),
     );
-    const headline = () => screen.getByTestId('night-headline').props.children;
-    expect(headline()).toBe('Lights out 23:00 → wake 06:30: 5 full cycles, 7 h 30 m');
-    expect(screen.getByText('Magnesium')).toBeTruthy();
-    press('right'); // the first control, lights out, has focus
-    expect(headline()).toBe('Lights out 23:15 → wake 06:45: 5 full cycles, 7 h 30 m');
-    expect(screen.getByTestId('night-delta').props.children).toBe(
-      'Wake 06:30 → 06:45 (+15 min)',
+    const text = (id: string) => screen.getByTestId(id).props.children;
+    // The prototype's layout: quote, tiles, the answer, the readout at waking.
+    expect(screen.getByText('“Five ninety-minute cycles.”')).toBeTruthy();
+    expect(screen.getByText('Dr. Julian · 0:05')).toBeTruthy();
+    expect(text('night-wake')).toBe('Wake at 06:30');
+    expect(text('night-asleep')).toBe('7 h 30 m asleep · the guest’s rule');
+    expect(text('night-readout')).toBe('Awake at 06:30 · 5 full cycles');
+    expect(text('night-clock')).toBe('06:30');
+    expect(screen.getByText('5 × 90')).toBeTruthy();
+    ['Awake', 'REM', 'Light', 'Deep', 'C1', 'C5', '23:00', '06:30'].forEach((t) =>
+      expect(screen.getAllByText(t).length).toBeGreaterThan(0),
     );
+    expect(screen.queryByTestId('night-send')).toBeNull(); // not paired
+    // Focus shows ◀ ▶ on the focused tile only.
+    fireEvent(screen.getByTestId('night-bedtime'), 'focus');
+    expect(screen.getByTestId('night-bedtime-keys').props.style).toEqual(
+      expect.arrayContaining([{opacity: 1}]),
+    );
+    expect(screen.getByTestId('night-cycles-keys').props.style).toEqual(
+      expect.arrayContaining([{opacity: 0}]),
+    );
+    press('right'); // the first tile, lights out, has focus
+    expect(text('night-wake')).toBe('Wake at 06:45');
+    expect(text('night-delta')).toBe('Wake 06:30 → 06:45 (+15 min)');
     fireEvent(screen.getByTestId('night-cycles'), 'focus');
     press('left');
-    expect(headline()).toBe('Lights out 23:15 → wake 05:15: 4 full cycles, 6 h');
-    expect(screen.getByTestId('night-delta').props.children).toBe(
-      '5 → 4 cycles · −1 h 30 m sleep',
-    );
+    expect(text('night-wake')).toBe('Wake at 05:15');
+    expect(text('night-delta')).toBe('5 → 4 cycles · −1 h 30 m sleep');
+    expect(screen.getByText('4 × 90')).toBeTruthy();
+    expect(screen.queryByText('C5')).toBeNull(); // the graph re-laid to four
     fireEvent(screen.getByTestId('night-length'), 'focus');
     press('right');
-    expect(screen.getByTestId('night-delta').props.children).toBe(
-      '90 → 95 min cycles · +20 min sleep',
-    );
-    // Play runs once (the Jest mock finishes it at once) and settles back.
+    expect(text('night-delta')).toBe('90 → 95 min cycles · +20 min sleep');
+    // Play runs once (the Jest mock finishes it at once) and rests at waking.
     fireEvent(screen.getByTestId('night-play'), 'focus');
     fireEvent.press(screen.getByTestId('night-play'));
     expect(screen.getByText('Play the night')).toBeTruthy();
+    expect(text('night-readout')).toBe('Awake at 05:35 · 4 full cycles');
     press('right'); // on Play, LEFT/RIGHT change nothing
-    expect(headline()).toBe('Lights out 23:15 → wake 05:35: 4 full cycles, 6 h 20 m');
-    fireEvent.press(screen.getByTestId('night-action'));
+    expect(text('night-wake')).toBe('Wake at 05:35');
+    fireEvent.press(screen.getByTestId('night-done'));
     expect(onDone).toHaveBeenCalled();
-    expect(screen.getByText('A coaching rule, not medical advice')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'R90 is a coaching method from sleep coach Nick Littlehales, not a clinical standard. Stages are illustrative, not your data. Not medical advice.',
+      ),
+    ).toBeTruthy();
+  });
+
+  it('night: sends the plan to a paired phone', () => {
+    const onSend = jest.fn();
+    const screen = render(
+      React.createElement(NightSim, {
+        title: 'Plan your night',
+        params: night,
+        source: 'Elite Recovery Protocols',
+        hasVideo: false,
+        paired: true,
+        sendStatus: 'idle',
+        onSend,
+        onDone: jest.fn(),
+      }),
+    );
+    fireEvent.press(screen.getByTestId('night-send'));
+    expect(onSend).toHaveBeenCalledWith(expect.objectContaining({type: 'reminder'}));
+    expect(screen.getByText('From the conversation')).toBeTruthy();
   });
 
   const growth: GrowthParams = {

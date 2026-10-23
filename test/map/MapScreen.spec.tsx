@@ -146,23 +146,40 @@ describe('MapScreen', () => {
     fireEvent.press(screen.getByTestId('map-node-n1'));
     fireEvent.press(screen.getByTestId('sheet-try'));
     expect(screen.getByTestId('night-sim')).toBeTruthy();
-    expect(screen.getByTestId('night-headline').props.children).toBe(
-      'Lights out 23:00 → wake 06:30: 5 full cycles, 7 h 30 m',
-    );
+    const wake = () => screen.getByTestId('night-wake').props.children;
+    expect(wake()).toBe('Wake at 06:30');
     press('right'); // bedtime +15 min
-    expect(screen.getByTestId('night-headline').props.children).toBe(
-      'Lights out 23:15 → wake 06:45: 5 full cycles, 7 h 30 m',
-    );
-    // UP/DOWN move between the controls; LEFT on Cycles is one fewer.
+    expect(wake()).toBe('Wake at 06:45');
+    // UP/DOWN move between the values; LEFT on Cycles is one fewer.
     fireEvent(screen.getByTestId('night-cycles'), 'focus');
     press('left');
-    expect(screen.getByTestId('night-headline').props.children).toBe(
-      'Lights out 23:15 → wake 05:15: 4 full cycles, 6 h',
+    expect(wake()).toBe('Wake at 05:15');
+    expect(screen.getByTestId('night-asleep').props.children).toBe(
+      '6 h asleep · the guest said 5 × 90',
     );
-    expect(screen.getByText('A coaching rule, not medical advice')).toBeTruthy();
+    expect(screen.getByText(/^R90 is a coaching method/)).toBeTruthy();
     back(); // sim → the node's sheet
     expect(screen.queryByTestId('night-sim')).toBeNull();
     expect(screen.getByTestId('map-sheet')).toBeTruthy();
+  });
+
+  it('opens straight into a sim from the player, and leaving it leaves the Map', () => {
+    const {screen, props, back} = setup({initialSim: 'night'});
+    expect(screen.getByTestId('night-sim')).toBeTruthy();
+    expect(screen.queryByTestId('map-screen')).toBeNull();
+    expect(screen.getByTestId('night-done').props.accessibilityLabel).toBe(
+      'Done, back to the episode',
+    );
+    back(); // BACK → the episode, not the map
+    expect(props.onClose).toHaveBeenCalledTimes(1);
+    fireEvent.press(screen.getByTestId('night-done'));
+    expect(props.onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores an unknown initial sim and shows the map', () => {
+    const {screen} = setup({initialSim: 'nope'});
+    expect(screen.queryByTestId('night-sim')).toBeNull();
+    expect(screen.getByTestId('map-screen')).toBeTruthy();
   });
 
   it('a cameo shows everything, offers no moment to play, and its growth sim', () => {

@@ -1,4 +1,4 @@
-import {GrowthParams} from '../analysis/schema';
+import {Explore, ExploreSim, GrowthParams, Widget} from '../analysis/schema';
 
 // The maths behind the Map's simulations. The catalog is compiled into the
 // TV: the AI picks an engine and its bounded parameters, the TV computes.
@@ -290,6 +290,196 @@ export function nextOccurrence(minutesAfterMidnight: number, now: Date): string 
     at.setDate(at.getDate() + 1);
   }
   return at.toISOString();
+}
+
+// ---- night: the stages of a night (illustrative) --------------------------------
+
+// The typical shape of a night, from the first R90 prototype: deep sleep
+// front-loaded, REM growing in later cycles. Minutes per 90-minute cycle,
+// scaled to the cycle length. Illustrative only, and labelled so on screen.
+export type SleepStage = 'awake' | 'rem' | 'light' | 'deep';
+const DEEP_90 = [35, 25, 12, 5, 0, 0];
+const REM_90 = [10, 16, 22, 28, 32, 34];
+const ONSET = 5; // light sleep at the start of each cycle
+
+export interface StageSpan {
+  stage: SleepStage;
+  start: number; // minutes after lights out
+  end: number;
+  cycle: number; // 0-based
+}
+
+export function nightStages(cycles: number, cycleMinutes: number): StageSpan[] {
+  const spans: StageSpan[] = [];
+  let t = 0;
+  const push = (stage: SleepStage, minutes: number, cycle: number) => {
+    if (minutes > 0) {
+      spans.push({stage, start: t, end: t + minutes, cycle});
+      t += minutes;
+    }
+  };
+  const k = cycleMinutes / 90;
+  for (let c = 0; c < cycles; c++) {
+    const deep = Math.round(DEEP_90[Math.min(c, DEEP_90.length - 1)] * k);
+    const rem = Math.round(REM_90[Math.min(c, REM_90.length - 1)] * k);
+    const light = Math.max(0, cycleMinutes - ONSET - deep - rem);
+    const before = Math.round(light * 0.6);
+    push('light', ONSET + before, c);
+    push('deep', deep, c);
+    push('light', light - before, c);
+    push('rem', rem, c);
+  }
+  return spans;
+}
+
+// Hypnogram rows, top to bottom.
+export const STAGE_ROWS: SleepStage[] = ['awake', 'rem', 'light', 'deep'];
+export const STAGE_ROW: Record<SleepStage, number> = {awake: 0, rem: 1, light: 2, deep: 3};
+export const STAGE_NAME: Record<SleepStage, string> = {
+  awake: 'Awake',
+  rem: 'REM',
+  light: 'Light',
+  deep: 'Deep',
+};
+const STAGE_WORDS: Record<SleepStage, string> = {
+  awake: 'Awake',
+  rem: 'REM · dreaming',
+  light: 'Light sleep',
+  deep: 'Deep sleep',
+};
+
+// The stage at a minute after lights out; awake before and after the night.
+export function stageAt(
+  spans: StageSpan[],
+  minute: number,
+): {stage: SleepStage; cycle: number} {
+  if (spans.length === 0 || minute < 0) {
+    return {stage: 'awake', cycle: 0};
+  }
+  const s = spans.find((x) => minute >= x.start && minute < x.end);
+  return s
+    ? {stage: s.stage, cycle: s.cycle}
+    : {stage: 'awake', cycle: spans[spans.length - 1].cycle};
+}
+
+// The line above the graph: "REM · dreaming · cycle 3 of 5", or at waking
+// "Awake at 06:15 · 5 full cycles".
+export function stageReadout(
+  spans: StageSpan[],
+  minute: number,
+  plan: Pick<NightPlan, 'cycles' | 'wake' | 'sleepMinutes'>,
+): string {
+  if (minute >= plan.sleepMinutes) {
+    return `Awake at ${clock(plan.wake)} · ${plan.cycles} full cycles`;
+  }
+  const at = stageAt(spans, minute);
+  return `${STAGE_WORDS[at.stage]} · cycle ${at.cycle + 1} of ${plan.cycles}`;
+}
+
+export interface Hypnogram {
+  path: string; // the stage line, in the chart's own space
+  xs: number[]; // its points, x as a fraction of the night (0..1)
+  ys: number[]; // and y in dp from the chart's top
+}
+
+// The stage line across a chart `w` wide, one row every `rowH`, starting and
+// ending awake.
+export function hypnogram(spans: StageSpan[], w: number, rowH: number): Hypnogram {
+  const total = spans.length ? spans[spans.length - 1].end : 0;
+  const xs: number[] = [0];
+  const ys: number[] = [0];
+  if (total > 0) {
+    spans.forEach((s) => {
+      const y = STAGE_ROW[s.stage] * rowH;
+      xs.push(s.start / total, s.end / total);
+      ys.push(y, y);
+    });
+  }
+  xs.push(1);
+  ys.push(0);
+  const path = xs
+    .map((x, i) => `${i ? 'L' : 'M'}${r1(x * w)} ${r1(ys[i])}`)
+    .join(' ');
+  return {path, xs, ys};
+}
+
+// The line's y at fraction f of the night. Runs on the UI thread too.
+export function hypnogramY(xs: number[], ys: number[], f: number): number {
+  'worklet';
+  const n = xs.length - 1;
+  if (f <= xs[0]) {
+    return ys[0];
+  }
+  if (f >= xs[n]) {
+    return ys[n]; // waking: on the awake row
+  }
+  for (let i = 1; i < xs.length; i++) {
+    if (xs[i] >= f) {
+      const span = xs[i] - xs[i - 1];
+      const t = span === 0 ? 1 : (f - xs[i - 1]) / span;
+      return ys[i - 1] + (ys[i] - ys[i - 1]) * t;
+    }
+  }
+  return ys[n];
+}
+
+// ---- sims from the player panel --------------------------------------------------
+
+const NIGHT_WORDS = /sleep|night|bed|r90/i;
+const GROWTH_WORDS = /sav(e|ing)|invest|compound|interest|retire|pension|money/i;
+
+const widgetText = (w: Widget) =>
+  w.type === 'protocol'
+    ? `${w.title} ${w.steps.map((s) => s.label).join(' ')}`
+    : w.type === 'claim'
+    ? `${w.claim} ${w.headline ?? ''}`
+    : '';
+
+// The simulation a panel card can open: a night sim for a protocol, a growth
+// sim for a protocol or a claim. A Map node that runs the sim and cites the
+// card links them; failing that, a single sim of the right engine whose card
+// reads like its topic.
+export function simForWidget(
+  explore: Pick<Explore, 'sims' | 'nodes'> | null | undefined,
+  w: Widget,
+): ExploreSim | null {
+  if (!explore || explore.sims.length === 0) {
+    return null;
+  }
+  const fits = (s: ExploreSim) =>
+    s.engine === 'night' ? w.type === 'protocol' : w.type === 'protocol' || w.type === 'claim';
+  const linked = explore.nodes
+    .filter((n) => n.sim && n.refs.includes(w.id))
+    .map((n) => explore.sims.find((s) => s.id === n.sim))
+    .find((s): s is ExploreSim => !!s && fits(s));
+  if (linked) {
+    return linked;
+  }
+  const text = widgetText(w);
+  for (const engine of ['night', 'growth'] as const) {
+    const of = explore.sims.filter((s) => s.engine === engine && fits(s));
+    const words = engine === 'night' ? NIGHT_WORDS : GROWTH_WORDS;
+    if (of.length === 1 && words.test(text)) {
+      return of[0];
+    }
+  }
+  return null;
+}
+
+// Who said the sim's quote: the claim whose evidence spans its moment, else
+// the only speaker the episode's claims name. Null when unknown.
+export function quoteSpeaker(widgets: Widget[], quoteT: number | null): string | null {
+  const claims = widgets.filter(
+    (w): w is Extract<Widget, {type: 'claim'}> => w.type === 'claim' && !!w.speaker,
+  );
+  if (quoteT !== null) {
+    const at = claims.find((c) => c.evidence.some((e) => quoteT >= e.t0 && quoteT <= e.t1));
+    if (at) {
+      return at.speaker;
+    }
+  }
+  const names = new Set(claims.map((c) => c.speaker));
+  return names.size === 1 ? [...names][0] : null;
 }
 
 // ---- growth: the same saving started now or later -----------------------------

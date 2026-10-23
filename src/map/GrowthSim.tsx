@@ -46,6 +46,8 @@ interface Props {
   hasVideo: boolean;
   onDone: () => void;
   theme?: MapTheme;
+  // Opened from the panel's "Try it" goes back to the episode, not the map.
+  backTo?: 'map' | 'episode';
 }
 
 // Layout on the 960 x 540 dp canvas.
@@ -81,6 +83,7 @@ export const GrowthSim = ({
   hasVideo,
   onDone,
   theme = themeFor('finance'),
+  backTo = 'map',
 }: Props) => {
   const win = useWindowDimensions();
   const W = Math.round(win.width);
@@ -394,7 +397,7 @@ export const GrowthSim = ({
         ref={register('done')}
         testID="growth-done"
         label="Done"
-        accessibilityLabel="Done, back to the map"
+        accessibilityLabel={`Done, back to the ${backTo === 'episode' ? 'episode' : 'map'}`}
         nextFocus={next('done', {up: 'years', left: 'play'})}
         onFocus={focusOn('done')}
         onPress={onDone}

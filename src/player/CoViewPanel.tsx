@@ -28,7 +28,7 @@ import Animated, {
 } from '@amazon-devices/react-native-reanimated';
 import {answerStamps, formatTime} from '../analysis/composer';
 import {headlineOf, jumpTarget, KIND_LABEL, nameLines} from '../analysis/cardText';
-import {Answer, DossierWidget, Source, Widget} from '../analysis/schema';
+import {Answer, DossierWidget, ExploreSim, Source, Widget} from '../analysis/schema';
 import {FocusFrame} from '../components/FocusFrame';
 import {colors, motion, numeric, radius, space, type} from '../theme';
 import {WidgetView} from '../widgets';
@@ -99,6 +99,10 @@ interface Props {
   share?: ShareContext;
   // Present when the episode has a Map: a "Map" action in the header.
   onMap?: () => void;
+  // The Map simulation a card can open ("Try it: Plan your night"), and
+  // opening it. Both present, a matching card's detail offers it first.
+  simFor?: (w: Widget) => ExploreSim | null;
+  onTry?: (simId: string) => void;
   // Leaves the open detail or answer for the list: the same step as BACK.
   // Without it a detail has no Back control and LEFT does nothing.
   onBack?: () => void;
@@ -687,11 +691,19 @@ const ShareAction = (props: {
   ) : null;
 };
 
-const JumpAction = ({t, onSeek}: {t: number; onSeek: (t: number) => void}) => (
+const JumpAction = ({
+  t,
+  preferred = true,
+  onSeek,
+}: {
+  t: number;
+  preferred?: boolean;
+  onSeek: (t: number) => void;
+}) => (
   <Action
     testID={`jump-${Math.floor(t)}`}
     label={`Jump to ${formatTime(t)}`}
-    preferred
+    preferred={preferred}
     onPress={() => onSeek(t)}
   />
 );
@@ -722,14 +734,26 @@ const CardDetail = ({w, ...p}: Props & {w: Widget}) => {
   const shareable = w.type === 'protocol' || w.type === 'entity_list';
   const locked = w.type === 'timeline' && timelineHasLocked(w, ctx);
   const playable = w.type === 'technique';
+  // A card a Map simulation belongs to: trying it is the first action.
+  const sim = p.onTry && p.simFor ? p.simFor(w) : null;
+  const onTry = p.onTry;
   return (
     <DetailFrame
       testID={`detail-${w.id}`}
       onBack={p.onBack}
-      backPreferred={t === null && !locked && !playable}
+      backPreferred={t === null && !locked && !playable && !sim}
       actions={
         <>
-          {t !== null ? <JumpAction t={t} onSeek={p.onSeek} /> : null}
+          {sim && onTry ? (
+            <Action
+              testID={`try-${w.id}`}
+              label={`Try it: ${sim.title}`}
+              accessibilityLabel={`Try it: ${sim.title}. Back returns here.`}
+              preferred
+              onPress={() => onTry(sim.id)}
+            />
+          ) : null}
+          {t !== null ? <JumpAction t={t} preferred={!sim} onSeek={p.onSeek} /> : null}
           {shareable ? (
             <ShareAction widgetId={w.id} title={headlineOf(w)} share={p.share} />
           ) : null}
@@ -738,7 +762,7 @@ const CardDetail = ({w, ...p}: Props & {w: Widget}) => {
               testID={`reveal-${w.id}`}
               label="Show what’s ahead"
               accessibilityLabel="Show what happens later in the story"
-              preferred={t === null}
+              preferred={t === null && !sim}
               onPress={() => p.onLocked(headlineOf(w))}
             />
           ) : null}
@@ -747,7 +771,7 @@ const CardDetail = ({w, ...p}: Props & {w: Widget}) => {
               testID={`play-${w.id}`}
               label={plays ? 'Play again' : 'Play'}
               accessibilityLabel={`Play the demonstration: ${w.title}`}
-              preferred={t === null}
+              preferred={t === null && !sim}
               onPress={() => setPlays((n) => n + 1)}
             />
           ) : null}
