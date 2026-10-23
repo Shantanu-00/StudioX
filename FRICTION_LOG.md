@@ -1,7 +1,7 @@
 # StudioX friction log: Vega OS, Builder Tools MCP, Vega Virtual Device and AWS
 
 > **For reviewers.** **48 friction entries** and **14 feature requests**, written *while* building
-> StudioX for Fire TV on Vega OS, 19–23 October 2026. Severity: **2 Critical, 20 Major,
+> StudioX for Fire TV on Vega OS, 19–23 October 2026. Severity: **2 Critical, 22 Major,
 > 24 Minor**. Every entry records something that really happened, with the exact error text,
 > command, tool version or file path. Where a cause is not confirmed, the entry says so.
 
